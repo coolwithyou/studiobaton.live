@@ -37,12 +37,6 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* BATON DEV 주황색 강조색 (#D57200) */
-  --color-tint: var(--tint);
-  --color-tint-strong: var(--tint-strong);
-  --color-tint-hover: var(--tint-hover);
-  --color-tint-subtle: var(--tint-subtle);
-  --color-tint-foreground: var(--tint-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -85,22 +79,16 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  /* BATON DEV 주황색 강조색 (#D57200) - 라이트모드 */
-  --tint: oklch(0.62 0.18 55);
-  --tint-strong: oklch(0.58 0.2 55);
-  --tint-hover: oklch(0.62 0.18 55 / 10%);
-  --tint-subtle: oklch(0.62 0.18 55 / 5%);
-  --tint-foreground: oklch(1 0 0);
 }
 
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
+  --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -110,7 +98,7 @@
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(0.269 0 0);
+  --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
@@ -119,18 +107,12 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.62 0.18 55);
-  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-  /* BATON DEV 주황색 강조색 (#D57200) - 다크모드 */
-  --tint: oklch(0.65 0.18 55);
-  --tint-strong: oklch(0.7 0.2 55);
-  --tint-hover: oklch(0.65 0.18 55 / 12%);
-  --tint-subtle: oklch(0.65 0.18 55 / 6%);
-  --tint-foreground: oklch(0.1 0 0);
 }
 
 @layer base {

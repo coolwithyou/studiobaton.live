@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  publishedPosts Post[]
+}
+
+model CommitLog {
+  id           String   @id @default(cuid())
+  sha          String   @unique
+  repository   String
+  message      String
+  author       String
+  authorEmail  String?
+  authorAvatar String?
+  committedAt  DateTime
+  additions    Int      @default(0)
+  deletions    Int      @default(0)
+  filesChanged Int      @default(0)
+  url          String
+
+  createdAt    DateTime @default(now())
+
+  post         Post?    @relation(fields: [postId], references: [id])
+  postId       String?
+
+  @@index([committedAt])
+  @@index([repository])
+}
+
+model Post {
+  id            String        @id @default(cuid())
+  targetDate    DateTime
+  status        PostStatus    @default(DRAFT)
+
+  title         String?
+  content       String?
+  summary       String?
+
+  versions      PostVersion[]
+  commits       CommitLog[]
+
+  publishedAt   DateTime?
+  publishedBy   Admin?        @relation(fields: [publishedById], references: [id])
+  publishedById String?
+
+  slug          String?       @unique
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([targetDate])
+  @@index([status])
+  @@index([publishedAt])
+}
+
+model PostVersion {
+  id         String      @id @default(cuid())
+  post       Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId     String
+
+  version    Int
+  title      String
+  content    String
+  summary    String?
+  tone       VersionTone
+
+  isSelected Boolean     @default(false)
+
+  createdAt  DateTime    @default(now())
+
+  @@unique([postId, version])
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum VersionTone {
+  PROFESSIONAL
+  CASUAL
+  TECHNICAL
+}

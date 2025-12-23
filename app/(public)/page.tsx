@@ -41,7 +41,7 @@ async function Timeline() {
   }
 
   return (
-    <div className="py-8">
+    <div className="space-y-4">
       {posts.map((post, index) => (
         <TimelineItem
           key={post.id}
@@ -62,12 +62,34 @@ async function Timeline() {
   );
 }
 
+function HeroSection() {
+  return (
+    <section className="py-10 md:py-14 border-b border-border/50 mb-8">
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+          ABOUT US
+        </p>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
+          <span className="text-tint">BATON</span>
+          <span className="text-foreground ml-1">DEV</span>
+        </h1>
+        <p className="text-muted-foreground max-w-lg leading-relaxed">
+          스튜디오 바톤 개발팀을 소개합니다.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function HomePage() {
   return (
-    <div className="container mx-auto px-4 max-w-2xl">
-      <Suspense fallback={<TimelineSkeleton />}>
-        <Timeline />
-      </Suspense>
+    <div className="container mx-auto px-4 max-w-4xl">
+      <HeroSection />
+      <section className="pb-12">
+        <Suspense fallback={<TimelineSkeleton />}>
+          <Timeline />
+        </Suspense>
+      </section>
     </div>
   );
 }

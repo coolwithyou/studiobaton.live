@@ -29,6 +29,18 @@ async function AdminHeader() {
               대시보드
             </Link>
             <Link
+              href="/admin/generate"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              수동 생성
+            </Link>
+            <Link
+              href="/admin/projects"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              프로젝트 설정
+            </Link>
+            <Link
               href="/"
               className="text-sm text-muted-foreground hover:text-foreground"
               target="_blank"
@@ -52,24 +64,20 @@ async function AdminHeader() {
   );
 }
 
-export default async function AdminLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const session = await getSessionData();
 
-  // 로그인 페이지는 인증 체크 제외
-  const isLoginPage =
-    typeof window === "undefined" ? false : window.location.pathname === "/admin/login";
-
-  if (!session.isLoggedIn && !isLoginPage) {
+  if (!session.isLoggedIn) {
     redirect("/admin/login");
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {session.isLoggedIn && <AdminHeader />}
+      <AdminHeader />
       <main>{children}</main>
     </div>
   );

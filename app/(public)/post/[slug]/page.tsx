@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Calendar, GitCommit, FolderGit2, ExternalLink } from "lucide-react";
 import type { Metadata } from "next";
 
 // 동적 렌더링 강제
@@ -102,30 +103,34 @@ export default async function PostPage({ params }: PageProps) {
   }, {} as Record<string, { commits: number; additions: number; deletions: number }>);
 
   return (
-    <div className="container mx-auto px-4 max-w-2xl py-8">
+    <div className="container mx-auto px-4 max-w-3xl py-8">
       {/* 뒤로가기 */}
       <Link
         href="/"
-        className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-tint transition-colors mb-6"
       >
-        ← 타임라인으로
+        <ArrowLeft className="w-4 h-4" />
+        <span>타임라인으로</span>
       </Link>
 
       <article>
         {/* 헤더 */}
         <header className="mb-8">
-          <time className="text-sm text-muted-foreground">
+          <time className="inline-flex items-center gap-1.5 text-sm text-tint font-medium">
+            <Calendar className="w-4 h-4" />
             {format(post.targetDate, "yyyy년 M월 d일 (EEEE)", { locale: ko })}
           </time>
-          <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold mt-3 leading-tight">
+            {post.title}
+          </h1>
 
           {/* 저자 */}
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex items-center gap-3 mt-5">
             <div className="flex -space-x-2">
               {authors.slice(0, 5).map((author, i) => (
-                <Avatar key={i} className="w-8 h-8 border-2 border-background">
+                <Avatar key={i} className="w-9 h-9 border-2 border-background">
                   <AvatarImage src={author.avatar || undefined} />
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback className="text-xs bg-tint/10 text-tint">
                     {author.name.slice(0, 1).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -138,28 +143,34 @@ export default async function PostPage({ params }: PageProps) {
         </header>
 
         {/* 본문 */}
-        <div className="prose prose-neutral dark:prose-invert max-w-none">
+        <div className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-semibold prose-a:text-tint prose-a:no-underline hover:prose-a:underline">
           {post.content?.split("\n").map((paragraph, i) => (
             <p key={i}>{paragraph}</p>
           ))}
         </div>
 
-        <Separator className="my-8" />
+        <Separator className="my-10" />
 
         {/* 레포지토리별 통계 */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">작업한 프로젝트</h2>
+        <section className="mb-10">
+          <h2 className="flex items-center gap-2 text-lg font-semibold mb-4">
+            <FolderGit2 className="w-5 h-5 text-tint" />
+            작업한 프로젝트
+          </h2>
           <div className="grid gap-3">
             {Object.entries(repoStats).map(([repo, stats]) => (
               <div
                 key={repo}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                className="flex items-center justify-between p-4 bg-tint-subtle rounded-xl border border-tint/10"
               >
                 <span className="font-medium">{repo}</span>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{stats.commits}개 커밋</span>
-                  <span className="text-green-600">+{stats.additions}</span>
-                  <span className="text-red-600">-{stats.deletions}</span>
+                  <span className="flex items-center gap-1">
+                    <GitCommit className="w-3.5 h-3.5" />
+                    {stats.commits}개
+                  </span>
+                  <span className="text-green-600 dark:text-green-400">+{stats.additions}</span>
+                  <span className="text-red-600 dark:text-red-400">-{stats.deletions}</span>
                 </div>
               </div>
             ))}
@@ -168,34 +179,41 @@ export default async function PostPage({ params }: PageProps) {
 
         {/* 커밋 목록 */}
         <section>
-          <h2 className="text-lg font-semibold mb-4">상세 커밋 내역</h2>
-          <div className="space-y-2">
-            {post.commits.map((commit) => (
+          <h2 className="flex items-center gap-2 text-lg font-semibold mb-4">
+            <GitCommit className="w-5 h-5 text-tint" />
+            상세 커밋 내역
+          </h2>
+          <div className="space-y-2 rounded-xl border overflow-hidden">
+            {post.commits.map((commit, index) => (
               <a
                 key={commit.id}
                 href={commit.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block p-3 hover:bg-muted/50 rounded-lg transition-colors group"
+                className={`flex items-start gap-3 p-4 hover:bg-tint-hover transition-colors group ${
+                  index !== post.commits.length - 1 ? "border-b" : ""
+                }`}
               >
-                <div className="flex items-start gap-3">
-                  <Avatar className="w-6 h-6 mt-0.5">
-                    <AvatarImage src={commit.authorAvatar || undefined} />
-                    <AvatarFallback className="text-xs">
-                      {commit.author.slice(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-mono truncate group-hover:text-primary transition-colors">
-                      {commit.message.split("\n")[0]}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {commit.repository} · {commit.author} ·{" "}
-                      <span className="text-green-600">+{commit.additions}</span>
-                      {" / "}
-                      <span className="text-red-600">-{commit.deletions}</span>
-                    </p>
-                  </div>
+                <Avatar className="w-7 h-7 mt-0.5 shrink-0">
+                  <AvatarImage src={commit.authorAvatar || undefined} />
+                  <AvatarFallback className="text-xs bg-tint/10 text-tint">
+                    {commit.author.slice(0, 1).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-mono truncate group-hover:text-tint transition-colors flex items-center gap-1">
+                    {commit.message.split("\n")[0]}
+                    <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    <span className="text-foreground/70">{commit.repository}</span>
+                    {" · "}
+                    {commit.author}
+                    {" · "}
+                    <span className="text-green-600 dark:text-green-400">+{commit.additions}</span>
+                    {" / "}
+                    <span className="text-red-600 dark:text-red-400">-{commit.deletions}</span>
+                  </p>
                 </div>
               </a>
             ))}

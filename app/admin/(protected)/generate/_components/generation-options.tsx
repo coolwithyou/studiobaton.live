@@ -1,0 +1,161 @@
+"use client";
+
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import { Calendar, CalendarRange, Loader2 } from "lucide-react";
+
+interface GenerationOptionsProps {
+  selectionMode: "single" | "range";
+  onSelectionModeChange: (mode: "single" | "range") => void;
+  selectedDates: Date[];
+  rangeStart: Date | null;
+  rangeEnd: Date | null;
+  excludeHolidays: boolean;
+  onExcludeHolidaysChange: (value: boolean) => void;
+  minCommitCount: number;
+  onMinCommitCountChange: (value: number) => void;
+  forceRegenerate: boolean;
+  onForceRegenerateChange: (value: boolean) => void;
+  onGenerate: () => void;
+  isGenerating: boolean;
+}
+
+export function GenerationOptions({
+  selectionMode,
+  onSelectionModeChange,
+  selectedDates,
+  rangeStart,
+  rangeEnd,
+  excludeHolidays,
+  onExcludeHolidaysChange,
+  minCommitCount,
+  onMinCommitCountChange,
+  forceRegenerate,
+  onForceRegenerateChange,
+  onGenerate,
+  isGenerating,
+}: GenerationOptionsProps) {
+  const hasSelection =
+    selectedDates.length > 0 || (rangeStart !== null && rangeEnd !== null);
+
+  const getSelectionText = () => {
+    if (rangeStart && rangeEnd) {
+      return `${format(rangeStart, "M월 d일", { locale: ko })} ~ ${format(rangeEnd, "M월 d일", { locale: ko })}`;
+    }
+    if (selectedDates.length === 1) {
+      return format(selectedDates[0], "yyyy년 M월 d일", { locale: ko });
+    }
+    if (selectedDates.length > 1) {
+      return `${selectedDates.length}개 날짜 선택됨`;
+    }
+    return "날짜를 선택하세요";
+  };
+
+  return (
+    <div className="rounded-lg border bg-card p-4 space-y-4">
+      <h3 className="font-semibold">생성 옵션</h3>
+
+      {/* 선택 모드 */}
+      <div className="space-y-2">
+        <Label className="text-sm text-muted-foreground">선택 모드</Label>
+        <div className="flex gap-2">
+          <Button
+            variant={selectionMode === "single" ? "default" : "outline"}
+            size="sm"
+            onClick={() => onSelectionModeChange("single")}
+            className="flex-1"
+          >
+            <Calendar className="h-4 w-4 mr-1" />
+            단일
+          </Button>
+          <Button
+            variant={selectionMode === "range" ? "default" : "outline"}
+            size="sm"
+            onClick={() => onSelectionModeChange("range")}
+            className="flex-1"
+          >
+            <CalendarRange className="h-4 w-4 mr-1" />
+            구간
+          </Button>
+        </div>
+      </div>
+
+      {/* 선택된 날짜 표시 */}
+      <div className="p-3 bg-muted/50 rounded-md">
+        <p className="text-sm font-medium">{getSelectionText()}</p>
+      </div>
+
+      {/* 구간 선택 옵션 */}
+      {selectionMode === "range" && (
+        <>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="excludeHolidays"
+              checked={excludeHolidays}
+              onCheckedChange={(checked) =>
+                onExcludeHolidaysChange(checked as boolean)
+              }
+            />
+            <Label htmlFor="excludeHolidays" className="text-sm cursor-pointer">
+              공휴일 제외
+            </Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="minCommitCount" className="text-sm">
+              최소 커밋 수
+            </Label>
+            <Input
+              id="minCommitCount"
+              type="number"
+              min={0}
+              max={100}
+              value={minCommitCount}
+              onChange={(e) =>
+                onMinCommitCountChange(parseInt(e.target.value) || 0)
+              }
+              className="w-full"
+            />
+            <p className="text-xs text-muted-foreground">
+              커밋 수가 이 값 미만인 날은 건너뜁니다.
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* 덮어쓰기 옵션 */}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="forceRegenerate"
+          checked={forceRegenerate}
+          onCheckedChange={(checked) =>
+            onForceRegenerateChange(checked as boolean)
+          }
+        />
+        <Label htmlFor="forceRegenerate" className="text-sm cursor-pointer">
+          기존 Post 덮어쓰기
+        </Label>
+      </div>
+
+      {/* 생성 버튼 */}
+      <Button
+        onClick={onGenerate}
+        disabled={!hasSelection || isGenerating}
+        className="w-full"
+      >
+        {isGenerating ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            생성 중...
+          </>
+        ) : (
+          "글 생성하기"
+        )}
+      </Button>
+    </div>
+  );
+}

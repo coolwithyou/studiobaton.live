@@ -2,6 +2,7 @@ import Link from "next/link";
 import { format, formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CalendarDays } from "lucide-react";
 
 interface Commit {
   id: string;
@@ -49,44 +50,35 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
   const totalDeletions = post.commits.reduce((sum, c) => sum + c.deletions, 0);
 
   return (
-    <article className="relative pl-8 pb-8">
-      {/* 타임라인 라인 */}
-      <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
-
-      {/* 타임라인 도트 */}
-      <div
-        className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-2 bg-background flex items-center justify-center ${
-          isLatest ? "border-primary" : "border-muted-foreground/30"
-        }`}
-      >
-        <div
-          className={`w-2 h-2 rounded-full ${
-            isLatest ? "bg-primary" : "bg-muted-foreground/30"
-          }`}
-        />
-      </div>
-
-      {/* 컨텐츠 */}
-      <div className="ml-4">
+    <article
+      className={`group relative border-b border-border/50 py-6 transition-all hover:bg-card/50 ${
+        isLatest ? "bg-tint-subtle/30" : ""
+      }`}
+    >
+      <Link href={`/post/${post.slug}`} className="block">
         {/* 날짜 */}
-        <time className="text-sm text-muted-foreground flex items-center gap-2">
+        <time className="text-sm text-tint font-medium flex items-center gap-1.5 mb-2">
+          <CalendarDays className="w-3.5 h-3.5" />
           <span>{format(targetDate, "M월 d일 (EEEE)", { locale: ko })}</span>
           {publishedAt && (
-            <span className="text-xs">
+            <span className="text-muted-foreground text-xs font-normal">
               · {formatDistanceToNow(publishedAt, { addSuffix: true, locale: ko })}
+            </span>
+          )}
+          {isLatest && (
+            <span className="ml-2 px-2 py-0.5 bg-tint text-tint-foreground text-xs font-medium rounded">
+              NEW
             </span>
           )}
         </time>
 
         {/* 제목 */}
-        <Link href={`/post/${post.slug}`} className="block group mt-2">
-          <h2 className="text-lg font-semibold group-hover:text-primary transition-colors">
-            {post.title}
-          </h2>
-        </Link>
+        <h2 className="text-lg font-semibold group-hover:text-tint transition-colors line-clamp-2 mb-2">
+          {post.title}
+        </h2>
 
         {/* 본문 미리보기 */}
-        <p className="text-muted-foreground mt-2 line-clamp-3 text-sm leading-relaxed">
+        <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
           {post.summary || post.content?.slice(0, 200)}
         </p>
 
@@ -98,7 +90,7 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
               {authors.slice(0, 3).map((author, i) => (
                 <Avatar key={i} className="w-6 h-6 border-2 border-background">
                   <AvatarImage src={author.avatar || undefined} />
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback className="text-xs bg-tint/20 text-tint">
                     {author.name.slice(0, 1).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
@@ -111,27 +103,27 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
 
           {/* 레포지토리 태그 */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            {repos.slice(0, 3).map((repo) => (
+            {repos.slice(0, 2).map((repo) => (
               <span
                 key={repo}
-                className="px-2 py-0.5 bg-muted rounded-full text-xs"
+                className="px-2 py-0.5 bg-muted text-muted-foreground rounded text-xs"
               >
                 {repo}
               </span>
             ))}
-            {repos.length > 3 && (
-              <span className="text-xs">+{repos.length - 3}</span>
+            {repos.length > 2 && (
+              <span className="text-xs">+{repos.length - 2}</span>
             )}
           </div>
 
           {/* 변경량 */}
-          <div className="flex items-center gap-1 ml-auto">
-            <span className="text-green-600">+{totalAdditions}</span>
-            <span>/</span>
-            <span className="text-red-600">-{totalDeletions}</span>
+          <div className="flex items-center gap-1 ml-auto text-xs">
+            <span className="text-green-500">+{totalAdditions}</span>
+            <span className="text-muted-foreground">/</span>
+            <span className="text-red-500">-{totalDeletions}</span>
           </div>
         </div>
-      </div>
+      </Link>
     </article>
   );
 }

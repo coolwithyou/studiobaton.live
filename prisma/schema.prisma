@@ -96,3 +96,13 @@ enum VersionTone {
   CASUAL
   TECHNICAL
 }
+
+model ProjectMapping {
+  id             String   @id @default(cuid())
+  repositoryName String   @unique // GitHub 리포지토리 이름 (예: "kiaf.web")
+  displayName    String   // 표시할 프로젝트 명 (예: "Kiaf SEOUL")
+  description    String?  // 프로젝트 설명 (선택)
+  isActive       Boolean  @default(true) // 활성화 여부 (글 생성에 포함할지)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

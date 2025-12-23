@@ -51,8 +51,8 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
 
   return (
     <article
-      className={`group relative border-b border-border/50 py-6 transition-all hover:bg-card/50 ${
-        isLatest ? "bg-tint-subtle/30" : ""
+      className={`group relative rounded-xl border bg-card p-5 transition-all hover:shadow-md hover:border-tint/30 ${
+        isLatest ? "border-tint/50 bg-tint-subtle" : ""
       }`}
     >
       <Link href={`/post/${post.slug}`} className="block">

@@ -65,16 +65,17 @@ async function Timeline() {
 function HeroSection() {
   return (
     <section className="py-10 md:py-14 border-b border-border/50 mb-8">
-      <div className="space-y-3">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider">
-          ABOUT US
-        </p>
+      <div className="space-y-4">
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          <span className="text-tint">BATON</span>
-          <span className="text-foreground ml-1">DEV</span>
+          <span className="text-tint">STUDIO</span>
+          <span className="text-foreground">BATON</span>
+          <span className="text-muted-foreground ml-2 text-2xl md:text-3xl font-normal">
+            DEV
+          </span>
         </h1>
         <p className="text-muted-foreground max-w-lg leading-relaxed">
-          스튜디오 바톤 개발팀을 소개합니다.
+          스튜디오 바톤 개발팀의 일상을 기록합니다. AI가 매일 자동으로 커밋
+          내역을 분석하고 글을 작성합니다.
         </p>
       </div>
     </section>

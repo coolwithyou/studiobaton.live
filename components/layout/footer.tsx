@@ -13,11 +13,10 @@ export function Footer() {
               href="/"
               className="font-bold text-sm hover:text-tint transition-colors"
             >
-              <span className="text-tint">BATON</span>
-              <span className="text-foreground ml-1">DEV</span>
+              studiobaton
             </Link>
             <p className="text-xs text-muted-foreground mt-1">
-              Powered by GitBook
+              디자인과 개발의 균형을 추구합니다.
             </p>
           </div>
 

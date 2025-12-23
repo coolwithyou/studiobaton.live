@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,15 +19,6 @@ const navItems = [
   { href: "/about", label: "About" },
 ];
 
-// BATON 로고 아이콘 (이미지 참고)
-function BatonIcon() {
-  return (
-    <div className="w-7 h-7 bg-tint rounded flex items-center justify-center">
-      <span className="text-tint-foreground font-bold text-sm">B</span>
-    </div>
-  );
-}
-
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -38,11 +29,9 @@ export function Header() {
         {/* 로고 */}
         <Link
           href="/"
-          className="flex items-center gap-2 font-bold text-lg tracking-tight hover:opacity-80 transition-opacity"
+          className="font-bold text-xl tracking-tight hover:text-tint transition-colors"
         >
-          <BatonIcon />
-          <span className="text-tint">BATON</span>
-          <span className="text-foreground">DEV</span>
+          studiobaton
         </Link>
 
         {/* 데스크톱 네비게이션 */}
@@ -64,20 +53,6 @@ export function Header() {
 
         {/* 우측 액션 영역 */}
         <div className="flex items-center gap-1">
-          {/* 검색 버튼 (비활성화) */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hidden md:flex items-center gap-2 text-muted-foreground hover:text-foreground h-8 px-3 bg-muted/50 rounded-lg"
-            disabled
-          >
-            <Search className="h-3.5 w-3.5" />
-            <span className="text-xs">Ask or search...</span>
-            <kbd className="ml-4 text-xs bg-background px-1.5 py-0.5 rounded border">
-              ⌘K
-            </kbd>
-          </Button>
-
           <ThemeToggle />
 
           {/* 모바일 햄버거 메뉴 */}
@@ -90,10 +65,8 @@ export function Header() {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px]">
               <SheetHeader>
-                <SheetTitle className="text-left font-bold flex items-center gap-2">
-                  <BatonIcon />
-                  <span className="text-tint">BATON</span>
-                  <span>DEV</span>
+                <SheetTitle className="text-left font-bold">
+                  studiobaton
                 </SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-4 mt-6">

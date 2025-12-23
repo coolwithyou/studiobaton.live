@@ -22,13 +22,13 @@ export default function AboutPage() {
 
       <article className="space-y-12">
         {/* 히어로 섹션 */}
-        <header className="space-y-3 border-b border-border/50 pb-10">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider">
-            ABOUT US
-          </p>
+        <header className="space-y-4 border-b border-border/50 pb-10">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            <span className="text-tint">BATON</span>
-            <span className="text-foreground ml-1">DEV</span>
+            <span className="text-tint">STUDIO</span>
+            <span className="text-foreground">BATON</span>
+            <span className="text-muted-foreground ml-2 text-2xl md:text-3xl font-normal">
+              DEV
+            </span>
           </h1>
           <p className="text-muted-foreground max-w-lg leading-relaxed">
             스튜디오 바톤 개발팀을 소개합니다.

@@ -12,8 +12,17 @@ const prisma = new PrismaClient({
 
 async function main() {
   // 기본 관리자 계정 생성
-  const adminEmail = process.env.ADMIN_EMAIL || "admin@studiobaton.com";
+  // 주의: @ba-ton.kr 이메일만 로그인 가능
+  const adminEmail = process.env.ADMIN_EMAIL || "admin@ba-ton.kr";
   const adminPassword = process.env.ADMIN_PASSWORD || "changeme123";
+  const adminName = process.env.ADMIN_NAME || "관리자";
+
+  // 이메일 도메인 검증
+  if (!adminEmail.endsWith("@ba-ton.kr")) {
+    console.error("❌ 오류: @ba-ton.kr 이메일만 사용할 수 있습니다.");
+    console.error("   ADMIN_EMAIL 환경변수를 확인해주세요.");
+    process.exit(1);
+  }
 
   const existingAdmin = await prisma.admin.findUnique({
     where: { email: adminEmail },
@@ -26,15 +35,15 @@ async function main() {
       data: {
         email: adminEmail,
         passwordHash,
-        name: "Admin",
+        name: adminName,
       },
     });
 
-    console.log(`✅ Admin account created: ${adminEmail}`);
-    console.log(`   Password: ${adminPassword}`);
-    console.log(`   ⚠️  Please change the password after first login!`);
+    console.log(`✅ 관리자 계정 생성 완료: ${adminEmail}`);
+    console.log(`   비밀번호: ${adminPassword}`);
+    console.log(`   ⚠️  첫 로그인 후 반드시 비밀번호를 변경하세요!`);
   } else {
-    console.log(`ℹ️  Admin account already exists: ${adminEmail}`);
+    console.log(`ℹ️  관리자 계정이 이미 존재합니다: ${adminEmail}`);
   }
 }
 

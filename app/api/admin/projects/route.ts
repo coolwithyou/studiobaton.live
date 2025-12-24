@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getSessionData } from "@/lib/session";
+import { invalidateProjectMappingsCache } from "@/lib/masking";
 
 // GET: 모든 프로젝트 매핑 조회
 export async function GET() {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { repositoryName, displayName, description, isActive } = body;
+    const { repositoryName, displayName, maskName, description, isActive } = body;
 
     if (!repositoryName || !displayName) {
       return NextResponse.json(
@@ -48,10 +49,14 @@ export async function POST(request: NextRequest) {
       data: {
         repositoryName,
         displayName,
+        maskName: maskName || null,
         description: description || null,
         isActive: isActive ?? true,
       },
     });
+
+    // 캐시 무효화
+    invalidateProjectMappingsCache();
 
     return NextResponse.json({ mapping });
   } catch (error: unknown) {
@@ -79,7 +84,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { id, displayName, description, isActive } = body;
+    const { id, displayName, maskName, description, isActive } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -92,10 +97,14 @@ export async function PUT(request: NextRequest) {
       where: { id },
       data: {
         ...(displayName !== undefined && { displayName }),
+        ...(maskName !== undefined && { maskName: maskName || null }),
         ...(description !== undefined && { description }),
         ...(isActive !== undefined && { isActive }),
       },
     });
+
+    // 캐시 무효화
+    invalidateProjectMappingsCache();
 
     return NextResponse.json({ mapping });
   } catch (error) {
@@ -129,6 +138,9 @@ export async function DELETE(request: NextRequest) {
     await prisma.projectMapping.delete({
       where: { id },
     });
+
+    // 캐시 무효화
+    invalidateProjectMappingsCache();
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -9,6 +9,7 @@ interface ProjectMapping {
   id: string;
   repositoryName: string;
   displayName: string;
+  maskName: string | null;
   description: string | null;
   isActive: boolean;
 }

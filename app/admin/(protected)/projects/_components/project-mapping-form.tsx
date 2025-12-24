@@ -24,6 +24,7 @@ interface ProjectMapping {
   id: string;
   repositoryName: string;
   displayName: string;
+  maskName: string | null;
   description: string | null;
   isActive: boolean;
 }
@@ -39,6 +40,7 @@ export function ProjectMappingForm({ mappings, onMappingChange }: ProjectMapping
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
   const [displayName, setDisplayName] = useState("");
+  const [maskName, setMaskName] = useState("");
   const [description, setDescription] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -70,6 +72,7 @@ export function ProjectMappingForm({ mappings, onMappingChange }: ProjectMapping
   const handleSelectRepo = (repo: Repository) => {
     setSelectedRepo(repo);
     setDisplayName(formatDisplayName(repo.name));
+    setMaskName("");
     setDescription(repo.description || "");
     setIsDialogOpen(true);
   };
@@ -97,6 +100,7 @@ export function ProjectMappingForm({ mappings, onMappingChange }: ProjectMapping
         body: JSON.stringify({
           repositoryName: selectedRepo.name,
           displayName: displayName.trim(),
+          maskName: maskName.trim() || null,
           description: description.trim() || null,
           isActive: true,
         }),
@@ -111,6 +115,7 @@ export function ProjectMappingForm({ mappings, onMappingChange }: ProjectMapping
       setIsDialogOpen(false);
       setSelectedRepo(null);
       setDisplayName("");
+      setMaskName("");
       setDescription("");
       onMappingChange();
     } catch (error) {
@@ -196,7 +201,19 @@ export function ProjectMappingForm({ mappings, onMappingChange }: ProjectMapping
                       className="mt-1"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      글 생성시 이 이름으로 표시됩니다.
+                      로그인한 내부 사용자에게 표시됩니다.
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">마스킹 이름 (선택)</label>
+                    <Input
+                      value={maskName}
+                      onChange={(e) => setMaskName(e.target.value)}
+                      placeholder="예: 고객사 A, 프로젝트 1"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      비로그인 외부 방문자에게 표시됩니다.
                     </p>
                   </div>
                   <div>

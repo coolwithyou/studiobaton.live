@@ -9,6 +9,7 @@ interface ProjectMapping {
   id: string;
   repositoryName: string;
   displayName: string;
+  maskName: string | null;
   description: string | null;
   isActive: boolean;
 }
@@ -21,18 +22,21 @@ interface ProjectMappingListProps {
 export function ProjectMappingList({ mappings, onMappingChange }: ProjectMappingListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDisplayName, setEditDisplayName] = useState("");
+  const [editMaskName, setEditMaskName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [saving, setSaving] = useState(false);
 
   const handleEdit = (mapping: ProjectMapping) => {
     setEditingId(mapping.id);
     setEditDisplayName(mapping.displayName);
+    setEditMaskName(mapping.maskName || "");
     setEditDescription(mapping.description || "");
   };
 
   const handleCancel = () => {
     setEditingId(null);
     setEditDisplayName("");
+    setEditMaskName("");
     setEditDescription("");
   };
 
@@ -45,6 +49,7 @@ export function ProjectMappingList({ mappings, onMappingChange }: ProjectMapping
         body: JSON.stringify({
           id,
           displayName: editDisplayName.trim(),
+          maskName: editMaskName.trim() || null,
           description: editDescription.trim() || null,
         }),
       });
@@ -138,6 +143,17 @@ export function ProjectMappingList({ mappings, onMappingChange }: ProjectMapping
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-muted-foreground w-24">
+                  마스킹 이름:
+                </span>
+                <Input
+                  value={editMaskName}
+                  onChange={(e) => setEditMaskName(e.target.value)}
+                  placeholder="예: 고객사 A"
+                  className="flex-1"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground w-24">
                   설명:
                 </span>
                 <Input
@@ -165,6 +181,11 @@ export function ProjectMappingList({ mappings, onMappingChange }: ProjectMapping
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{mapping.displayName}</span>
+                  {mapping.maskName && (
+                    <span className="text-sm text-muted-foreground">
+                      → {mapping.maskName}
+                    </span>
+                  )}
                   <Badge variant={mapping.isActive ? "default" : "secondary"}>
                     {mapping.isActive ? "활성" : "비활성"}
                   </Badge>

@@ -1,11 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
+import { isInternalUser } from "@/lib/session";
+import { applyPostMaskingAsync } from "@/lib/masking";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
@@ -58,6 +62,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
+  const isAuthenticated = await isInternalUser();
 
   const post = await prisma.post.findUnique({
     where: { slug },
@@ -79,8 +84,27 @@ export default async function PostPage({ params }: PageProps) {
     notFound();
   }
 
-  // 고유한 저자 목록
-  const authors = post.commits.reduce((acc, commit) => {
+  // 마스킹 적용
+  const maskedPost = await applyPostMaskingAsync(
+    {
+      ...post,
+      commits: post.commits.map((c) => ({
+        id: c.id,
+        repository: c.repository,
+        message: c.message,
+        author: c.author,
+        authorAvatar: c.authorAvatar,
+        additions: c.additions,
+        deletions: c.deletions,
+        url: c.url,
+        committedAt: c.committedAt,
+      })),
+    },
+    isAuthenticated
+  );
+
+  // 고유한 저자 목록 (마스킹된 데이터 기준)
+  const authors = maskedPost.commits.reduce((acc, commit) => {
     if (!acc.find((a) => a.name === commit.author)) {
       acc.push({
         name: commit.author,
@@ -90,8 +114,8 @@ export default async function PostPage({ params }: PageProps) {
     return acc;
   }, [] as { name: string; avatar: string | null }[]);
 
-  // 레포지토리별 통계
-  const repoStats = post.commits.reduce((acc, commit) => {
+  // 레포지토리별 통계 (마스킹된 데이터 기준)
+  const repoStats = maskedPost.commits.reduce((acc, commit) => {
     if (!acc[commit.repository]) {
       acc[commit.repository] = { commits: 0, additions: 0, deletions: 0 };
     }
@@ -137,12 +161,19 @@ export default async function PostPage({ params }: PageProps) {
           </div>
         </header>
 
-        {/* 본문 */}
-        <div className="prose prose-neutral dark:prose-invert max-w-none">
-          {post.content?.split("\n").map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
-          ))}
+        {/* 본문 (마크다운 파싱) */}
+        <div className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {maskedPost.content || ""}
+          </ReactMarkdown>
         </div>
+
+        {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
+        {!isAuthenticated && (
+          <p className="text-xs text-muted-foreground text-center mt-6">
+            고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
+          </p>
+        )}
 
         <Separator className="my-8" />
 
@@ -170,40 +201,62 @@ export default async function PostPage({ params }: PageProps) {
         <section>
           <h2 className="text-lg font-semibold mb-4">상세 커밋 내역</h2>
           <div className="space-y-2">
-            {post.commits.map((commit) => (
-              <a
-                key={commit.id}
-                href={commit.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block p-3 hover:bg-muted/50 rounded-lg transition-colors group"
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar className="w-6 h-6 mt-0.5">
-                    <AvatarImage src={commit.authorAvatar || undefined} />
-                    <AvatarFallback className="text-xs">
-                      {commit.author.slice(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-mono truncate group-hover:text-primary transition-colors">
-                      {commit.message.split("\n")[0]}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {commit.repository} · {commit.author} ·{" "}
-                      <span className="text-green-600">+{commit.additions}</span>
-                      {" / "}
-                      <span className="text-red-600">-{commit.deletions}</span>
-                    </p>
+            {maskedPost.commits.map((commit) => {
+              const CommitWrapper = commit.url ? "a" : "div";
+              const wrapperProps = commit.url
+                ? {
+                    href: commit.url,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                  }
+                : {};
+
+              return (
+                <CommitWrapper
+                  key={commit.id}
+                  {...wrapperProps}
+                  className={`block p-3 rounded-lg transition-colors ${
+                    commit.url ? "hover:bg-muted/50 group cursor-pointer" : "bg-muted/30"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-6 h-6 mt-0.5">
+                      <AvatarImage src={commit.authorAvatar || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {commit.author.slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm font-mono truncate transition-colors ${
+                          commit.url ? "group-hover:text-primary" : ""
+                        }`}
+                      >
+                        {commit.message.split("\n")[0]}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {commit.repository} · {commit.author} ·{" "}
+                        <span className="text-green-600">+{commit.additions}</span>
+                        {" / "}
+                        <span className="text-red-600">-{commit.deletions}</span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </a>
-            ))}
+                </CommitWrapper>
+              );
+            })}
           </div>
         </section>
+
+        {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
+        {!isAuthenticated && (
+          <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
+            고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
+          </p>
+        )}
       </article>
 
-      {/* JSON-LD */}
+      {/* JSON-LD (마스킹된 데이터 사용) */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -211,7 +264,7 @@ export default async function PostPage({ params }: PageProps) {
             "@context": "https://schema.org",
             "@type": "BlogPosting",
             headline: post.title,
-            description: post.summary || post.content?.slice(0, 160),
+            description: maskedPost.summary || maskedPost.content?.slice(0, 160),
             datePublished: post.publishedAt?.toISOString(),
             dateModified: post.updatedAt.toISOString(),
             author: authors.map((a) => ({

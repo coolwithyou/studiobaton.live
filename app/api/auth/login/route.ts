@@ -14,6 +14,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 내부 이메일 도메인 제한
+    if (!email.endsWith("@ba-ton.kr")) {
+      return NextResponse.json(
+        { error: "내부 이메일(@ba-ton.kr)만 로그인할 수 있습니다." },
+        { status: 403 }
+      );
+    }
+
     const admin = await prisma.admin.findUnique({
       where: { email },
     });

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { isInternalUser } from "@/lib/session";
+import { applyPostListMasking } from "@/lib/masking";
 
 export async function GET(request: NextRequest) {
   try {
+    const isAuthenticated = await isInternalUser();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
@@ -28,6 +31,7 @@ export async function GET(request: NextRequest) {
               authorAvatar: true,
               additions: true,
               deletions: true,
+              url: true,
             },
           },
         },
@@ -39,8 +43,17 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // 마스킹 적용
+    const maskedPosts = await applyPostListMasking(
+      posts.map((post) => ({
+        ...post,
+        commits: post.commits.map((c) => ({ ...c })),
+      })),
+      isAuthenticated
+    );
+
     return NextResponse.json({
-      posts,
+      posts: maskedPosts,
       pagination: {
         page,
         limit,

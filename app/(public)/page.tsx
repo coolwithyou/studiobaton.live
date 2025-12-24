@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import prisma from "@/lib/prisma";
+import { isInternalUser } from "@/lib/session";
+import { applyPostListMasking } from "@/lib/masking";
 import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
 
@@ -7,6 +9,8 @@ import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
 export const dynamic = "force-dynamic";
 
 async function Timeline() {
+  const isAuthenticated = await isInternalUser();
+
   const posts = await prisma.post.findMany({
     where: {
       status: "PUBLISHED",
@@ -20,10 +24,12 @@ async function Timeline() {
         select: {
           id: true,
           repository: true,
+          message: true,
           author: true,
           authorAvatar: true,
           additions: true,
           deletions: true,
+          url: true,
         },
       },
     },
@@ -40,9 +46,18 @@ async function Timeline() {
     );
   }
 
+  // 마스킹 적용
+  const maskedPosts = await applyPostListMasking(
+    posts.map((post) => ({
+      ...post,
+      commits: post.commits.map((c) => ({ ...c, url: c.url })),
+    })),
+    isAuthenticated
+  );
+
   return (
     <div className="py-8">
-      {posts.map((post, index) => (
+      {maskedPosts.map((post, index) => (
         <TimelineItem
           key={post.id}
           post={{

@@ -33,3 +33,9 @@ export async function getSessionData(): Promise<SessionData> {
     isLoggedIn: session.isLoggedIn ?? false,
   };
 }
+
+// 내부 사용자 인증 확인 (@ba-ton.kr 이메일)
+export async function isInternalUser(): Promise<boolean> {
+  const session = await getSessionData();
+  return session.isLoggedIn && !!session.email?.endsWith("@ba-ton.kr");
+}

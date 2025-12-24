@@ -4,9 +4,9 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { MarkdownEditor } from "@/components/markdown/markdown-editor";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -234,16 +234,14 @@ export default function PostEditPage({
 
         <div className="space-y-2">
           <Label htmlFor="content">내용</Label>
-          <Textarea
-            id="content"
+          <MarkdownEditor
             value={content}
-            onChange={(e) => {
-              setContent(e.target.value);
+            onChange={(val) => {
+              setContent(val);
               setIsEditing(true);
             }}
             disabled={isPublished}
-            placeholder="내용을 입력하세요"
-            className="min-h-[300px] font-mono text-sm"
+            minHeight={400}
           />
         </div>
 

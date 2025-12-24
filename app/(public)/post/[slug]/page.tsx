@@ -8,8 +8,7 @@ import { ko } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
@@ -162,11 +161,10 @@ export default async function PostPage({ params }: PageProps) {
         </header>
 
         {/* 본문 (마크다운 파싱) */}
-        <div className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1 prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {maskedPost.content || ""}
-          </ReactMarkdown>
-        </div>
+        <MarkdownRenderer
+          content={maskedPost.content || ""}
+          className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
+        />
 
         {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
         {!isAuthenticated && (

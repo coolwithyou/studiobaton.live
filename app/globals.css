@@ -123,3 +123,46 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Shiki 코드 블록 스타일 */
+.shiki-wrapper pre {
+  border: 1px solid var(--border);
+  background-color: var(--muted) !important;
+}
+
+.dark .shiki-wrapper pre {
+  background-color: oklch(0.18 0 0) !important;
+}
+
+/* Shiki 다크모드 테마 자동 전환 */
+.shiki,
+.shiki span {
+  color: var(--shiki-light) !important;
+  background-color: transparent !important;
+}
+
+.dark .shiki,
+.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: transparent !important;
+}
+
+/* 마크다운 에디터 스타일 오버라이드 */
+.w-md-editor {
+  --md-editor-border-radius: var(--radius);
+}
+
+.w-md-editor-toolbar {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* prose 내 코드 블록 스타일 */
+.prose pre {
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.prose code {
+  font-size: 0.875rem;
+}

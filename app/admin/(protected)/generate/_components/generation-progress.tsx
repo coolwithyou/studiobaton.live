@@ -34,6 +34,7 @@ interface GenerationProgressProps {
   progress: {
     current: number;
     total: number;
+    currentDate?: string;
   } | null;
   result: GenerationResult | null;
   onReset: () => void;
@@ -68,12 +69,19 @@ export function GenerationProgress({
       {isGenerating && progress && (
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
-            <span>진행 중...</span>
+            <span>
+              {progress.currentDate
+                ? `${progress.currentDate} 처리 중...`
+                : "진행 중..."}
+            </span>
             <span>
               {progress.current} / {progress.total}
             </span>
           </div>
           <Progress value={progressPercent} />
+          <p className="text-xs text-muted-foreground text-center">
+            {progressPercent}% 완료
+          </p>
         </div>
       )}
 

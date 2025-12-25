@@ -41,6 +41,12 @@ async function AdminHeader() {
               프로젝트 설정
             </Link>
             <Link
+              href="/admin/stats"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              통계
+            </Link>
+            <Link
               href="/"
               className="text-sm text-muted-foreground hover:text-foreground"
               target="_blank"

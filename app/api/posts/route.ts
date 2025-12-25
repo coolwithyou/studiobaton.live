@@ -2,13 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { isInternalUser } from "@/lib/session";
 import { applyPostListMasking } from "@/lib/masking";
+import { createCacheHeaders, CACHE_TTL } from "@/lib/cache";
+import { paginationSchema } from "@/lib/validation";
+import { logError, normalizeError } from "@/lib/errors";
 
 export async function GET(request: NextRequest) {
   try {
     const isAuthenticated = await isInternalUser();
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+
+    // 입력 검증
+    const { page, limit } = paginationSchema.parse({
+      page: searchParams.get("page"),
+      limit: searchParams.get("limit"),
+    });
     const skip = (page - 1) * limit;
 
     const [posts, total] = await Promise.all([
@@ -52,20 +59,29 @@ export async function GET(request: NextRequest) {
       isAuthenticated
     );
 
-    return NextResponse.json({
-      posts: maskedPosts,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.error("Fetch posts error:", error);
+    // 캐시 헤더 설정 (비인증 사용자에게만 캐싱)
+    const cacheHeaders = isAuthenticated
+      ? createCacheHeaders(0, { noStore: true })
+      : createCacheHeaders(CACHE_TTL.MEDIUM, {
+          public: true,
+          staleWhileRevalidate: CACHE_TTL.LONG,
+        });
+
     return NextResponse.json(
-      { error: "포스트를 불러오는 중 오류가 발생했습니다." },
-      { status: 500 }
+      {
+        posts: maskedPosts,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+      { headers: cacheHeaders }
     );
+  } catch (error) {
+    logError("Fetch posts", error);
+    const apiError = normalizeError(error);
+    return NextResponse.json(apiError.toJSON(), { status: apiError.status });
   }
 }

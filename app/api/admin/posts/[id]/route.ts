@@ -3,6 +3,7 @@ import { getSessionData } from "@/lib/session";
 import prisma from "@/lib/prisma";
 import slugify from "slugify";
 import { format } from "date-fns";
+import { sanitizeMarkdown } from "@/lib/sanitize";
 
 export async function GET(
   request: NextRequest,
@@ -62,7 +63,13 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { title, content, summary, action, versionId } = await request.json();
+    const body = await request.json();
+
+    // XSS 방어: 콘텐츠 sanitize
+    const title = body.title ? sanitizeMarkdown(body.title) : undefined;
+    const content = body.content ? sanitizeMarkdown(body.content) : undefined;
+    const summary = body.summary ? sanitizeMarkdown(body.summary) : undefined;
+    const { action, versionId } = body;
 
     const post = await prisma.post.findUnique({
       where: { id },

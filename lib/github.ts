@@ -34,6 +34,25 @@ export async function getOrgRepos(): Promise<string[]> {
   }
 }
 
+// 병렬 처리 배치 크기 (GitHub API rate limit 고려)
+const BATCH_SIZE = 10;
+
+async function processBatch<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  batchSize: number = BATCH_SIZE
+): Promise<R[]> {
+  const results: R[] = [];
+
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(processor));
+    results.push(...batchResults);
+  }
+
+  return results;
+}
+
 export async function getCommitsSince(
   repo: string,
   since: Date,
@@ -48,12 +67,11 @@ export async function getCommitsSince(
       per_page: 100,
     });
 
-    const commitDetails: CommitData[] = [];
-
-    for (const commit of commits) {
+    // 병렬로 커밋 상세 정보 조회 (배치 처리)
+    const commitDetails = await processBatch(commits, async (commit) => {
       try {
         const detail = await getCommitDetail(repo, commit.sha);
-        commitDetails.push({
+        return {
           sha: commit.sha,
           repository: repo,
           message: commit.commit.message,
@@ -65,11 +83,24 @@ export async function getCommitsSince(
           deletions: detail.deletions,
           filesChanged: detail.filesChanged,
           url: commit.html_url,
-        });
+        };
       } catch (error) {
         console.error(`Error fetching commit detail for ${commit.sha}:`, error);
+        return {
+          sha: commit.sha,
+          repository: repo,
+          message: commit.commit.message,
+          author: commit.commit.author?.name || "Unknown",
+          authorEmail: commit.commit.author?.email || null,
+          authorAvatar: commit.author?.avatar_url || null,
+          committedAt: new Date(commit.commit.author?.date || Date.now()),
+          additions: 0,
+          deletions: 0,
+          filesChanged: 0,
+          url: commit.html_url,
+        };
       }
-    }
+    });
 
     return commitDetails;
   } catch (error) {
@@ -107,12 +138,15 @@ export async function collectDailyCommits(targetDate: Date): Promise<CommitData[
   endOfDay.setHours(23, 59, 59, 999);
 
   const repos = await getOrgRepos();
-  const allCommits: CommitData[] = [];
 
-  for (const repo of repos) {
-    const commits = await getCommitsSince(repo, startOfDay, endOfDay);
-    allCommits.push(...commits);
-  }
+  // 리포지토리별로 병렬 처리 (배치 단위로)
+  const repoCommits = await processBatch(
+    repos,
+    (repo) => getCommitsSince(repo, startOfDay, endOfDay),
+    5 // 리포지토리 배치 크기
+  );
+
+  const allCommits = repoCommits.flat();
 
   // 커밋 시간순 정렬
   allCommits.sort(

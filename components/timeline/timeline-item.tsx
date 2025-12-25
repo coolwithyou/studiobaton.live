@@ -51,20 +51,14 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
   return (
     <article className="relative pl-8 pb-8">
       {/* 타임라인 라인 */}
-      <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />
+      <div className="absolute left-[5px] top-4 bottom-0 w-px bg-border" />
 
       {/* 타임라인 도트 */}
       <div
-        className={`absolute left-0 top-1.5 w-6 h-6 rounded-full border-2 bg-background flex items-center justify-center ${
-          isLatest ? "border-primary" : "border-muted-foreground/30"
+        className={`absolute left-[3px] top-1.5 w-[7px] h-[7px] rounded-full ${
+          isLatest ? "bg-foreground" : "bg-muted-foreground/40"
         }`}
-      >
-        <div
-          className={`w-2 h-2 rounded-full ${
-            isLatest ? "bg-primary" : "bg-muted-foreground/30"
-          }`}
-        />
-      </div>
+      />
 
       {/* 컨텐츠 */}
       <div className="ml-4">
@@ -111,16 +105,16 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
 
           {/* 레포지토리 태그 */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            {repos.slice(0, 3).map((repo) => (
+            {repos.slice(0, 2).map((repo) => (
               <span
                 key={repo}
-                className="px-2 py-0.5 bg-muted rounded-full text-xs"
+                className="text-xs"
               >
                 {repo}
               </span>
             ))}
-            {repos.length > 3 && (
-              <span className="text-xs">+{repos.length - 3}</span>
+            {repos.length > 2 && (
+              <span className="text-xs">외 {repos.length - 2}개</span>
             )}
           </div>
 

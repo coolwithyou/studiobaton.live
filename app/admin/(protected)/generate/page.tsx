@@ -47,6 +47,7 @@ export default function GeneratePage() {
   const [progress, setProgress] = useState<{
     current: number;
     total: number;
+    currentDate?: string;
   } | null>(null);
   const [result, setResult] = useState<GenerationResult | null>(null);
 
@@ -103,10 +104,8 @@ export default function GeneratePage() {
         const data = await response.json();
         setResult(data);
       } else if (rangeStart && rangeEnd) {
-        // 구간 생성
-        setProgress({ current: 0, total: 1 });
-
-        const response = await fetch("/api/admin/generate/batch", {
+        // 구간 생성 - SSE 스트림 사용
+        const response = await fetch("/api/admin/generate/batch/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -118,9 +117,53 @@ export default function GeneratePage() {
           }),
         });
 
-        const data = await response.json();
-        setResult(data);
-        setProgress(null);
+        if (!response.body) {
+          throw new Error("스트림을 읽을 수 없습니다.");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              try {
+                const event = JSON.parse(line.slice(6));
+
+                if (event.type === "progress") {
+                  setProgress({
+                    current: event.data.current,
+                    total: event.data.total,
+                    currentDate: event.data.currentDate,
+                  });
+                } else if (event.type === "complete") {
+                  setResult({
+                    success: true,
+                    totalDays: event.data.total,
+                    processedDays: event.data.processedDays,
+                    results: event.data.results,
+                    skippedDays: event.data.skippedDays,
+                  });
+                  setProgress(null);
+                } else if (event.type === "error") {
+                  setResult({
+                    success: false,
+                    error: event.data.error,
+                  });
+                  setProgress(null);
+                }
+              } catch {
+                // JSON 파싱 실패는 무시 (불완전한 청크)
+              }
+            }
+          }
+        }
       }
     } catch (error) {
       console.error("Generation error:", error);

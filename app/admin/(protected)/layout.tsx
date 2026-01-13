@@ -1,17 +1,15 @@
 import { redirect } from "next/navigation";
-import { getSessionData } from "@/lib/session";
+import { getServerSession } from "@/lib/auth-helpers";
+import { signOut } from "@/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 async function AdminHeader() {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
   async function logout() {
     "use server";
-    const { getSession } = await import("@/lib/session");
-    const sess = await getSession();
-    sess.destroy();
-    redirect("/admin/login");
+    await signOut({ redirectTo: "/admin/login" });
   }
 
   return (
@@ -47,6 +45,18 @@ async function AdminHeader() {
               통계
             </Link>
             <Link
+              href="/admin/review"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              커밋 리뷰
+            </Link>
+            <Link
+              href="/admin/members"
+              className="text-sm text-muted-foreground hover:text-foreground"
+            >
+              팀원 관리
+            </Link>
+            <Link
               href="/"
               className="text-sm text-muted-foreground hover:text-foreground"
               target="_blank"
@@ -57,7 +67,7 @@ async function AdminHeader() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
-            {session.email}
+            {session?.user?.email}
           </span>
           <form action={logout}>
             <Button variant="ghost" size="sm" type="submit">
@@ -75,9 +85,9 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
-  if (!session.isLoggedIn) {
+  if (!session?.user) {
     redirect("/admin/login");
   }
 

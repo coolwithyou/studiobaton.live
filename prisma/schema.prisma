@@ -8,14 +8,17 @@ datasource db {
 }
 
 model Admin {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   publishedPosts Post[]
+  accounts       Account[]
+  sessions       Session[]
 }
 
 model CommitLog {
@@ -106,4 +109,60 @@ model ProjectMapping {
   isActive       Boolean  @default(true) // 활성화 여부 (글 생성에 포함할지)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+model Member {
+  id           String   @id @default(cuid())
+  name         String   // 팀원 이름 (예: "홍길동")
+  githubName   String   // GitHub 사용자명
+  email        String   @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
+  avatarUrl    String?  // 프로필 이미지 URL
+  isActive     Boolean  @default(true) // 활성화 여부
+  displayOrder Int      @default(0) // 탭 표시 순서
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([displayOrder])
+}
+
+// Auth.js required models
+model Account {
+  id                String  @id @default(cuid())
+  adminId           String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([adminId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  adminId      String
+  expires      DateTime
+
+  admin Admin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

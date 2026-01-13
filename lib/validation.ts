@@ -113,6 +113,37 @@ export const statsQuerySchema = z.object({
 });
 
 /**
+ * 팀원 관련 스키마
+ */
+export const memberSchema = z.object({
+  name: z.string().min(1, "이름을 입력해주세요.").max(50),
+  githubName: z.string().min(1, "GitHub 사용자명을 입력해주세요.").max(100),
+  email: z.string().email("유효한 이메일 주소를 입력해주세요."),
+  avatarUrl: z
+    .string()
+    .transform((val) => (val === "" ? null : val))
+    .pipe(z.string().url("유효한 URL을 입력해주세요.").nullable())
+    .optional(),
+  displayOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export const memberUpdateSchema = memberSchema.partial().extend({
+  id: z.string().cuid(),
+});
+
+/**
+ * 커밋 리뷰 관련 스키마
+ */
+export const reviewQuerySchema = z.object({
+  date: z.coerce.date().refine(
+    (date) => date <= new Date(),
+    "미래 날짜는 선택할 수 없습니다."
+  ),
+  memberId: z.string().cuid("유효한 팀원 ID를 선택해주세요."),
+});
+
+/**
  * 유효성 검사 헬퍼
  */
 export function parseSearchParams<T extends z.ZodType>(

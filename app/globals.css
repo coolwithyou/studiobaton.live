@@ -175,3 +175,19 @@
 .prose code {
   font-size: 0.875rem;
 }
+
+/* Monaco Editor diff 라인 스타일 (다크모드 기준) */
+.diff-line-added {
+  background-color: rgba(46, 160, 67, 0.2) !important;
+  border-left: 3px solid rgb(46, 160, 67) !important;
+}
+
+.diff-line-removed {
+  background-color: rgba(248, 81, 73, 0.2) !important;
+  border-left: 3px solid rgb(248, 81, 73) !important;
+}
+
+.diff-line-info {
+  background-color: rgba(136, 146, 176, 0.15) !important;
+  color: rgb(136, 146, 176) !important;
+}

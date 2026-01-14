@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // 해당 날짜의 커밋 조회
+    // 해당 날짜의 커밋 조회 (파일 정보 포함)
     const commits = await prisma.commitLog.findMany({
       where: {
         authorEmail: member.email,
@@ -68,6 +68,20 @@ export async function GET(request: NextRequest) {
         deletions: true,
         filesChanged: true,
         url: true,
+        files: {
+          select: {
+            id: true,
+            filename: true,
+            status: true,
+            additions: true,
+            deletions: true,
+            changes: true,
+            patch: true,
+          },
+          orderBy: {
+            filename: "asc",
+          },
+        },
       },
       orderBy: {
         committedAt: "asc",

@@ -76,25 +76,47 @@ export async function generatePostForDate(
     postId = existingPost.id;
   }
 
-  // 4. 커밋 저장 (중복 제외)
+  // 4. 커밋 저장 (중복 제외) - 트랜잭션으로 커밋과 파일을 함께 저장
   for (const commit of commits) {
-    await prisma.commitLog.upsert({
-      where: { sha: commit.sha },
-      update: { postId },
-      create: {
-        sha: commit.sha,
-        repository: commit.repository,
-        message: commit.message,
-        author: commit.author,
-        authorEmail: commit.authorEmail,
-        authorAvatar: commit.authorAvatar,
-        committedAt: commit.committedAt,
-        additions: commit.additions,
-        deletions: commit.deletions,
-        filesChanged: commit.filesChanged,
-        url: commit.url,
-        postId,
-      },
+    await prisma.$transaction(async (tx) => {
+      // 커밋 upsert
+      await tx.commitLog.upsert({
+        where: { sha: commit.sha },
+        update: { postId },
+        create: {
+          sha: commit.sha,
+          repository: commit.repository,
+          message: commit.message,
+          author: commit.author,
+          authorEmail: commit.authorEmail,
+          authorAvatar: commit.authorAvatar,
+          committedAt: commit.committedAt,
+          additions: commit.additions,
+          deletions: commit.deletions,
+          filesChanged: commit.filesChanged,
+          url: commit.url,
+          postId,
+        },
+      });
+
+      // 기존 파일 삭제 후 새로 생성 (upsert 대신 deleteMany + createMany)
+      if (commit.files && commit.files.length > 0) {
+        await tx.commitFile.deleteMany({
+          where: { commitSha: commit.sha },
+        });
+
+        await tx.commitFile.createMany({
+          data: commit.files.map((file) => ({
+            commitSha: commit.sha,
+            filename: file.filename,
+            status: file.status,
+            additions: file.additions,
+            deletions: file.deletions,
+            changes: file.changes,
+            patch: file.patch,
+          })),
+        });
+      }
     });
   }
 

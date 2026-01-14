@@ -13,6 +13,16 @@ interface Member {
   avatarUrl: string | null;
 }
 
+interface CommitFile {
+  id: string;
+  filename: string;
+  status: string;
+  additions: number;
+  deletions: number;
+  changes: number;
+  patch: string | null;
+}
+
 interface Commit {
   sha: string;
   message: string;
@@ -21,6 +31,7 @@ interface Commit {
   deletions: number;
   filesChanged: number;
   url: string;
+  files: CommitFile[];
 }
 
 interface Repository {

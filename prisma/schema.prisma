@@ -40,8 +40,25 @@ model CommitLog {
   post         Post?    @relation(fields: [postId], references: [id])
   postId       String?
 
+  files        CommitFile[]
+
   @@index([committedAt])
   @@index([repository])
+}
+
+model CommitFile {
+  id        String    @id @default(cuid())
+  commit    CommitLog @relation(fields: [commitSha], references: [sha], onDelete: Cascade)
+  commitSha String
+  filename  String
+  status    String    // added | modified | removed | renamed
+  additions Int       @default(0)
+  deletions Int       @default(0)
+  changes   Int       @default(0)
+  patch     String?   @db.Text
+  createdAt DateTime  @default(now())
+
+  @@index([commitSha])
 }
 
 model Post {

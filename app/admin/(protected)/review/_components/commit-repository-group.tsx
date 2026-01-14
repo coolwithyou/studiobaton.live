@@ -4,6 +4,16 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CommitCard } from "./commit-card";
 
+interface CommitFile {
+  id: string;
+  filename: string;
+  status: string;
+  additions: number;
+  deletions: number;
+  changes: number;
+  patch: string | null;
+}
+
 interface Commit {
   sha: string;
   message: string;
@@ -12,6 +22,7 @@ interface Commit {
   deletions: number;
   filesChanged: number;
   url: string;
+  files: CommitFile[];
 }
 
 interface Repository {

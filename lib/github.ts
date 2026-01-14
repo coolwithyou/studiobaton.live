@@ -6,6 +6,15 @@ const octokit = new Octokit({
 
 const ORG_NAME = "studiobaton";
 
+export interface CommitFileData {
+  filename: string;
+  status: string;
+  additions: number;
+  deletions: number;
+  changes: number;
+  patch?: string;
+}
+
 export interface CommitData {
   sha: string;
   repository: string;
@@ -18,6 +27,7 @@ export interface CommitData {
   deletions: number;
   filesChanged: number;
   url: string;
+  files: CommitFileData[];
 }
 
 export async function getOrgRepos(): Promise<string[]> {
@@ -83,6 +93,7 @@ export async function getCommitsSince(
           deletions: detail.deletions,
           filesChanged: detail.filesChanged,
           url: commit.html_url,
+          files: detail.files,
         };
       } catch (error) {
         console.error(`Error fetching commit detail for ${commit.sha}:`, error);
@@ -98,6 +109,7 @@ export async function getCommitsSince(
           deletions: 0,
           filesChanged: 0,
           url: commit.html_url,
+          files: [],
         };
       }
     });
@@ -112,21 +124,32 @@ export async function getCommitsSince(
 async function getCommitDetail(
   repo: string,
   sha: string
-): Promise<{ additions: number; deletions: number; filesChanged: number }> {
+): Promise<{ additions: number; deletions: number; filesChanged: number; files: CommitFileData[] }> {
   try {
     const { data } = await octokit.repos.getCommit({
       owner: ORG_NAME,
       repo,
       ref: sha,
     });
+
+    const files: CommitFileData[] = (data.files || []).map((file) => ({
+      filename: file.filename,
+      status: file.status || "modified",
+      additions: file.additions,
+      deletions: file.deletions,
+      changes: file.changes,
+      patch: file.patch,
+    }));
+
     return {
       additions: data.stats?.additions || 0,
       deletions: data.stats?.deletions || 0,
       filesChanged: data.files?.length || 0,
+      files,
     };
   } catch (error) {
     console.error(`Error fetching commit detail:`, error);
-    return { additions: 0, deletions: 0, filesChanged: 0 };
+    return { additions: 0, deletions: 0, filesChanged: 0, files: [] };
   }
 }
 

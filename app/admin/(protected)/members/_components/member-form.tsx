@@ -35,7 +35,7 @@ export function MemberForm({ onMemberChange }: MemberFormProps) {
           name: name.trim(),
           githubName: githubName.trim(),
           email: email.trim(),
-          avatarUrl: avatarUrl.trim() || null,
+          avatarUrl: avatarUrl.trim(),
           displayOrder,
           isActive: true,
         }),

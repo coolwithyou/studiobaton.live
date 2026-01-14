@@ -56,7 +56,7 @@ export function MemberList({ members, onMemberChange }: MemberListProps) {
           name: editName.trim(),
           githubName: editGithubName.trim(),
           email: editEmail.trim(),
-          avatarUrl: editAvatarUrl.trim() || null,
+          avatarUrl: editAvatarUrl.trim(),
           displayOrder: editDisplayOrder,
         }),
       });

@@ -65,12 +65,46 @@ npm run dev
 
 ### Google OAuth 설정
 
-1. [Google Cloud Console](https://console.cloud.google.com/)에서 프로젝트 생성
-2. "APIs & Services" > "Credentials" 에서 OAuth 2.0 클라이언트 ID 생성
-3. 승인된 리디렉션 URI 추가:
-   - 개발: `http://localhost:3000/api/auth/callback/google`
-   - 프로덕션: `https://studiobaton.live/api/auth/callback/google`
-4. 발급된 Client ID와 Client Secret을 `.env.local`에 추가
+#### 1. Google Cloud Console 프로젝트 생성
+
+1. [Google Cloud Console](https://console.cloud.google.com/)에 접속
+2. 상단의 프로젝트 선택 드롭다운 클릭 → "새 프로젝트" 선택
+3. 프로젝트 이름 입력 (예: `studiobaton-live`) → "만들기" 클릭
+
+#### 2. OAuth 동의 화면 설정
+
+1. 좌측 메뉴에서 "APIs & Services" > "OAuth consent screen" 클릭
+2. User Type: "External" 선택 → "만들기"
+3. 필수 정보 입력:
+   - 앱 이름: `Studio Baton Live`
+   - 사용자 지원 이메일: 본인 이메일
+   - 개발자 연락처 이메일: 본인 이메일
+4. "저장 후 계속" 클릭 (Scopes, Test users는 기본값으로 진행)
+
+#### 3. OAuth 클라이언트 ID 생성
+
+1. "APIs & Services" > "Credentials" 클릭
+2. 상단 "+ CREATE CREDENTIALS" → "OAuth client ID" 선택
+3. 애플리케이션 유형: "Web application" 선택
+4. 이름 입력 (예: `Studio Baton Live Web`)
+5. **승인된 JavaScript 원본** 추가:
+   - `http://localhost:3000` (개발용)
+   - `https://studiobaton.live` (프로덕션)
+6. **승인된 리디렉션 URI** 추가:
+   - `http://localhost:3000/api/auth/callback/google` (개발용)
+   - `https://studiobaton.live/api/auth/callback/google` (프로덕션)
+7. "만들기" 클릭
+
+#### 4. 환경 변수 설정
+
+생성 완료 후 표시되는 클라이언트 ID와 클라이언트 보안 비밀번호를 `.env.local`에 추가:
+
+```bash
+GOOGLE_CLIENT_ID="123456789-xxxxxxxx.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="GOCSPX-xxxxxxxxxxxxxxxx"
+```
+
+> **참고**: 클라이언트 보안 비밀번호는 생성 시에만 표시됩니다. 분실 시 새로 생성해야 합니다.
 
 ### 로그인 방법
 

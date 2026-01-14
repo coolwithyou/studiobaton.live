@@ -101,7 +101,7 @@ export async function PATCH(
           slug,
           status: "PUBLISHED",
           publishedAt: new Date(),
-          publishedById: session.adminId,
+          publishedById: session.user.id,
         },
       });
 

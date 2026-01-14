@@ -70,6 +70,12 @@ export default function PostEditPage({
   const [content, setContent] = useState("");
   const [summary, setSummary] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [originalData, setOriginalData] = useState<{
+    title: string;
+    content: string;
+    summary: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchPost();
@@ -102,12 +108,54 @@ export default function PostEditPage({
   };
 
   const handleVersionSelect = (version: PostVersion) => {
-    if (post?.status === "PUBLISHED") return;
+    if (post?.status === "PUBLISHED" && !isEditMode) return;
     setSelectedVersionId(version.id);
     setTitle(version.title);
     setContent(version.content);
     setSummary(version.summary || "");
     setIsEditing(false);
+  };
+
+  const handleEnterEditMode = () => {
+    setOriginalData({ title, content, summary });
+    setIsEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    if (originalData) {
+      setTitle(originalData.title);
+      setContent(originalData.content);
+      setSummary(originalData.summary);
+    }
+    setIsEditMode(false);
+    setOriginalData(null);
+  };
+
+  const handleSave = async () => {
+    if (!title.trim() || !content.trim()) {
+      alert("제목과 내용을 입력해주세요.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/posts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, content, summary }),
+      });
+
+      if (!res.ok) throw new Error("Failed to save");
+
+      setIsEditMode(false);
+      setOriginalData(null);
+      await fetchPost();
+    } catch (error) {
+      console.error("Error saving:", error);
+      alert("저장 중 오류가 발생했습니다.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handlePublish = async () => {
@@ -189,15 +237,30 @@ export default function PostEditPage({
             {post.commits.length}개의 커밋
           </p>
         </div>
-        {!isPublished && (
-          <Button onClick={handlePublish} disabled={saving}>
-            {saving ? "발행 중..." : "발행하기"}
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {!isPublished && (
+            <Button onClick={handlePublish} disabled={saving}>
+              {saving ? "발행 중..." : "발행하기"}
+            </Button>
+          )}
+          {isPublished && !isEditMode && (
+            <Button onClick={handleEnterEditMode}>수정하기</Button>
+          )}
+          {isPublished && isEditMode && (
+            <>
+              <Button variant="outline" onClick={handleCancelEdit} disabled={saving}>
+                취소
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "저장 중..." : "저장하기"}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* 버전 선택 탭 */}
-      {!isPublished && post.versions.length > 0 && (
+      {(!isPublished || isEditMode) && post.versions.length > 0 && (
         <Tabs
           value={selectedVersionId || post.versions[0].id}
           onValueChange={(v) => {
@@ -227,7 +290,7 @@ export default function PostEditPage({
               setTitle(e.target.value);
               setIsEditing(true);
             }}
-            disabled={isPublished}
+            disabled={isPublished && !isEditMode}
             placeholder="제목을 입력하세요"
           />
         </div>
@@ -240,7 +303,7 @@ export default function PostEditPage({
               setContent(val);
               setIsEditing(true);
             }}
-            disabled={isPublished}
+            disabled={isPublished && !isEditMode}
             minHeight={400}
           />
         </div>
@@ -254,7 +317,7 @@ export default function PostEditPage({
               setSummary(e.target.value);
               setIsEditing(true);
             }}
-            disabled={isPublished}
+            disabled={isPublished && !isEditMode}
             placeholder="짧은 요약을 입력하세요"
           />
         </div>

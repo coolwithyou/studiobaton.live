@@ -2,19 +2,21 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { LayoutDashboard } from "lucide-react";
 
-interface SessionData {
-  isLoggedIn: boolean;
-  email?: string;
-  name?: string;
+interface NextAuthSession {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  expires?: string;
 }
 
 export function Header() {
-  const router = useRouter();
-  const [session, setSession] = useState<SessionData | null>(null);
+  const [session, setSession] = useState<NextAuthSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export function Header() {
         const data = await response.json();
         setSession(data);
       } catch {
-        setSession({ isLoggedIn: false });
+        setSession(null);
       } finally {
         setLoading(false);
       }
@@ -33,16 +35,11 @@ export function Header() {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      setSession({ isLoggedIn: false });
-      router.refresh();
-    } catch {
-      // 무시
-    }
+    // NextAuth의 signOut 페이지로 리다이렉트
+    window.location.href = "/api/auth/signout";
   };
 
-  const isInternalUser = session?.isLoggedIn && session?.email?.endsWith("@ba-ton.kr");
+  const isInternalUser = session?.user?.email?.endsWith("@ba-ton.kr");
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -56,8 +53,18 @@ export function Header() {
               {isInternalUser ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground hidden sm:inline">
-                    {session?.name || session?.email?.split("@")[0]}
+                    {session?.user?.name || session?.user?.email?.split("@")[0]}
                   </span>
+                  <Link href="/admin">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground gap-1.5"
+                    >
+                      <LayoutDashboard className="h-4 w-4" />
+                      <span className="hidden sm:inline">대시보드</span>
+                    </Button>
+                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"

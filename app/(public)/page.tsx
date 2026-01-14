@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import prisma from "@/lib/prisma";
-import { isInternalUser } from "@/lib/session";
+import { isInternalUser } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
 import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";

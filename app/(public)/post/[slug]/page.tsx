@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { isInternalUser } from "@/lib/session";
+import { isInternalUser } from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";

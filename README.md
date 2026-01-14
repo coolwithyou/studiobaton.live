@@ -25,14 +25,19 @@
 
 ### 환경 변수 설정
 
-`.env` 파일을 생성하고 다음 변수들을 설정합니다:
+`.env.local` 파일을 생성하고 다음 변수들을 설정합니다:
 
 ```bash
 # 데이터베이스 (Neon PostgreSQL)
 DATABASE_URL="postgresql://..."
 
-# 세션 암호화 키 (32자 이상)
-SESSION_SECRET="your-secret-key-at-least-32-characters"
+# Auth.js Configuration
+AUTH_SECRET="your-secret-key"  # openssl rand -base64 32
+AUTH_URL="http://localhost:3000"
+
+# Google OAuth
+GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 # GitHub API 토큰
 GITHUB_TOKEN="ghp_..."
@@ -40,11 +45,6 @@ GITHUB_ORG="studiobaton"
 
 # Claude API (글 생성용)
 ANTHROPIC_API_KEY="sk-ant-..."
-
-# 관리자 계정 (선택, seed 시 사용)
-ADMIN_EMAIL="admin@ba-ton.kr"
-ADMIN_PASSWORD="your-secure-password"
-ADMIN_NAME="관리자"
 ```
 
 ### 설치 및 실행
@@ -63,25 +63,23 @@ npx prisma db seed
 npm run dev
 ```
 
-### 관리자 계정 생성
+### Google OAuth 설정
 
-`npx prisma db seed` 명령으로 관리자 계정을 생성합니다.
+1. [Google Cloud Console](https://console.cloud.google.com/)에서 프로젝트 생성
+2. "APIs & Services" > "Credentials" 에서 OAuth 2.0 클라이언트 ID 생성
+3. 승인된 리디렉션 URI 추가:
+   - 개발: `http://localhost:3000/api/auth/callback/google`
+   - 프로덕션: `https://studiobaton.live/api/auth/callback/google`
+4. 발급된 Client ID와 Client Secret을 `.env.local`에 추가
 
-**중요**: `@ba-ton.kr` 이메일만 로그인할 수 있습니다.
+### 로그인 방법
 
-```bash
-# 환경 변수로 설정
-ADMIN_EMAIL="yourname@ba-ton.kr"
-ADMIN_PASSWORD="secure-password"
-ADMIN_NAME="홍길동"
+Google OAuth를 사용하며, **@ba-ton.kr 도메인 계정만** 로그인할 수 있습니다.
 
-# seed 실행
-npx prisma db seed
-```
-
-기본값:
-- 이메일: `admin@ba-ton.kr`
-- 비밀번호: `changeme123`
+1. http://localhost:3000/admin 접속
+2. "Google로 로그인" 버튼 클릭
+3. @ba-ton.kr 계정으로 로그인
+4. 최초 로그인 시 자동으로 Admin 계정 생성
 
 ## 프로젝트 구조
 
@@ -105,7 +103,7 @@ npx prisma db seed
 
 - **Framework**: Next.js 16 (App Router)
 - **Database**: PostgreSQL (Neon) + Prisma ORM
-- **Auth**: Iron Session
+- **Auth**: Auth.js (NextAuth v5) + Google OAuth
 - **Styling**: Tailwind CSS + shadcn/ui
 - **AI**: Claude API (Anthropic)
 
@@ -114,6 +112,88 @@ npx prisma db seed
 - `/admin` - 대시보드
 - `/admin/projects` - 프로젝트 매핑 관리
 - `/admin/generate` - 글 생성
+
+## 개발/테스트 API (AI 에이전트용)
+
+### Bearer 토큰 기반 인증 API
+
+AI 에이전트, E2E 테스트, 자동화 스크립트에서 사용할 수 있는 개발 전용 인증 API입니다.
+
+**⚠️ 보안**: `NODE_ENV=production`에서는 자동으로 비활성화됩니다.
+
+#### 1. 토큰 발급
+
+```bash
+POST /api/auth/dev-login
+Content-Type: application/json
+
+{
+  "email": "admin@ba-ton.kr"
+}
+```
+
+응답:
+```json
+{
+  "success": true,
+  "token": "dev_YWRtaW5AYmEtdG9uLmty",
+  "user": {
+    "id": "cm...",
+    "email": "admin@ba-ton.kr",
+    "name": "admin"
+  },
+  "usage": "Authorization: Bearer dev_YWRtaW5AYmEtdG9uLmty"
+}
+```
+
+#### 2. API 요청 시 사용
+
+발급받은 토큰을 Authorization 헤더에 포함:
+
+```bash
+# 관리자 API 호출 예시
+curl -H "Authorization: Bearer dev_YWRtaW5AYmEtdG9uLmty" \
+  http://localhost:3000/api/admin/posts
+```
+
+TypeScript/JavaScript:
+```typescript
+const token = "dev_YWRtaW5AYmEtdG9uLmty" // 발급받은 토큰
+
+// API 요청
+const response = await fetch('http://localhost:3000/api/admin/posts', {
+  headers: {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  }
+})
+
+const data = await response.json()
+console.log(data)
+```
+
+#### 3. 토큰 검증
+
+```bash
+GET /api/auth/dev-login
+Authorization: Bearer dev_YWRtaW5AYmEtdG9uLmty
+```
+
+#### 4. 로그아웃
+
+토큰은 stateless이므로 클라이언트에서 삭제하면 됩니다:
+
+```bash
+DELETE /api/auth/dev-login
+```
+
+#### 특징
+
+- ✅ 이메일 기반 간단한 토큰 생성
+- ✅ Bearer 토큰 방식으로 어디서나 사용 가능
+- ✅ 개발 환경에서만 작동 (프로덕션 자동 비활성화)
+- ✅ @ba-ton.kr 도메인만 허용
+- ✅ Google OAuth 로그인과 동일한 권한
 
 ## 라이선스
 

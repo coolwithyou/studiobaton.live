@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionData } from "@/lib/session";
+import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import slugify from "slugify";
 import { format } from "date-fns";
@@ -10,9 +10,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSessionData();
+    const session = await getServerSession();
 
-    if (!session.isLoggedIn) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -56,9 +56,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getSessionData();
+    const session = await getServerSession();
 
-    if (!session.isLoggedIn) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

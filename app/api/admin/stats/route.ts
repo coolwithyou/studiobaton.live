@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionData } from "@/lib/session";
+import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -9,9 +9,9 @@ import { z } from "zod";
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getSessionData();
+    const session = await getServerSession();
 
-    if (!session.isLoggedIn) {
+    if (!session?.user) {
       throw new AuthError();
     }
 

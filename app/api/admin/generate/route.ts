@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSessionData } from "@/lib/session";
+import { getServerSession } from "@/lib/auth-helpers";
 import { generatePostForDate } from "@/lib/generate";
 import { parseISO } from "date-fns";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSessionData();
+    const session = await getServerSession();
 
-    if (!session.isLoggedIn) {
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

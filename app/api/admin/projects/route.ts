@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getSessionData } from "@/lib/session";
+import { getServerSession } from "@/lib/auth-helpers";
 import { invalidateProjectMappingsCache } from "@/lib/masking";
 
 // GET: 모든 프로젝트 매핑 조회
 export async function GET() {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
-  if (!session.isLoggedIn) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -28,9 +28,9 @@ export async function GET() {
 
 // POST: 새 프로젝트 매핑 생성
 export async function POST(request: NextRequest) {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
-  if (!session.isLoggedIn) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -76,9 +76,9 @@ export async function POST(request: NextRequest) {
 
 // PUT: 프로젝트 매핑 업데이트
 export async function PUT(request: NextRequest) {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
-  if (!session.isLoggedIn) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -118,9 +118,9 @@ export async function PUT(request: NextRequest) {
 
 // DELETE: 프로젝트 매핑 삭제
 export async function DELETE(request: NextRequest) {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
-  if (!session.isLoggedIn) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

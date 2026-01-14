@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { isInternalUser } from "@/lib/session";
+import { isInternalUser } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
 import { searchSchema, formatZodError } from "@/lib/validation";
 import { logError, normalizeError, ValidationError } from "@/lib/errors";

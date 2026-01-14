@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getSessionData } from "@/lib/session";
+import { getServerSession } from "@/lib/auth-helpers";
 import { generatePostForDate, getCommitCountForDate } from "@/lib/generate";
 import { getHolidaysInRange } from "@/lib/holidays";
 import { parseISO, eachDayOfInterval, format } from "date-fns";
@@ -34,9 +34,9 @@ function createSSEMessage(event: ProgressEvent): string {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
-  if (!session.isLoggedIn) {
+  if (!session?.user) {
     return new Response(
       createSSEMessage({
         type: "error",

@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { Octokit } from "@octokit/rest";
-import { getSessionData } from "@/lib/session";
+import { getServerSession } from "@/lib/auth-helpers";
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
 });
 
 export async function GET() {
-  const session = await getSessionData();
+  const session = await getServerSession();
 
-  if (!session.isLoggedIn) {
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

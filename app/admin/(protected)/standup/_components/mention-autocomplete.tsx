@@ -28,6 +28,7 @@ export function MentionAutocomplete({
   const [searchQuery, setSearchQuery] = useState("");
   const [mentionStart, setMentionStart] = useState(-1);
   const [loading, setLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // 레포지토리 검색
@@ -65,6 +66,11 @@ export function MentionAutocomplete({
       }
     };
   }, [searchQuery, open, searchRepositories]);
+
+  // 검색 결과 변경 시 선택 인덱스 초기화
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [repositories]);
 
   // @ 입력 감지
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -120,11 +126,32 @@ export function MentionAutocomplete({
 
   // 키보드 이벤트 처리
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open) return;
+    if (!open || repositories.length === 0) return;
 
-    if (e.key === "Escape") {
-      setOpen(false);
-      setMentionStart(-1);
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setSelectedIndex((prev) =>
+          prev < repositories.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setSelectedIndex((prev) =>
+          prev > 0 ? prev - 1 : repositories.length - 1
+        );
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (repositories[selectedIndex]) {
+          handleSelect(repositories[selectedIndex]);
+        }
+        break;
+      case "Escape":
+        e.preventDefault();
+        setOpen(false);
+        setMentionStart(-1);
+        break;
     }
   };
 
@@ -158,12 +185,14 @@ export function MentionAutocomplete({
                 <CommandEmpty>레포지토리를 찾을 수 없습니다.</CommandEmpty>
               ) : (
                 <CommandGroup heading="레포지토리">
-                  {repositories.map((repo) => (
+                  {repositories.map((repo, index) => (
                     <CommandItem
                       key={repo.fullName}
                       value={repo.fullName}
                       onSelect={() => handleSelect(repo)}
-                      className="cursor-pointer"
+                      className={`cursor-pointer ${
+                        index === selectedIndex ? "bg-accent" : ""
+                      }`}
                     >
                       <div className="flex flex-col">
                         <span className="font-medium">@{repo.fullName}</span>

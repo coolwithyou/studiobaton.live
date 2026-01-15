@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { CalendarIcon, Loader2, Sun } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { StandupForm } from "./_components/standup-form";
 import { TaskList } from "./_components/task-list";
 
@@ -22,7 +22,7 @@ interface Member {
   avatarUrl: string | null;
 }
 
-interface Task {
+export interface Task {
   id: string;
   content: string;
   repository: string | null;
@@ -46,7 +46,8 @@ export default function StandupPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [standupData, setStandupData] = useState<StandupData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [fetching, setFetching] = useState(false);
+  const [initialFetching, setInitialFetching] = useState(false);
+  const hasLoadedRef = useRef(false);
 
   // 팀원 목록 조회
   const fetchMembers = useCallback(async () => {
@@ -71,10 +72,14 @@ export default function StandupPage() {
   }, [fetchMembers]);
 
   // 스탠드업 데이터 조회
-  const fetchStandup = useCallback(async () => {
+  const fetchStandup = useCallback(async (silent = false) => {
     if (!selectedMember) return;
 
-    setFetching(true);
+    // 초기 로딩 시에만 스피너 표시
+    if (!silent && !hasLoadedRef.current) {
+      setInitialFetching(true);
+    }
+
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       const response = await fetch(
@@ -88,22 +93,28 @@ export default function StandupPage() {
       }
 
       setStandupData(data);
+      hasLoadedRef.current = true;
     } catch (error) {
       console.error("Failed to fetch standup:", error);
-      setStandupData(null);
+      if (!silent) {
+        setStandupData(null);
+      }
     } finally {
-      setFetching(false);
+      setInitialFetching(false);
     }
   }, [selectedDate, selectedMember]);
 
   useEffect(() => {
     if (selectedMember) {
+      // 날짜나 멤버가 변경되면 초기 로딩 상태로 리셋
+      hasLoadedRef.current = false;
       fetchStandup();
     }
-  }, [selectedMember, fetchStandup]);
+  }, [selectedMember, selectedDate, fetchStandup]);
 
   const handleTaskAdded = () => {
-    fetchStandup();
+    // 백그라운드에서 데이터 갱신 (스피너 없이)
+    fetchStandup(true);
   };
 
   if (loading) {
@@ -138,10 +149,7 @@ export default function StandupPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Sun className="size-6 text-yellow-500" />
-          <h1 className="text-2xl font-bold">스탠드업</h1>
-        </div>
+        <h1 className="text-2xl font-bold mb-1">스탠드업</h1>
         <p className="text-muted-foreground">
           오늘 할 일을 등록하고 팀과 공유하세요. @로 레포지토리를 참조할 수 있습니다.
         </p>
@@ -193,7 +201,7 @@ export default function StandupPage() {
         </TabsList>
 
         <TabsContent value={selectedMember} className="mt-6">
-          {fetching ? (
+          {initialFetching ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="size-8 animate-spin text-muted-foreground" />
             </div>

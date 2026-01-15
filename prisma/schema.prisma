@@ -160,8 +160,42 @@ model Member {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  standups  Standup[]
+
   @@index([isActive])
   @@index([displayOrder])
+}
+
+// 스탠드업 (팀원별 일일 할 일)
+model Standup {
+  id        String        @id @default(cuid())
+  memberId  String
+  member    Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  date      DateTime      @db.Date
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  tasks     StandupTask[]
+
+  @@unique([memberId, date])
+  @@index([date])
+  @@index([memberId])
+}
+
+// 스탠드업 할 일 항목
+model StandupTask {
+  id           String    @id @default(cuid())
+  standupId    String
+  standup      Standup   @relation(fields: [standupId], references: [id], onDelete: Cascade)
+  content      String    // 할 일 내용 (@mention 포함 가능)
+  repository   String?   // 참조된 레포 (예: studiobaton/kiaf.web)
+  isCompleted  Boolean   @default(false)
+  completedAt  DateTime?
+  displayOrder Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([standupId])
 }
 
 // Auth.js required models

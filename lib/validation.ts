@@ -145,6 +145,41 @@ export const reviewQuerySchema = z.object({
 });
 
 /**
+ * 스탠드업 관련 스키마
+ */
+export const standupQuerySchema = z.object({
+  date: z.coerce.date().refine(
+    (date) => startOfDay(date) <= startOfDay(new Date()),
+    "미래 날짜는 선택할 수 없습니다."
+  ),
+  memberId: z.string().cuid("유효한 팀원 ID를 선택해주세요."),
+});
+
+export const standupTaskSchema = z.object({
+  date: z.coerce.date(),
+  memberId: z.string().cuid(),
+  content: z.string()
+    .min(1, "할 일 내용을 입력해주세요.")
+    .max(500, "500자 이내로 입력해주세요."),
+  repository: z.string().max(200).nullable().optional(),
+});
+
+export const standupTaskUpdateSchema = z.object({
+  isCompleted: z.boolean().optional(),
+  content: z.string().min(1).max(500).optional(),
+  repository: z.string().max(200).nullable().optional(),
+});
+
+export const repoSearchSchema = z.object({
+  q: z.string().max(100).default(""),
+});
+
+export const commitSummarizeSchema = z.object({
+  date: z.coerce.date(),
+  memberId: z.string().cuid(),
+});
+
+/**
  * 유효성 검사 헬퍼
  */
 export function parseSearchParams<T extends z.ZodType>(

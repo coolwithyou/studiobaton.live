@@ -112,6 +112,21 @@ export async function isAdmin(): Promise<boolean> {
 }
 
 /**
+ * 팀원 기능 접근 권한 확인 (ADMIN, TEAM_MEMBER)
+ */
+export async function hasTeamAccess(): Promise<boolean> {
+  const session = await getServerSession()
+  if (!session?.user) return false
+
+  const role = session.user.role as UserRole | undefined
+  const status = session.user.status as UserStatus | undefined
+
+  // ACTIVE 상태의 ADMIN 또는 TEAM_MEMBER만 접근 가능
+  if (status !== "ACTIVE") return false
+  return role === "ADMIN" || role === "TEAM_MEMBER"
+}
+
+/**
  * 현재 로그인한 관리자의 ID 가져오기
  */
 export async function getAdminId() {

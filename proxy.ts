@@ -6,7 +6,7 @@ import type { UserRole, UserStatus } from "@/app/generated/prisma"
 // 역할별 접근 가능한 어드민 경로
 const ROLE_ROUTES: Record<UserRole, string[]> = {
   ADMIN: ["/admin"], // 모든 어드민 경로
-  TEAM_MEMBER: ["/admin/review"], // 커밋 리뷰만
+  TEAM_MEMBER: ["/admin/review", "/admin/standup", "/admin/wrap-up"], // 스탠드업/랩업
   ORG_MEMBER: [], // 어드민 접근 불가
 }
 

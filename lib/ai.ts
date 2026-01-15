@@ -205,3 +205,193 @@ export async function generateAllVersions(
 
   return results;
 }
+
+/**
+ * 커밋 하이라이트 분석용 타입
+ */
+interface CommitForHighlight {
+  sha: string;
+  repository: string;
+  message: string;
+  additions: number;
+  deletions: number;
+  filesChanged: number;
+  files?: {
+    filename: string;
+    status: string;
+    additions: number;
+    deletions: number;
+    patch?: string | null;
+  }[];
+}
+
+interface CommitHighlight {
+  rank: number;
+  commitHash: string;
+  category: "feat" | "fix" | "perf" | "refactor" | "test" | "chore";
+  title: string;
+  description: string;
+  impact: string;
+}
+
+interface CommitHighlightResponse {
+  summary: {
+    totalCommits: number;
+    highlightCount: number;
+    primaryFocus: string;
+  };
+  highlights: CommitHighlight[];
+  techDebtNotes: string[];
+}
+
+const COMMIT_HIGHLIGHT_PROMPT = `# Role: Daily Commit Highlight Analyzer
+
+당신은 개발팀의 일일 커밋을 분석하여 팀 랩업 미팅용 하이라이트를 추출하는 전문 분석가입니다.
+
+## 분석 원칙
+1. **비즈니스 임팩트 우선**: 코드 변경량보다 기능적 의미를 중시
+2. **기술 부채 식별**: 리팩토링, 버그 수정의 중요도 평가
+3. **간결성**: 1커밋 = 1~2문장 핵심 요약
+
+## 하이라이트 선정 기준 (우선순위)
+1. 새로운 기능 추가 (feat) - 사용자에게 직접 영향을 주는 변경
+2. 중요 버그 수정 (fix) - 특히 프로덕션 영향이 있는 수정
+3. 성능 개선 (perf) - 측정 가능한 성능 향상
+4. 보안 관련 변경 - 취약점 수정, 권한 체계 변경
+5. 대규모 리팩토링 (refactor) - 코드 품질 개선
+
+## 제외 기준 (하이라이트에서 제외)
+- 단순 typo 수정
+- 자동 생성 파일 변경 (lock files, build artifacts)
+- 내용 없는 머지 커밋
+- 포맷팅만 변경된 커밋
+- 주석만 추가/수정한 커밋
+
+## 카테고리 분류 기준
+- feat: 새로운 기능 추가, UI 변경, API 추가
+- fix: 버그 수정, 오류 해결, 이슈 대응
+- perf: 성능 최적화, 쿼리 개선, 캐싱 적용
+- refactor: 코드 구조 개선, 중복 제거, 패턴 적용
+- test: 테스트 추가/수정
+- chore: 빌드 설정, 의존성 업데이트, 기타
+
+## 출력 지침
+- title: 20자 이내 핵심 제목 (예: "사용자 인증 개선")
+- description: 기술적 변경사항 1~2문장
+- impact: 비즈니스/사용자 관점 영향 1문장
+- primaryFocus: 오늘 개발의 주요 방향 한 문장
+- techDebtNotes: 발견된 기술 부채나 향후 개선 필요사항`;
+
+/**
+ * 커밋 하이라이트 분석
+ * 랩업 미팅을 위한 오늘의 주요 커밋 분석
+ */
+export async function analyzeCommitHighlights(
+  commits: CommitForHighlight[]
+): Promise<CommitHighlightResponse> {
+  if (commits.length === 0) {
+    return {
+      summary: {
+        totalCommits: 0,
+        highlightCount: 0,
+        primaryFocus: "오늘 커밋 내역이 없습니다.",
+      },
+      highlights: [],
+      techDebtNotes: [],
+    };
+  }
+
+  // 프로젝트 매핑 가져오기
+  const projectMappings = await getProjectMappings();
+
+  // 커밋 정보 정리 (diff는 50라인으로 truncate)
+  const commitData = commits.map((c) => ({
+    sha: c.sha.substring(0, 7),
+    repository: getDisplayName(c.repository, projectMappings),
+    message: c.message,
+    stats: `+${c.additions}/-${c.deletions}, ${c.filesChanged} files`,
+    files: c.files?.slice(0, 5).map((f) => ({
+      name: f.filename,
+      status: f.status,
+      changes: `+${f.additions}/-${f.deletions}`,
+      // 패치는 50라인으로 제한
+      patch: f.patch
+        ? f.patch.split("\n").slice(0, 50).join("\n") +
+          (f.patch.split("\n").length > 50 ? "\n... (truncated)" : "")
+        : null,
+    })),
+  }));
+
+  const prompt = `${COMMIT_HIGHLIGHT_PROMPT}
+
+## 오늘의 커밋 내역 (${commits.length}개)
+
+${JSON.stringify(commitData, null, 2)}
+
+## 응답 형식 (JSON)
+다음 JSON 스키마에 맞게 응답해주세요:
+
+\`\`\`json
+{
+  "summary": {
+    "totalCommits": number,
+    "highlightCount": number,
+    "primaryFocus": "오늘 개발의 주요 방향 한 문장"
+  },
+  "highlights": [
+    {
+      "rank": 1,
+      "commitHash": "abc1234",
+      "category": "feat" | "fix" | "perf" | "refactor" | "test" | "chore",
+      "title": "20자 이내 핵심 제목",
+      "description": "기술적 변경사항 1~2문장",
+      "impact": "비즈니스/사용자 관점 영향 1문장"
+    }
+  ],
+  "techDebtNotes": ["발견된 기술 부채 목록"]
+}
+\`\`\`
+
+하이라이트는 최대 5개까지만 선정하고, 중요도 순으로 rank를 부여해주세요.
+JSON만 출력하고, 다른 설명은 추가하지 마세요.`;
+
+  try {
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 2048,
+      messages: [{ role: "user", content: prompt }],
+    });
+
+    const responseText =
+      message.content[0].type === "text" ? message.content[0].text : "";
+
+    // JSON 파싱
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("Failed to parse JSON response");
+    }
+
+    const parsed = JSON.parse(jsonMatch[0]) as CommitHighlightResponse;
+
+    return {
+      summary: {
+        totalCommits: commits.length,
+        highlightCount: parsed.highlights?.length || 0,
+        primaryFocus: parsed.summary?.primaryFocus || "분석 결과 없음",
+      },
+      highlights: parsed.highlights || [],
+      techDebtNotes: parsed.techDebtNotes || [],
+    };
+  } catch (error) {
+    console.error("Failed to analyze commit highlights:", error);
+    return {
+      summary: {
+        totalCommits: commits.length,
+        highlightCount: 0,
+        primaryFocus: "AI 분석 중 오류가 발생했습니다.",
+      },
+      highlights: [],
+      techDebtNotes: [],
+    };
+  }
+}

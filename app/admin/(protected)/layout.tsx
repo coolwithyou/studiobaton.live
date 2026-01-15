@@ -12,7 +12,8 @@ const NAV_ITEMS: { href: string; label: string; roles: UserRole[] }[] = [
   { href: "/admin/generate", label: "수동 생성", roles: ["ADMIN"] },
   { href: "/admin/projects", label: "프로젝트 설정", roles: ["ADMIN"] },
   { href: "/admin/stats", label: "통계", roles: ["ADMIN"] },
-  { href: "/admin/review", label: "커밋 리뷰", roles: ["ADMIN", "TEAM_MEMBER"] },
+  { href: "/admin/standup", label: "스탠드업", roles: ["ADMIN", "TEAM_MEMBER"] },
+  { href: "/admin/wrap-up", label: "랩업", roles: ["ADMIN", "TEAM_MEMBER"] },
   { href: "/admin/members", label: "팀원 관리", roles: ["ADMIN"] },
   { href: "/admin/users", label: "사용자 관리", roles: ["ADMIN"] },
 ];

@@ -13,8 +13,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           prompt: "select_account",
-          // @ba-ton.kr 도메인 힌트 (선택적)
-          // hd: "ba-ton.kr", // 외부 사용자도 허용하므로 제거
+          hd: "ba-ton.kr", // @ba-ton.kr 도메인만 허용
         },
       },
     }),
@@ -29,6 +28,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async signIn({ user }) {
+      // @ba-ton.kr 도메인만 가입/로그인 허용 (hd 파라미터 우회 방지)
+      if (!user.email?.endsWith("@ba-ton.kr")) {
+        console.log(`로그인 거부 (외부 이메일): ${user.email}`)
+        return false
+      }
+
       // 비활성화(INACTIVE) 상태인 기존 사용자는 로그인 거부
       if (user.id) {
         const existingAdmin = await prisma.admin.findUnique({

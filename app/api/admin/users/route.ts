@@ -113,10 +113,10 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { id, role, status } = userUpdateSchema.parse(body);
 
-    // 대상 사용자 조회
+    // 대상 사용자 존재 확인
     const targetUser = await prisma.admin.findUnique({
       where: { id },
-      select: { email: true, role: true },
+      select: { id: true },
     });
 
     if (!targetUser) {
@@ -124,16 +124,6 @@ export async function PATCH(request: NextRequest) {
         { error: "사용자를 찾을 수 없습니다." },
         { status: 404 }
       );
-    }
-
-    // 역할 변경 제한: @ba-ton.kr 내부 사용자만 ADMIN/TEAM_MEMBER 가능
-    if (role && (role === "ADMIN" || role === "TEAM_MEMBER")) {
-      if (!targetUser.email.endsWith("@ba-ton.kr")) {
-        return NextResponse.json(
-          { error: "외부 사용자는 ADMIN/TEAM_MEMBER 역할을 가질 수 없습니다." },
-          { status: 400 }
-        );
-      }
     }
 
     // 자기 자신의 역할/상태 변경 방지

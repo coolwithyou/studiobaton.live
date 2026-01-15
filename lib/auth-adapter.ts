@@ -1,12 +1,10 @@
 import type { PrismaClient, UserRole, UserStatus } from "@/app/generated/prisma"
 import type { Adapter, AdapterAccount, AdapterSession, AdapterUser, VerificationToken } from "next-auth/adapters"
 
-// 이메일 도메인에 따른 기본 역할 및 상태 결정
-function getDefaultRoleAndStatus(email: string): { role: UserRole; status: UserStatus } {
-  if (email.endsWith("@ba-ton.kr")) {
-    return { role: "ADMIN", status: "ACTIVE" }
-  }
-  return { role: "ORG_MEMBER", status: "PENDING" }
+// 신규 사용자 기본 역할 및 상태 (모든 사용자는 @ba-ton.kr)
+function getDefaultRoleAndStatus(): { role: UserRole; status: UserStatus } {
+  // 신규 가입자는 ADMIN으로 자동 승인 (필요시 관리자가 역할 변경)
+  return { role: "ADMIN", status: "ACTIVE" }
 }
 
 /**
@@ -17,7 +15,7 @@ function getDefaultRoleAndStatus(email: string): { role: UserRole; status: UserS
 export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
   return {
     createUser: async (data) => {
-      const { role, status } = getDefaultRoleAndStatus(data.email)
+      const { role, status } = getDefaultRoleAndStatus()
       const admin = await prisma.admin.create({
         data: {
           email: data.email,

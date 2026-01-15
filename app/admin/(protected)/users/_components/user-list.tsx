@@ -246,20 +246,15 @@ export function UserList({ users, onUserChange, showPendingActions }: UserListPr
                   <Select
                     value={user.role}
                     onValueChange={(value) => handleRoleChange(user.id, value)}
-                    disabled={isLoading || !isInternal}
+                    disabled={isLoading}
                   >
                     <SelectTrigger className="w-[120px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {isInternal ? (
-                        <>
-                          <SelectItem value="ADMIN">관리자</SelectItem>
-                          <SelectItem value="TEAM_MEMBER">팀원</SelectItem>
-                        </>
-                      ) : (
-                        <SelectItem value="ORG_MEMBER">바토너</SelectItem>
-                      )}
+                      <SelectItem value="ADMIN">관리자</SelectItem>
+                      <SelectItem value="TEAM_MEMBER">팀원</SelectItem>
+                      <SelectItem value="ORG_MEMBER">바토너</SelectItem>
                     </SelectContent>
                   </Select>
 

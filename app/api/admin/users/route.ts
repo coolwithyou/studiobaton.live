@@ -66,6 +66,13 @@ export async function GET(request: NextRequest) {
           createdAt: true,
           approvedBy: true,
           approvedAt: true,
+          linkedMember: {
+            select: {
+              id: true,
+              name: true,
+              githubName: true,
+            },
+          },
         },
       }),
       prisma.admin.count({ where: whereCondition }),

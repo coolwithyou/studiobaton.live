@@ -25,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Check, X, Trash2 } from "lucide-react";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 import type { User } from "../page";
 
 interface UserListProps {
@@ -199,6 +200,9 @@ export function UserList({ users, onUserChange, showPendingActions }: UserListPr
                   <span className="font-medium">
                     {user.name || user.email.split("@")[0]}
                   </span>
+                  {user.linkedMember && (
+                    <VerifiedBadge memberName={user.linkedMember.name} />
+                  )}
                   <Badge variant={STATUS_VARIANTS[user.status]}>
                     {STATUS_LABELS[user.status]}
                   </Badge>
@@ -208,6 +212,9 @@ export function UserList({ users, onUserChange, showPendingActions }: UserListPr
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {user.email}
+                  {user.linkedMember && (
+                    <span className="text-blue-500"> · @{user.linkedMember.githubName}</span>
+                  )}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
                   가입: {format(new Date(user.createdAt), "yyyy.MM.dd", { locale: ko })}

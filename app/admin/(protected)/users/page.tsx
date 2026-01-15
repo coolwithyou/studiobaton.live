@@ -14,6 +14,11 @@ export interface User {
   createdAt: string;
   approvedBy: string | null;
   approvedAt: string | null;
+  linkedMember?: {
+    id: string;
+    name: string;
+    githubName: string;
+  } | null;
 }
 
 export default function UsersPage() {

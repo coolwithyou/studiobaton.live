@@ -3,6 +3,7 @@ import { getServerSession } from "@/lib/auth-helpers";
 import { signOut } from "@/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 async function AdminHeader() {
   const session = await getServerSession();
@@ -74,6 +75,7 @@ async function AdminHeader() {
               로그아웃
             </Button>
           </form>
+          <ThemeToggle />
         </div>
       </div>
     </header>

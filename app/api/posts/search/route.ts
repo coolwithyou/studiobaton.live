@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { isInternalUser } from "@/lib/auth-helpers";
+import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
 import { searchSchema, formatZodError } from "@/lib/validation";
 import { logError, normalizeError, ValidationError } from "@/lib/errors";
@@ -9,7 +9,7 @@ import { z } from "zod";
 
 export async function GET(request: NextRequest) {
   try {
-    const isAuthenticated = await isInternalUser();
+    const isAuthenticated = await hasUnmaskPermission();
     const { searchParams } = new URL(request.url);
 
     // 입력 검증

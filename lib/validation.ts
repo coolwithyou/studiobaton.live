@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { startOfDay } from "date-fns";
 
 /**
  * 공통 스키마
@@ -137,7 +138,7 @@ export const memberUpdateSchema = memberSchema.partial().extend({
  */
 export const reviewQuerySchema = z.object({
   date: z.coerce.date().refine(
-    (date) => date <= new Date(),
+    (date) => startOfDay(date) <= startOfDay(new Date()),
     "미래 날짜는 선택할 수 없습니다."
   ),
   memberId: z.string().cuid("유효한 팀원 ID를 선택해주세요."),
@@ -163,6 +164,26 @@ export function parseJson<T extends z.ZodType>(
 ): z.infer<T> {
   return schema.parse(data);
 }
+
+/**
+ * 사용자(Admin) 관련 스키마
+ */
+export const userRoleSchema = z.enum(["ADMIN", "TEAM_MEMBER", "ORG_MEMBER"]);
+export const userStatusSchema = z.enum(["PENDING", "ACTIVE", "INACTIVE"]);
+
+export const userQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  role: userRoleSchema.optional(),
+  status: userStatusSchema.optional(),
+  search: z.string().optional(),
+});
+
+export const userUpdateSchema = z.object({
+  id: z.string().cuid(),
+  role: userRoleSchema.optional(),
+  status: userStatusSchema.optional(),
+});
 
 /**
  * Zod 에러를 읽기 쉬운 메시지로 변환

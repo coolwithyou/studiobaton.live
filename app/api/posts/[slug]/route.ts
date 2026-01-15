@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { isInternalUser } from "@/lib/auth-helpers";
+import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
 
 export async function GET(
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const isAuthenticated = await isInternalUser();
+    const isAuthenticated = await hasUnmaskPermission();
     const { slug } = await params;
 
     const post = await prisma.post.findUnique({

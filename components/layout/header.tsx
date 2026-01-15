@@ -11,6 +11,8 @@ interface NextAuthSession {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role?: "ADMIN" | "TEAM_MEMBER" | "ORG_MEMBER";
+    status?: "PENDING" | "ACTIVE" | "INACTIVE";
   };
   expires?: string;
 }
@@ -39,7 +41,10 @@ export function Header() {
     window.location.href = "/api/auth/signout";
   };
 
-  const isInternalUser = session?.user?.email?.endsWith("@ba-ton.kr");
+  // 로그인 여부 (세션에 사용자 정보가 있으면 로그인 상태)
+  const isLoggedIn = !!session?.user?.email;
+  // 어드민 접근 가능 여부 (ADMIN, TEAM_MEMBER만)
+  const canAccessAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "TEAM_MEMBER";
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
@@ -50,21 +55,23 @@ export function Header() {
         <div className="flex items-center gap-3">
           {!loading && (
             <>
-              {isInternalUser ? (
+              {isLoggedIn ? (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground hidden sm:inline">
                     {session?.user?.name || session?.user?.email?.split("@")[0]}
                   </span>
-                  <Link href="/admin">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground gap-1.5"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      <span className="hidden sm:inline">대시보드</span>
-                    </Button>
-                  </Link>
+                  {canAccessAdmin && (
+                    <Link href="/admin">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground gap-1.5"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        <span className="hidden sm:inline">대시보드</span>
+                      </Button>
+                    </Link>
+                  )}
                   <Button
                     variant="ghost"
                     size="sm"

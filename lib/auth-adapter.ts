@@ -1,5 +1,13 @@
-import type { PrismaClient } from "@/app/generated/prisma"
+import type { PrismaClient, UserRole, UserStatus } from "@/app/generated/prisma"
 import type { Adapter, AdapterAccount, AdapterSession, AdapterUser, VerificationToken } from "next-auth/adapters"
+
+// 이메일 도메인에 따른 기본 역할 및 상태 결정
+function getDefaultRoleAndStatus(email: string): { role: UserRole; status: UserStatus } {
+  if (email.endsWith("@ba-ton.kr")) {
+    return { role: "ADMIN", status: "ACTIVE" }
+  }
+  return { role: "ORG_MEMBER", status: "PENDING" }
+}
 
 /**
  * Admin 모델을 사용하는 커스텀 Prisma 어댑터
@@ -9,12 +17,16 @@ import type { Adapter, AdapterAccount, AdapterSession, AdapterUser, Verification
 export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
   return {
     createUser: async (data) => {
+      const { role, status } = getDefaultRoleAndStatus(data.email)
       const admin = await prisma.admin.create({
         data: {
           email: data.email,
           emailVerified: data.emailVerified,
           name: data.name,
           image: data.image,
+          role,
+          status,
+          approvedAt: status === "ACTIVE" ? new Date() : null,
         },
       })
       return {
@@ -23,6 +35,8 @@ export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
         emailVerified: admin.emailVerified,
         name: admin.name,
         image: admin.image,
+        role: admin.role,
+        status: admin.status,
       } as AdapterUser
     },
 
@@ -35,6 +49,8 @@ export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
         emailVerified: admin.emailVerified,
         name: admin.name,
         image: admin.image,
+        role: admin.role,
+        status: admin.status,
       } as AdapterUser
     },
 
@@ -47,6 +63,8 @@ export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
         emailVerified: admin.emailVerified,
         name: admin.name,
         image: admin.image,
+        role: admin.role,
+        status: admin.status,
       } as AdapterUser
     },
 
@@ -67,6 +85,8 @@ export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
         emailVerified: account.admin.emailVerified,
         name: account.admin.name,
         image: account.admin.image,
+        role: account.admin.role,
+        status: account.admin.status,
       } as AdapterUser
     },
 
@@ -156,6 +176,8 @@ export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
           emailVerified: session.admin.emailVerified,
           name: session.admin.name,
           image: session.admin.image,
+          role: session.admin.role,
+          status: session.admin.status,
         } as AdapterUser,
       }
     },

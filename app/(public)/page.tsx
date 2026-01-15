@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import prisma from "@/lib/prisma";
-import { isInternalUser } from "@/lib/auth-helpers";
+import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
 import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
@@ -9,7 +9,7 @@ import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
 export const dynamic = "force-dynamic";
 
 async function Timeline() {
-  const isAuthenticated = await isInternalUser();
+  const isAuthenticated = await hasUnmaskPermission();
 
   const posts = await prisma.post.findMany({
     where: {

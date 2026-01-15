@@ -7,14 +7,34 @@ datasource db {
   provider = "postgresql"
 }
 
+// 사용자 역할
+enum UserRole {
+  ADMIN       // 최고 관리자 - 모든 페이지 접근
+  TEAM_MEMBER // 개발팀원 - 커밋 리뷰만 접근
+  ORG_MEMBER  // 바토너 - 어드민 접근 불가, 마스킹 해제만
+}
+
+// 사용자 상태
+enum UserStatus {
+  PENDING  // 승인 대기
+  ACTIVE   // 활성
+  INACTIVE // 비활성
+}
+
 model Admin {
-  id            String    @id @default(cuid())
-  email         String    @unique
+  id            String     @id @default(cuid())
+  email         String     @unique
   name          String?
   image         String?
   emailVerified DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // 역할 기반 접근 제어
+  role          UserRole   @default(ORG_MEMBER)
+  status        UserStatus @default(PENDING)
+  approvedBy    String?    // 승인한 관리자 ID
+  approvedAt    DateTime?  // 승인 일시
 
   publishedPosts Post[]
   accounts       Account[]

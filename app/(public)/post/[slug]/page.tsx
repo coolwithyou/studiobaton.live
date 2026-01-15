@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { isInternalUser } from "@/lib/auth-helpers";
+import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -61,7 +61,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
-  const isAuthenticated = await isInternalUser();
+  const isAuthenticated = await hasUnmaskPermission();
 
   const post = await prisma.post.findUnique({
     where: { slug },

@@ -96,14 +96,15 @@ export default function ReviewPage() {
         `/api/admin/review?date=${dateStr}&memberId=${selectedMember}`
       );
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to fetch review data");
+        throw new Error(data.error || "Failed to fetch review data");
       }
 
-      const data = await response.json();
       setReviewData(data);
     } catch (error) {
-      console.error("Failed to fetch review:", error);
+      console.error("Failed to fetch review:", error instanceof Error ? error.message : error);
       setReviewData(null);
     } finally {
       setFetching(false);

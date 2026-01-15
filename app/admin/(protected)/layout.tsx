@@ -4,9 +4,27 @@ import { signOut } from "@/auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import type { UserRole } from "@/app/generated/prisma";
+
+// 역할별 접근 가능한 네비게이션 메뉴 정의
+const NAV_ITEMS: { href: string; label: string; roles: UserRole[] }[] = [
+  { href: "/admin", label: "대시보드", roles: ["ADMIN"] },
+  { href: "/admin/generate", label: "수동 생성", roles: ["ADMIN"] },
+  { href: "/admin/projects", label: "프로젝트 설정", roles: ["ADMIN"] },
+  { href: "/admin/stats", label: "통계", roles: ["ADMIN"] },
+  { href: "/admin/review", label: "커밋 리뷰", roles: ["ADMIN", "TEAM_MEMBER"] },
+  { href: "/admin/members", label: "팀원 관리", roles: ["ADMIN"] },
+  { href: "/admin/users", label: "사용자 관리", roles: ["ADMIN"] },
+];
 
 async function AdminHeader() {
   const session = await getServerSession();
+  const userRole = (session?.user?.role as UserRole) || "ORG_MEMBER";
+
+  // 현재 사용자 역할에 맞는 메뉴만 필터링
+  const visibleNavItems = NAV_ITEMS.filter((item) =>
+    item.roles.includes(userRole)
+  );
 
   async function logout() {
     "use server";
@@ -21,42 +39,15 @@ async function AdminHeader() {
             studiobaton
           </Link>
           <nav className="flex items-center gap-4">
-            <Link
-              href="/admin"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              대시보드
-            </Link>
-            <Link
-              href="/admin/generate"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              수동 생성
-            </Link>
-            <Link
-              href="/admin/projects"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              프로젝트 설정
-            </Link>
-            <Link
-              href="/admin/stats"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              통계
-            </Link>
-            <Link
-              href="/admin/review"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              커밋 리뷰
-            </Link>
-            <Link
-              href="/admin/members"
-              className="text-sm text-muted-foreground hover:text-foreground"
-            >
-              팀원 관리
-            </Link>
+            {visibleNavItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                {item.label}
+              </Link>
+            ))}
             <Link
               href="/"
               className="text-sm text-muted-foreground hover:text-foreground"

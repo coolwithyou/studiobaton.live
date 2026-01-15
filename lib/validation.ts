@@ -172,8 +172,14 @@ export const userRoleSchema = z.enum(["ADMIN", "TEAM_MEMBER", "ORG_MEMBER"]);
 export const userStatusSchema = z.enum(["PENDING", "ACTIVE", "INACTIVE"]);
 
 export const userQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  page: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.coerce.number().int().positive().default(1)
+  ),
+  limit: z.preprocess(
+    (val) => (val === null || val === "" ? undefined : val),
+    z.coerce.number().int().min(1).max(100).default(20)
+  ),
   role: userRoleSchema.optional(),
   status: userStatusSchema.optional(),
   search: z.string().optional(),

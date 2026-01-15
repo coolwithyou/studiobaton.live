@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 import type { Member } from "../page";
 
 interface MemberListProps {
@@ -211,6 +212,9 @@ export function MemberList({ members, onMemberChange }: MemberListProps) {
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="font-medium">{member.name}</p>
+                    {member.isLinked && (
+                      <VerifiedBadge memberName={member.name} />
+                    )}
                     <Badge variant="secondary" className="text-xs">
                       순서: {member.displayOrder}
                     </Badge>
@@ -220,6 +224,9 @@ export function MemberList({ members, onMemberChange }: MemberListProps) {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     @{member.githubName} • {member.email}
+                    {member.linkedAdminEmail && (
+                      <span className="text-blue-500"> • 연결: {member.linkedAdminEmail}</span>
+                    )}
                   </p>
                 </div>
               </div>

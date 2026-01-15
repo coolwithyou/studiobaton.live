@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { MemberForm } from "./_components/member-form";
 import { MemberList } from "./_components/member-list";
+import { Link2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export interface Member {
   id: string;
@@ -13,11 +16,40 @@ export interface Member {
   avatarUrl: string | null;
   isActive: boolean;
   displayOrder: number;
+  isLinked?: boolean;
+  linkedAdminEmail?: string | null;
 }
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [matching, setMatching] = useState(false);
+
+  const handleMatch = async () => {
+    setMatching(true);
+    try {
+      const response = await fetch("/api/admin/members/match", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "매칭에 실패했습니다.");
+      }
+
+      if (data.matched > 0) {
+        toast.success(data.message);
+        fetchMembers(); // 목록 새로고침
+      } else {
+        toast.info("매칭할 계정이 없습니다.");
+      }
+    } catch (error) {
+      console.error("Failed to match:", error);
+      toast.error("매칭 중 오류가 발생했습니다.");
+    } finally {
+      setMatching(false);
+    }
+  };
 
   const fetchMembers = useCallback(async () => {
     try {
@@ -38,11 +70,27 @@ export default function MembersPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">팀원 관리</h1>
-        <p className="text-muted-foreground mt-1">
-          커밋 리뷰에 사용할 팀원 정보를 관리합니다.
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">팀원 관리</h1>
+          <p className="text-muted-foreground mt-1">
+            커밋 리뷰에 사용할 팀원 정보를 관리합니다.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleMatch}
+          disabled={matching}
+          className="gap-2"
+        >
+          {matching ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Link2 className="size-4" />
+          )}
+          사용자 매칭
+        </Button>
       </div>
 
       {loading ? (

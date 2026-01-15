@@ -36,6 +36,10 @@ model Admin {
   approvedBy    String?    // 승인한 관리자 ID
   approvedAt    DateTime?  // 승인 일시
 
+  // Member 연결 (이메일 자동 매칭)
+  linkedMemberId String?  @unique
+  linkedMember   Member?  @relation(fields: [linkedMemberId], references: [id], onDelete: SetNull)
+
   publishedPosts Post[]
   accounts       Account[]
   sessions       Session[]
@@ -160,7 +164,8 @@ model Member {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  standups  Standup[]
+  standups    Standup[]
+  linkedAdmin Admin?    // Admin 연결 (역관계)
 
   @@index([isActive])
   @@index([displayOrder])

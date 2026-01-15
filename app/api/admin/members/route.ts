@@ -19,9 +19,29 @@ export async function GET(request: NextRequest) {
     const members = await prisma.member.findMany({
       where: includeInactive ? {} : { isActive: true },
       orderBy: { displayOrder: "asc" },
+      include: {
+        linkedAdmin: {
+          select: { id: true, email: true, name: true },
+        },
+      },
     });
 
-    return NextResponse.json({ members });
+    // isLinked 필드 추가 (Admin과 연결 여부)
+    const membersWithLink = members.map((member) => ({
+      id: member.id,
+      name: member.name,
+      githubName: member.githubName,
+      email: member.email,
+      avatarUrl: member.avatarUrl,
+      isActive: member.isActive,
+      displayOrder: member.displayOrder,
+      createdAt: member.createdAt,
+      updatedAt: member.updatedAt,
+      isLinked: !!member.linkedAdmin,
+      linkedAdminEmail: member.linkedAdmin?.email ?? null,
+    }));
+
+    return NextResponse.json({ members: membersWithLink });
   } catch (error) {
     console.error("Failed to fetch members:", error);
     return NextResponse.json(

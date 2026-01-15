@@ -15,11 +15,13 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { StandupForm } from "./_components/standup-form";
 import { TaskList } from "./_components/task-list";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface Member {
   id: string;
   name: string;
   avatarUrl: string | null;
+  isLinked?: boolean;
 }
 
 export interface Task {
@@ -196,6 +198,7 @@ export default function StandupPage() {
                 <AvatarFallback>{member.name[0]}</AvatarFallback>
               </Avatar>
               <span>{member.name}</span>
+              {member.isLinked && <VerifiedBadge memberName={member.name} />}
             </TabsTrigger>
           ))}
         </TabsList>

@@ -17,11 +17,13 @@ import { CalendarIcon, Loader2, Moon, ListChecks } from "lucide-react";
 import { StandupChecklist } from "./_components/standup-checklist";
 import { CommitSummary } from "./_components/commit-summary";
 import { CommitRepositoryGroup } from "../review/_components/commit-repository-group";
+import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface Member {
   id: string;
   name: string;
   avatarUrl: string | null;
+  isLinked?: boolean;
 }
 
 interface Task {
@@ -229,6 +231,7 @@ export default function WrapUpPage() {
                 <AvatarFallback>{member.name[0]}</AvatarFallback>
               </Avatar>
               <span>{member.name}</span>
+              {member.isLinked && <VerifiedBadge memberName={member.name} />}
             </TabsTrigger>
           ))}
         </TabsList>

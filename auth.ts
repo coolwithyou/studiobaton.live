@@ -53,14 +53,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user) {
         session.user.id = user.id
 
-        // 역할 및 상태 정보 추가
+        // 역할, 상태, linkedMember 정보 조회
         const admin = await prisma.admin.findUnique({
           where: { id: user.id },
-          select: { role: true, status: true },
+          select: {
+            role: true,
+            status: true,
+            linkedMember: {
+              select: {
+                id: true,
+                name: true,
+                githubName: true,
+                avatarUrl: true,
+              },
+            },
+          },
         })
 
         session.user.role = (admin?.role ?? "ORG_MEMBER") as UserRole
         session.user.status = (admin?.status ?? "PENDING") as UserStatus
+        session.user.linkedMember = admin?.linkedMember ?? null
       }
       return session
     },

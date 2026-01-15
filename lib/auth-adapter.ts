@@ -16,6 +16,15 @@ export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
   return {
     createUser: async (data) => {
       const { role, status } = getDefaultRoleAndStatus()
+
+      // 이메일로 Member 자동 매칭 시도 (아직 다른 Admin과 연결되지 않은 경우만)
+      const matchedMember = await prisma.member.findFirst({
+        where: {
+          email: data.email,
+          linkedAdmin: null,
+        },
+      })
+
       const admin = await prisma.admin.create({
         data: {
           email: data.email,
@@ -25,6 +34,7 @@ export function AdminPrismaAdapter(prisma: PrismaClient): Adapter {
           role,
           status,
           approvedAt: status === "ACTIVE" ? new Date() : null,
+          linkedMemberId: matchedMember?.id ?? null,
         },
       })
       return {

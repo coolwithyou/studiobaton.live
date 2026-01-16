@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTheme } from "next-themes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,8 +22,8 @@ import dynamic from "next/dynamic";
 const Editor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
   loading: () => (
-    <div className="h-[200px] bg-[#1e1e1e] rounded-md flex items-center justify-center">
-      <span className="text-zinc-500 text-sm">에디터 로딩 중...</span>
+    <div className="h-[200px] bg-muted rounded-md flex items-center justify-center">
+      <span className="text-muted-foreground text-sm">에디터 로딩 중...</span>
     </div>
   ),
 });
@@ -110,25 +111,25 @@ function FileStatusBadge({ status }: { status: string }) {
   const variants: Record<string, { label: string; className: string }> = {
     added: {
       label: "추가됨",
-      className: "bg-green-500/20 text-green-400 border-green-500/30",
+      className: "bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30",
     },
     removed: {
       label: "삭제됨",
-      className: "bg-red-500/20 text-red-400 border-red-500/30",
+      className: "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30",
     },
     modified: {
       label: "수정됨",
-      className: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+      className: "bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30",
     },
     renamed: {
       label: "이름변경",
-      className: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+      className: "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-500/30",
     },
   };
 
   const variant = variants[status] || {
     label: status,
-    className: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30",
+    className: "bg-zinc-500/20 text-zinc-700 dark:text-zinc-400 border-zinc-500/30",
   };
 
   return (
@@ -144,6 +145,7 @@ function FileStatusBadge({ status }: { status: string }) {
 }
 
 function DiffViewer({ patch, filename }: { patch: string; filename: string }) {
+  const { resolvedTheme } = useTheme();
   const lineCount = patch.split("\n").length;
   const editorHeight = Math.min(Math.max(lineCount * 19, 100), 500);
   const language = getLanguageFromFilename(filename);
@@ -164,12 +166,12 @@ function DiffViewer({ patch, filename }: { patch: string; filename: string }) {
   }, [patch]);
 
   return (
-    <div className="rounded-md overflow-hidden border border-zinc-700">
+    <div className="rounded-md overflow-hidden border border-border">
       <Editor
         height={editorHeight}
         language={language}
         value={processedPatch}
-        theme="vs-dark"
+        theme={resolvedTheme === "dark" ? "vs-dark" : "light"}
         options={{
           readOnly: true,
           minimap: { enabled: false },
@@ -265,12 +267,12 @@ function FileItem({ file }: { file: CommitFile }) {
   const [showDiff, setShowDiff] = useState(false);
 
   return (
-    <div className="border-l-2 border-zinc-700 pl-3 py-1">
+    <div className="border-l-2 border-muted-foreground/30 pl-3 py-1">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <FileStatusIcon status={file.status} />
           <span
-            className="text-sm font-mono truncate text-zinc-300"
+            className="text-sm font-mono truncate text-foreground"
             title={file.filename}
           >
             {file.filename}
@@ -278,17 +280,17 @@ function FileItem({ file }: { file: CommitFile }) {
           <FileStatusBadge status={file.status} />
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs text-green-500 font-mono">
+          <span className="text-xs text-green-600 dark:text-green-500 font-mono">
             +{file.additions}
           </span>
-          <span className="text-xs text-red-500 font-mono">
+          <span className="text-xs text-red-600 dark:text-red-500 font-mono">
             -{file.deletions}
           </span>
           {file.patch && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 px-2 text-xs hover:bg-zinc-700"
+              className="h-6 px-2 text-xs hover:bg-muted"
               onClick={() => setShowDiff(!showDiff)}
             >
               {showDiff ? "diff 닫기" : "diff 보기"}
@@ -364,7 +366,7 @@ export function CommitCard({ commit }: CommitCardProps) {
 
       {/* 파일 목록 */}
       {showFiles && hasFiles && (
-        <div className="mt-3 pt-3 border-t space-y-2 bg-zinc-900/50 -mx-4 px-4 pb-2 rounded-b-md">
+        <div className="mt-3 pt-3 border-t space-y-2 bg-muted/50 -mx-4 px-4 pb-2 rounded-b-md">
           {commit.files.map((file) => (
             <FileItem key={file.id} file={file} />
           ))}

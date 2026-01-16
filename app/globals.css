@@ -177,18 +177,35 @@
   font-size: 0.875rem;
 }
 
-/* Monaco Editor diff 라인 스타일 (다크모드 기준) */
+/* Monaco Editor diff 라인 스타일 */
+/* 라이트모드 */
 .diff-line-added {
+  background-color: rgba(46, 160, 67, 0.15) !important;
+  border-left: 3px solid rgb(34, 134, 58) !important;
+}
+
+.diff-line-removed {
+  background-color: rgba(248, 81, 73, 0.15) !important;
+  border-left: 3px solid rgb(215, 58, 73) !important;
+}
+
+.diff-line-info {
+  background-color: rgba(100, 110, 140, 0.1) !important;
+  color: rgb(100, 110, 140) !important;
+}
+
+/* 다크모드 */
+.dark .diff-line-added {
   background-color: rgba(46, 160, 67, 0.2) !important;
   border-left: 3px solid rgb(46, 160, 67) !important;
 }
 
-.diff-line-removed {
+.dark .diff-line-removed {
   background-color: rgba(248, 81, 73, 0.2) !important;
   border-left: 3px solid rgb(248, 81, 73) !important;
 }
 
-.diff-line-info {
+.dark .diff-line-info {
   background-color: rgba(136, 146, 176, 0.15) !important;
   color: rgb(136, 146, 176) !important;
 }

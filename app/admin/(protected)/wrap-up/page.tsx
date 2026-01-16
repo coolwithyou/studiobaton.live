@@ -182,11 +182,10 @@ export default function WrapUpPage() {
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <Moon className="size-6 text-indigo-500" />
           <h1 className="text-2xl font-bold">랩업</h1>
         </div>
         <p className="text-muted-foreground">
-          오늘 할 일 완료 여부를 확인하고, AI가 분석한 커밋 하이라이트를 확인하세요.
+          오늘 하루도 고생 많으셨습니다!
         </p>
       </div>
 

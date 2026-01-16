@@ -1,4 +1,5 @@
 import { Octokit } from "@octokit/rest";
+import { getKSTDayRange } from "@/lib/date-utils";
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
@@ -154,11 +155,8 @@ async function getCommitDetail(
 }
 
 export async function collectDailyCommits(targetDate: Date): Promise<CommitData[]> {
-  const startOfDay = new Date(targetDate);
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const endOfDay = new Date(targetDate);
-  endOfDay.setHours(23, 59, 59, 999);
+  // KST 기준 하루 범위
+  const { start: startOfDay, end: endOfDay } = getKSTDayRange(targetDate);
 
   const repos = await getOrgRepos();
 

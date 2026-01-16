@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { startOfDay } from "date-fns";
+import { startOfDayKST, nowKST } from "@/lib/date-utils";
 
 /**
  * 공통 스키마
@@ -138,7 +138,7 @@ export const memberUpdateSchema = memberSchema.partial().extend({
  */
 export const reviewQuerySchema = z.object({
   date: z.coerce.date().refine(
-    (date) => startOfDay(date) <= startOfDay(new Date()),
+    (date) => startOfDayKST(date) <= startOfDayKST(nowKST()),
     "미래 날짜는 선택할 수 없습니다."
   ),
   memberId: z.string().cuid("유효한 팀원 ID를 선택해주세요."),
@@ -149,7 +149,7 @@ export const reviewQuerySchema = z.object({
  */
 export const standupQuerySchema = z.object({
   date: z.coerce.date().refine(
-    (date) => startOfDay(date) <= startOfDay(new Date()),
+    (date) => startOfDayKST(date) <= startOfDayKST(nowKST()),
     "미래 날짜는 선택할 수 없습니다."
   ),
   memberId: z.string().cuid("유효한 팀원 ID를 선택해주세요."),

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { collectDailyCommits } from "@/lib/github";
 import prisma from "@/lib/prisma";
+import { startOfDayKST, subDaysKST, nowKST, getKSTDayRange } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   // Vercel Cron 인증
@@ -11,9 +12,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // 전날 날짜 (KST 기준)
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    yesterday.setHours(0, 0, 0, 0);
+    const yesterday = startOfDayKST(subDaysKST(nowKST(), 1));
 
     // 커밋 수집
     const commits = await collectDailyCommits(yesterday);
@@ -26,12 +25,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 해당 날짜의 Post가 이미 있는지 확인
+    // 해당 날짜의 Post가 이미 있는지 확인 (KST 기준)
+    const { start, end } = getKSTDayRange(yesterday);
     const existingPost = await prisma.post.findFirst({
       where: {
         targetDate: {
-          gte: new Date(yesterday.setHours(0, 0, 0, 0)),
-          lt: new Date(yesterday.setHours(23, 59, 59, 999)),
+          gte: start,
+          lt: end,
         },
       },
     });

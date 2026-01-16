@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDayKST, endOfDayKST } from "@/lib/date-utils";
 import { reviewQuerySchema, formatZodError } from "@/lib/validation";
 import { logError, normalizeError, AuthError, ValidationError } from "@/lib/errors";
 import { z } from "zod";
@@ -55,8 +55,8 @@ export async function GET(request: NextRequest) {
       where: {
         authorEmail: member.email,
         committedAt: {
-          gte: startOfDay(date),
-          lte: endOfDay(date),
+          gte: startOfDayKST(date),
+          lte: endOfDayKST(date),
         },
       },
       select: {

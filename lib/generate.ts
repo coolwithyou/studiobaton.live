@@ -2,6 +2,7 @@ import { collectDailyCommits } from "./github";
 import { generateAllVersions } from "./ai";
 import prisma from "./prisma";
 import { VersionTone } from "@/app/generated/prisma";
+import { getKSTDayRange, startOfDayKST } from "@/lib/date-utils";
 
 export interface GenerateResult {
   success: boolean;
@@ -16,11 +17,8 @@ export async function generatePostForDate(
   targetDate: Date,
   forceRegenerate: boolean = false
 ): Promise<GenerateResult> {
-  const startOfDay = new Date(targetDate);
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const endOfDay = new Date(targetDate);
-  endOfDay.setHours(23, 59, 59, 999);
+  // KST 기준 하루 범위
+  const { start: startOfDay, end: endOfDay } = getKSTDayRange(targetDate);
 
   // 1. 기존 Post 확인
   const existingPost = await prisma.post.findFirst({

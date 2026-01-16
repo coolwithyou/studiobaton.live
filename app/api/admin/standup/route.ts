@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession, hasTeamAccess } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
-import { startOfDay } from "date-fns";
+import { startOfDayKST } from "@/lib/date-utils";
 import {
   standupQuerySchema,
   standupTaskSchema,
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { date, memberId } = params;
-    const targetDate = startOfDay(date);
+    const targetDate = startOfDayKST(date);
 
     // 팀원 확인
     const member = await prisma.member.findUnique({
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { date, memberId, content, repository } = data;
-    const targetDate = startOfDay(date);
+    const targetDate = startOfDayKST(date);
 
     // 팀원 확인
     const member = await prisma.member.findUnique({

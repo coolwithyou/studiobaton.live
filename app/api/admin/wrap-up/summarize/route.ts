@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession, hasTeamAccess } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDayKST, endOfDayKST } from "@/lib/date-utils";
 import { commitSummarizeSchema, formatZodError } from "@/lib/validation";
 import { analyzeCommitHighlights } from "@/lib/ai";
 import {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       where: {
         memberId_date: {
           memberId,
-          date: startOfDay(date),
+          date: startOfDayKST(date),
         },
       },
       include: {
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { date, memberId, regenerate } = data;
-    const targetDate = startOfDay(date);
+    const targetDate = startOfDayKST(date);
 
     // 재생성이 아니고 기존 데이터가 있으면 반환
     if (!regenerate) {
@@ -172,8 +172,8 @@ export async function POST(request: NextRequest) {
       where: {
         authorEmail: member.email,
         committedAt: {
-          gte: startOfDay(date),
-          lte: endOfDay(date),
+          gte: startOfDayKST(date),
+          lte: endOfDayKST(date),
         },
       },
       select: {

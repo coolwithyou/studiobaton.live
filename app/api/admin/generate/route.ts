@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-helpers";
 import { generatePostForDate } from "@/lib/generate";
 import { parseISO } from "date-fns";
+import { endOfDayKST } from "@/lib/date-utils";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,10 +31,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 미래 날짜는 처리하지 않음
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-    if (targetDate > today) {
+    // 미래 날짜는 처리하지 않음 (KST 기준)
+    const todayEnd = endOfDayKST();
+    if (targetDate > todayEnd) {
       return NextResponse.json(
         { error: "미래 날짜는 처리할 수 없습니다." },
         { status: 400 }

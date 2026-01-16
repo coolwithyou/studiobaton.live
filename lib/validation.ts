@@ -177,6 +177,7 @@ export const repoSearchSchema = z.object({
 export const commitSummarizeSchema = z.object({
   date: z.coerce.date(),
   memberId: z.string().cuid(),
+  regenerate: z.boolean().optional().default(false),
 });
 
 /**

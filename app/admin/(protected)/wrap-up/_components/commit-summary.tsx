@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, AlertTriangle, Zap, Bug, Wrench, TestTube, Settings } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle, Zap, Bug, Wrench, TestTube, Settings, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CommitHighlight {
@@ -62,9 +63,45 @@ const categoryLabels: Record<string, string> = {
 export function CommitSummary({ date, memberId, hasCommits }: CommitSummaryProps) {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAnalyze = async () => {
+  // 기존 데이터 로드
+  const fetchExistingData = useCallback(async () => {
+    if (!hasCommits) {
+      setInitialLoading(false);
+      return;
+    }
+
+    try {
+      const dateStr = format(date, "yyyy-MM-dd");
+      const response = await fetch(
+        `/api/admin/wrap-up/summarize?date=${dateStr}&memberId=${memberId}`
+      );
+      const data = await response.json();
+
+      if (response.ok && data.exists) {
+        setSummaryData({
+          summary: data.summary,
+          highlights: data.highlights,
+          techDebtNotes: data.techDebtNotes,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch existing summary:", err);
+    } finally {
+      setInitialLoading(false);
+    }
+  }, [date, memberId, hasCommits]);
+
+  useEffect(() => {
+    setInitialLoading(true);
+    setSummaryData(null);
+    setError(null);
+    fetchExistingData();
+  }, [fetchExistingData]);
+
+  const handleAnalyze = async (regenerate: boolean = false) => {
     setLoading(true);
     setError(null);
 
@@ -75,6 +112,7 @@ export function CommitSummary({ date, memberId, hasCommits }: CommitSummaryProps
         body: JSON.stringify({
           date: date.toISOString(),
           memberId,
+          regenerate,
         }),
       });
 
@@ -111,6 +149,24 @@ export function CommitSummary({ date, memberId, hasCommits }: CommitSummaryProps
     );
   }
 
+  if (initialLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Sparkles className="size-5 text-yellow-500" />
+            AI 커밋 하이라이트
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!summaryData && !loading) {
     return (
       <Card>
@@ -125,7 +181,7 @@ export function CommitSummary({ date, memberId, hasCommits }: CommitSummaryProps
             <p className="text-sm text-muted-foreground mb-4">
               AI가 오늘의 커밋을 분석하여 주요 변경사항을 요약합니다.
             </p>
-            <Button onClick={handleAnalyze} disabled={loading}>
+            <Button onClick={() => handleAnalyze(false)} disabled={loading}>
               <Sparkles className="size-4 mr-2" />
               하이라이트 분석하기
             </Button>
@@ -165,9 +221,9 @@ export function CommitSummary({ date, memberId, hasCommits }: CommitSummaryProps
             <Sparkles className="size-5 text-yellow-500" />
             AI 커밋 하이라이트
           </CardTitle>
-          <Button variant="outline" size="sm" onClick={handleAnalyze}>
-            <Sparkles className="size-3 mr-1" />
-            다시 분석
+          <Button variant="outline" size="sm" onClick={() => handleAnalyze(true)}>
+            <RefreshCw className="size-3 mr-1" />
+            재생성
           </Button>
         </div>
       </CardHeader>

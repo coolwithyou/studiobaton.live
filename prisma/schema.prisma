@@ -164,11 +164,48 @@ model Member {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  standups    Standup[]
-  linkedAdmin Admin?    // Admin 연결 (역관계)
+  standups       Standup[]
+  commitSummaries CommitSummary[]
+  linkedAdmin    Admin?    // Admin 연결 (역관계)
 
   @@index([isActive])
   @@index([displayOrder])
+}
+
+// AI 커밋 하이라이트 요약 (팀원별 일일)
+model CommitSummary {
+  id             String            @id @default(cuid())
+  memberId       String
+  member         Member            @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  date           DateTime          @db.Date
+  totalCommits   Int               @default(0)
+  highlightCount Int               @default(0)
+  primaryFocus   String            // 주요 작업 요약
+  techDebtNotes  String[]          // 기술 부채 노트 배열
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  highlights     CommitHighlight[]
+
+  @@unique([memberId, date])
+  @@index([date])
+  @@index([memberId])
+}
+
+// AI 커밋 하이라이트 개별 항목
+model CommitHighlight {
+  id          String        @id @default(cuid())
+  summaryId   String
+  summary     CommitSummary @relation(fields: [summaryId], references: [id], onDelete: Cascade)
+  rank        Int           // 순위 (1, 2, 3...)
+  commitHash  String        // 커밋 SHA (짧은 버전)
+  category    String        // feat, fix, perf, refactor, test, chore
+  title       String        // 제목
+  description String        // 설명
+  impact      String        // 영향도
+  createdAt   DateTime      @default(now())
+
+  @@index([summaryId])
 }
 
 // 스탠드업 (팀원별 일일 할 일)

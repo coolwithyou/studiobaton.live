@@ -178,6 +178,17 @@ export default function WrapUpPage() {
   const tasks = standupData?.standup?.tasks || [];
   const hasCommits = (reviewData?.summary?.totalCommits || 0) > 0;
 
+  // 커밋 해시 -> 리포지토리명 매핑 생성
+  const commitHashToRepo = new Map<string, string>();
+  if (reviewData?.repositories) {
+    for (const repo of reviewData.repositories) {
+      const displayName = repo.displayName || repo.name;
+      for (const commit of repo.commits) {
+        commitHashToRepo.set(commit.sha.slice(0, 7), displayName);
+      }
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-6">
@@ -260,6 +271,7 @@ export default function WrapUpPage() {
                 date={selectedDate}
                 memberId={selectedMember}
                 hasCommits={hasCommits}
+                commitHashToRepo={commitHashToRepo}
               />
 
               {/* 커밋 상세 리뷰 */}

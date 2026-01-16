@@ -15,6 +15,7 @@ interface CommitHighlight {
   title: string;
   description: string;
   impact: string;
+  repositoryName?: string;
 }
 
 interface SummaryData {
@@ -31,6 +32,7 @@ interface CommitSummaryProps {
   date: Date;
   memberId: string;
   hasCommits: boolean;
+  commitHashToRepo?: Map<string, string>;
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -60,7 +62,7 @@ const categoryLabels: Record<string, string> = {
   chore: "기타",
 };
 
-export function CommitSummary({ date, memberId, hasCommits }: CommitSummaryProps) {
+export function CommitSummary({ date, memberId, hasCommits, commitHashToRepo }: CommitSummaryProps) {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -241,33 +243,41 @@ export function CommitSummary({ date, memberId, hasCommits }: CommitSummaryProps
         {/* 하이라이트 목록 */}
         {summaryData?.highlights && summaryData.highlights.length > 0 && (
           <div className="space-y-3">
-            {summaryData.highlights.map((highlight) => (
-              <div
-                key={highlight.commitHash}
-                className="p-3 border rounded-lg space-y-2"
-              >
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={cn("gap-1", categoryColors[highlight.category])}
-                  >
-                    {categoryIcons[highlight.category]}
-                    {categoryLabels[highlight.category]}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground font-mono">
-                    #{highlight.rank}
-                  </span>
-                  <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                    {highlight.commitHash}
-                  </code>
+            {summaryData.highlights.map((highlight) => {
+              const repoName = commitHashToRepo?.get(highlight.commitHash);
+              return (
+                <div
+                  key={highlight.commitHash}
+                  className="p-3 border rounded-lg space-y-2"
+                >
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge
+                      variant="outline"
+                      className={cn("gap-1", categoryColors[highlight.category])}
+                    >
+                      {categoryIcons[highlight.category]}
+                      {categoryLabels[highlight.category]}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground font-mono">
+                      #{highlight.rank}
+                    </span>
+                    {repoName && (
+                      <span className="text-xs text-muted-foreground">
+                        {repoName}
+                      </span>
+                    )}
+                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
+                      {highlight.commitHash}
+                    </code>
+                  </div>
+                  <h4 className="font-medium text-sm">{highlight.title}</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {highlight.description}
+                  </p>
+                  <p className="text-xs text-primary">{highlight.impact}</p>
                 </div>
-                <h4 className="font-medium text-sm">{highlight.title}</h4>
-                <p className="text-sm text-muted-foreground">
-                  {highlight.description}
-                </p>
-                <p className="text-xs text-primary">{highlight.impact}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

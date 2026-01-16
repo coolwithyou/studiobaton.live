@@ -3,7 +3,7 @@ import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import slugify from "slugify";
 import { format } from "date-fns";
-import { sanitizeMarkdown } from "@/lib/sanitize";
+import { sanitizeMarkdown } from "@/lib/sanitize-markdown";
 
 export async function GET(
   request: NextRequest,

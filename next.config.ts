@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // jsdom ESM/CommonJS 호환성 문제 해결 (Vercel 서버리스 환경)
+  serverExternalPackages: ["jsdom", "isomorphic-dompurify"],
   async redirects() {
     return [
       {

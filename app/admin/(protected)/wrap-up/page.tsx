@@ -13,15 +13,17 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, Loader2, Moon, ListChecks } from "lucide-react";
+import { CalendarIcon, Loader2, ListChecks, ExternalLink } from "lucide-react";
 import { StandupChecklist } from "./_components/standup-checklist";
 import { CommitSummary } from "./_components/commit-summary";
+import { CommitDiagnoseDialog } from "./_components/commit-diagnose-dialog";
 import { CommitRepositoryGroup } from "../review/_components/commit-repository-group";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 
 interface Member {
   id: string;
   name: string;
+  githubName: string;
   avatarUrl: string | null;
   isLinked?: boolean;
 }
@@ -296,15 +298,43 @@ export default function WrapUpPage() {
                 </div>
               )}
 
-              {!hasCommits && (
-                <Card>
-                  <CardContent className="py-8">
-                    <p className="text-center text-muted-foreground">
-                      이 날짜에는 커밋이 없습니다.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+              {!hasCommits && (() => {
+                const selectedMemberData = members.find((m) => m.id === selectedMember);
+                const githubSearchUrl = selectedMemberData?.githubName
+                  ? `https://github.com/search?q=org:studiobaton+author:${selectedMemberData.githubName}+committer-date:${format(selectedDate, "yyyy-MM-dd")}&type=commits`
+                  : null;
+
+                return (
+                  <Card>
+                    <CardContent className="py-8">
+                      <p className="text-center text-muted-foreground mb-4">
+                        이 날짜에는 커밋이 없습니다.
+                      </p>
+                      <div className="flex items-center justify-center gap-3">
+                        {githubSearchUrl && (
+                          <a
+                            href={githubSearchUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Button variant="outline" size="sm" className="gap-1.5">
+                              <ExternalLink className="size-4" />
+                              GitHub에서 확인
+                            </Button>
+                          </a>
+                        )}
+                        {selectedMemberData && (
+                          <CommitDiagnoseDialog
+                            memberId={selectedMember}
+                            memberName={selectedMemberData.name}
+                            date={selectedDate}
+                          />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
             </div>
           )}
         </TabsContent>

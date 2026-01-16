@@ -176,3 +176,76 @@ export async function collectDailyCommits(targetDate: Date): Promise<CommitData[
 
   return allCommits;
 }
+
+/**
+ * 특정 GitHub 사용자의 날짜별 커밋 조회 (진단용)
+ */
+export interface GitHubCommitSimple {
+  sha: string;
+  message: string;
+  authorEmail: string | null;
+  authorName: string | null;
+  committedAt: string;
+  repository: string;
+  url: string;
+}
+
+export async function getCommitsByAuthor(
+  githubName: string,
+  targetDate: Date
+): Promise<GitHubCommitSimple[]> {
+  const { start: startOfDay, end: endOfDay } = getKSTDayRange(targetDate);
+  const repos = await getOrgRepos();
+
+  const allCommits: GitHubCommitSimple[] = [];
+
+  // 리포지토리별로 병렬 처리
+  const repoResults = await processBatch(
+    repos,
+    async (repo) => {
+      try {
+        const commits = await octokit.paginate(octokit.repos.listCommits, {
+          owner: ORG_NAME,
+          repo,
+          author: githubName,
+          since: startOfDay.toISOString(),
+          until: endOfDay.toISOString(),
+          per_page: 100,
+        });
+
+        return commits.map((c) => ({
+          sha: c.sha,
+          message: c.commit.message,
+          authorEmail: c.commit.author?.email || null,
+          authorName: c.commit.author?.name || null,
+          committedAt: c.commit.author?.date || new Date().toISOString(),
+          repository: repo,
+          url: c.html_url,
+        }));
+      } catch (error) {
+        console.error(`Error fetching commits for ${repo} by ${githubName}:`, error);
+        return [];
+      }
+    },
+    5
+  );
+
+  for (const commits of repoResults) {
+    allCommits.push(...commits);
+  }
+
+  // 커밋 시간순 정렬
+  allCommits.sort(
+    (a, b) => new Date(a.committedAt).getTime() - new Date(b.committedAt).getTime()
+  );
+
+  return allCommits;
+}
+
+/**
+ * GitHub 검색 URL 생성
+ */
+export function buildGitHubSearchUrl(githubName: string, date: Date): string {
+  const dateStr = date.toISOString().split("T")[0];
+  return `https://github.com/search?q=org:${ORG_NAME}+author:${githubName}+committer-date:${dateStr}&type=commits`;
+}

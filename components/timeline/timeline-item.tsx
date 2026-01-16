@@ -28,7 +28,6 @@ interface TimelineItemProps {
 
 export function TimelineItem({ post, isLatest }: TimelineItemProps) {
   const targetDate = new Date(post.targetDate);
-  const publishedAt = post.publishedAt ? new Date(post.publishedAt) : null;
 
   // 고유한 레포지토리 목록
   const repos = [...new Set(post.commits.map((c) => c.repository))];
@@ -65,11 +64,9 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
         {/* 날짜 */}
         <time className="text-sm text-muted-foreground flex items-center gap-2">
           <span>{format(targetDate, "M월 d일 (EEEE)", { locale: ko })}</span>
-          {publishedAt && (
-            <span className="text-xs">
-              · {formatDistanceToNow(publishedAt, { addSuffix: true, locale: ko })}
-            </span>
-          )}
+          <span className="text-xs">
+            · {formatDistanceToNow(targetDate, { addSuffix: true, locale: ko })}
+          </span>
         </time>
 
         {/* 제목 */}

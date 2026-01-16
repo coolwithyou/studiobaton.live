@@ -8,6 +8,121 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+/**
+ * AI API 에러 상세 정보
+ */
+export interface AIErrorDetails {
+  code: string;
+  message: string;
+  status?: number;
+  type?: string;
+  suggestion?: string;
+  requestId?: string;
+}
+
+/**
+ * AI API 커스텀 에러 클래스
+ */
+export class AIError extends Error {
+  public readonly details: AIErrorDetails;
+
+  constructor(details: AIErrorDetails) {
+    super(details.message);
+    this.name = "AIError";
+    this.details = details;
+  }
+}
+
+/**
+ * Anthropic API 에러를 AIError로 변환
+ */
+function parseAnthropicError(error: unknown): AIError {
+  // Anthropic SDK 에러인 경우
+  if (error && typeof error === "object" && "status" in error) {
+    const apiError = error as {
+      status?: number;
+      error?: { type?: string; message?: string };
+      requestID?: string;
+      message?: string;
+    };
+
+    const status = apiError.status;
+    const errorType = apiError.error?.type || "unknown_error";
+    const errorMessage = apiError.error?.message || apiError.message || "알 수 없는 오류";
+    const requestId = apiError.requestID;
+
+    // 에러 유형별 코드와 제안 매핑
+    const errorMapping: Record<string, { code: string; suggestion: string }> = {
+      invalid_request_error: {
+        code: "INVALID_REQUEST",
+        suggestion: "요청 형식을 확인해주세요. API 키 또는 크레딧 문제일 수 있습니다.",
+      },
+      authentication_error: {
+        code: "AUTH_ERROR",
+        suggestion: "API 키가 올바른지 확인해주세요.",
+      },
+      permission_error: {
+        code: "PERMISSION_ERROR",
+        suggestion: "API 키의 권한을 확인해주세요.",
+      },
+      rate_limit_error: {
+        code: "RATE_LIMIT",
+        suggestion: "잠시 후 다시 시도해주세요. API 호출 제한에 도달했습니다.",
+      },
+      overloaded_error: {
+        code: "OVERLOADED",
+        suggestion: "AI 서버가 과부하 상태입니다. 잠시 후 다시 시도해주세요.",
+      },
+      api_error: {
+        code: "API_ERROR",
+        suggestion: "AI 서버에 일시적인 문제가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      },
+    };
+
+    const mapping = errorMapping[errorType] || {
+      code: "UNKNOWN_ERROR",
+      suggestion: "관리자에게 문의해주세요.",
+    };
+
+    // 크레딧 부족 특별 처리
+    if (errorMessage.includes("credit balance is too low")) {
+      return new AIError({
+        code: "INSUFFICIENT_CREDITS",
+        message: "Anthropic API 크레딧이 부족합니다.",
+        status,
+        type: errorType,
+        suggestion: "Anthropic 대시보드에서 크레딧을 충전하거나 플랜을 업그레이드해주세요.",
+        requestId,
+      });
+    }
+
+    return new AIError({
+      code: mapping.code,
+      message: errorMessage,
+      status,
+      type: errorType,
+      suggestion: mapping.suggestion,
+      requestId,
+    });
+  }
+
+  // 일반 Error인 경우
+  if (error instanceof Error) {
+    return new AIError({
+      code: "UNKNOWN_ERROR",
+      message: error.message,
+      suggestion: "관리자에게 문의해주세요.",
+    });
+  }
+
+  // 알 수 없는 에러
+  return new AIError({
+    code: "UNKNOWN_ERROR",
+    message: String(error),
+    suggestion: "관리자에게 문의해주세요.",
+  });
+}
+
 // 프로젝트 매핑 캐시 (서버 인스턴스 내에서 유지)
 let projectMappingCache: Map<string, string> | null = null;
 let cacheTimestamp: number = 0;
@@ -166,16 +281,20 @@ ${TONE_PROMPTS[tone]}
 [요약 1-2문장]
 ---END---`;
 
-  const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 1024,
-    messages: [{ role: "user", content: prompt }],
-  });
+  try {
+    const message = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1024,
+      messages: [{ role: "user", content: prompt }],
+    });
 
-  const responseText =
-    message.content[0].type === "text" ? message.content[0].text : "";
+    const responseText =
+      message.content[0].type === "text" ? message.content[0].text : "";
 
-  return parseGeneratedContent(responseText);
+    return parseGeneratedContent(responseText);
+  } catch (error) {
+    throw parseAnthropicError(error);
+  }
 }
 
 function parseGeneratedContent(text: string): GeneratedPost {

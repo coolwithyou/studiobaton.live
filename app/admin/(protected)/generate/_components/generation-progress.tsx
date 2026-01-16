@@ -3,8 +3,17 @@
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
+import { CheckCircle, XCircle, AlertCircle, ExternalLink, Info } from "lucide-react";
 import Link from "next/link";
+
+interface ErrorDetails {
+  code: string;
+  message: string;
+  status?: number;
+  type?: string;
+  suggestion?: string;
+  requestId?: string;
+}
 
 interface SkippedDay {
   date: string;
@@ -27,6 +36,7 @@ interface GenerationResult {
   commitsCollected?: number;
   versionsGenerated?: number;
   error?: string;
+  errorDetails?: ErrorDetails;
 }
 
 interface GenerationProgressProps {
@@ -38,6 +48,7 @@ interface GenerationProgressProps {
   } | null;
   result: GenerationResult | null;
   onReset: () => void;
+  onShowErrorDetails?: () => void;
 }
 
 const reasonLabels: Record<string, string> = {
@@ -52,6 +63,7 @@ export function GenerationProgress({
   progress,
   result,
   onReset,
+  onShowErrorDetails,
 }: GenerationProgressProps) {
   if (!isGenerating && !result) {
     return null;
@@ -118,7 +130,25 @@ export function GenerationProgress({
                     </Link>
                   </div>
                 ) : (
-                  <p>{result.error || "알 수 없는 오류가 발생했습니다."}</p>
+                  <div className="space-y-2">
+                    <p>{result.error || "알 수 없는 오류가 발생했습니다."}</p>
+                    {result.errorDetails?.suggestion && (
+                      <p className="text-xs text-muted-foreground">
+                        {result.errorDetails.suggestion}
+                      </p>
+                    )}
+                    {result.errorDetails && onShowErrorDetails && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={onShowErrorDetails}
+                        className="gap-1 mt-2"
+                      >
+                        <Info className="h-3 w-3" />
+                        상세 보기
+                      </Button>
+                    )}
+                  </div>
                 )}
               </AlertDescription>
             </Alert>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { GenerateCalendar } from "./_components/generate-calendar";
 import { GenerationOptions } from "./_components/generation-options";
 import { GenerationProgress } from "./_components/generation-progress";
+import { ErrorDetailModal, ErrorDetails } from "./_components/error-detail-modal";
 
 interface GenerationResult {
   success: boolean;
@@ -26,6 +27,7 @@ interface GenerationResult {
   commitsCollected?: number;
   versionsGenerated?: number;
   error?: string;
+  errorDetails?: ErrorDetails;
 }
 
 export default function GeneratePage() {
@@ -50,6 +52,13 @@ export default function GeneratePage() {
     currentDate?: string;
   } | null>(null);
   const [result, setResult] = useState<GenerationResult | null>(null);
+
+  // 에러 모달 상태
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorModalData, setErrorModalData] = useState<{
+    error?: string;
+    errorDetails?: ErrorDetails;
+  } | null>(null);
 
   const handleDateSelect = useCallback(
     (date: Date) => {
@@ -103,6 +112,15 @@ export default function GeneratePage() {
 
         const data = await response.json();
         setResult(data);
+
+        // 에러 발생 시 에러 모달 표시
+        if (!data.success && data.errorDetails) {
+          setErrorModalData({
+            error: data.error,
+            errorDetails: data.errorDetails,
+          });
+          setErrorModalOpen(true);
+        }
       } else if (rangeStart && rangeEnd) {
         // 구간 생성 - SSE 스트림 사용
         const response = await fetch("/api/admin/generate/batch/stream", {
@@ -155,8 +173,18 @@ export default function GeneratePage() {
                   setResult({
                     success: false,
                     error: event.data.error,
+                    errorDetails: event.data.errorDetails,
                   });
                   setProgress(null);
+
+                  // 에러 상세 정보가 있으면 모달 표시
+                  if (event.data.errorDetails) {
+                    setErrorModalData({
+                      error: event.data.error,
+                      errorDetails: event.data.errorDetails,
+                    });
+                    setErrorModalOpen(true);
+                  }
                 }
               } catch {
                 // JSON 파싱 실패는 무시 (불완전한 청크)
@@ -236,9 +264,28 @@ export default function GeneratePage() {
             progress={progress}
             result={result}
             onReset={handleReset}
+            onShowErrorDetails={
+              result?.errorDetails
+                ? () => {
+                    setErrorModalData({
+                      error: result.error,
+                      errorDetails: result.errorDetails,
+                    });
+                    setErrorModalOpen(true);
+                  }
+                : undefined
+            }
           />
         </div>
       </div>
+
+      {/* 에러 상세 모달 */}
+      <ErrorDetailModal
+        open={errorModalOpen}
+        onClose={() => setErrorModalOpen(false)}
+        error={errorModalData?.error}
+        errorDetails={errorModalData?.errorDetails}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { collectDailyCommits } from "./github";
-import { generateAllVersions } from "./ai";
+import { generateAllVersions, AIError, AIErrorDetails } from "./ai";
 import prisma from "./prisma";
 import { VersionTone } from "@/app/generated/prisma";
 import { getKSTDayRange, startOfDayKST } from "@/lib/date-utils";
@@ -10,6 +10,7 @@ export interface GenerateResult {
   commitsCollected: number;
   versionsGenerated: number;
   error?: string;
+  errorDetails?: AIErrorDetails;
   skipped?: boolean;
 }
 
@@ -127,7 +128,30 @@ export async function generatePostForDate(
     deletions: c.deletions,
   }));
 
-  const versions = await generateAllVersions(commitSummaries, targetDate);
+  let versions;
+  try {
+    versions = await generateAllVersions(commitSummaries, targetDate);
+  } catch (error) {
+    // AI 에러인 경우 상세 정보 반환
+    if (error instanceof AIError) {
+      return {
+        success: false,
+        postId,
+        commitsCollected: commits.length,
+        versionsGenerated: 0,
+        error: error.details.message,
+        errorDetails: error.details,
+      };
+    }
+    // 기타 에러
+    return {
+      success: false,
+      postId,
+      commitsCollected: commits.length,
+      versionsGenerated: 0,
+      error: error instanceof Error ? error.message : "AI 글 생성 중 알 수 없는 오류가 발생했습니다.",
+    };
+  }
 
   // 6. 버전 저장
   for (let i = 0; i < versions.length; i++) {

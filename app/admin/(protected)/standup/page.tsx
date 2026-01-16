@@ -153,7 +153,7 @@ export default function StandupPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-1">스탠드업</h1>
         <p className="text-muted-foreground">
-          오늘 할 일을 등록하고 팀과 공유하세요. @로 레포지토리를 참조할 수 있습니다.
+          오늘의 업무 진행 계획을 공유하고 할일을 등록하세요.
         </p>
       </div>
 

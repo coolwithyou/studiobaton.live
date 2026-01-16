@@ -10,6 +10,8 @@ export default defineConfig({
     seed: "npx tsx prisma/seed.ts",
   },
   datasource: {
+    // 마이그레이션 시에는 DIRECT_URL (Session Pooler 5432) 사용
+    // 예: DATABASE_URL=$DIRECT_URL npx prisma migrate deploy
     url: process.env["DATABASE_URL"],
   },
 });

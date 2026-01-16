@@ -251,7 +251,7 @@ export default function WrapUpPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <StandupChecklist tasks={tasks} onTaskUpdated={fetchData} />
+                  <StandupChecklist tasks={tasks} />
                 </CardContent>
               </Card>
 

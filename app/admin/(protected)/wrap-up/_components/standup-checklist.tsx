@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, ExternalLink, CheckCircle2 } from "lucide-react";
+import { ExternalLink, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Task {
@@ -14,34 +14,49 @@ interface Task {
 
 interface StandupChecklistProps {
   tasks: Task[];
-  onTaskUpdated: () => void;
+  onTaskToggled?: (taskId: string, isCompleted: boolean) => void;
 }
 
-export function StandupChecklist({ tasks, onTaskUpdated }: StandupChecklistProps) {
-  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set());
+export function StandupChecklist({ tasks, onTaskToggled }: StandupChecklistProps) {
+  // 로컬 상태로 태스크 관리 (optimistic update용)
+  const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+
+  // props가 변경되면 로컬 상태 동기화
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
 
   const handleToggleComplete = async (task: Task) => {
-    setUpdatingTasks((prev) => new Set(prev).add(task.id));
+    const newIsCompleted = !task.isCompleted;
+
+    // Optimistic update: UI를 즉시 업데이트
+    setLocalTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id ? { ...t, isCompleted: newIsCompleted } : t
+      )
+    );
+
     try {
       const response = await fetch(`/api/admin/standup/task/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isCompleted: !task.isCompleted }),
+        body: JSON.stringify({ isCompleted: newIsCompleted }),
       });
 
       if (!response.ok) {
+        // 실패 시 롤백
+        setLocalTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id ? { ...t, isCompleted: !newIsCompleted } : t
+          )
+        );
         throw new Error("Failed to update task");
       }
 
-      onTaskUpdated();
+      // 부모에게 변경 알림 (전체 refetch 없이)
+      onTaskToggled?.(task.id, newIsCompleted);
     } catch (error) {
       console.error("Failed to update task:", error);
-    } finally {
-      setUpdatingTasks((prev) => {
-        const next = new Set(prev);
-        next.delete(task.id);
-        return next;
-      });
     }
   };
 
@@ -70,7 +85,7 @@ export function StandupChecklist({ tasks, onTaskUpdated }: StandupChecklistProps
     });
   };
 
-  if (tasks.length === 0) {
+  if (localTasks.length === 0) {
     return (
       <div className="text-center py-6 text-muted-foreground text-sm">
         오늘 등록된 스탠드업 할 일이 없습니다.
@@ -78,8 +93,8 @@ export function StandupChecklist({ tasks, onTaskUpdated }: StandupChecklistProps
     );
   }
 
-  const completedCount = tasks.filter((t) => t.isCompleted).length;
-  const allCompleted = completedCount === tasks.length;
+  const completedCount = localTasks.filter((t) => t.isCompleted).length;
+  const allCompleted = completedCount === localTasks.length;
 
   return (
     <div className="space-y-3">
@@ -92,7 +107,7 @@ export function StandupChecklist({ tasks, onTaskUpdated }: StandupChecklistProps
             allCompleted ? "text-green-600" : "text-orange-600"
           )}
         >
-          {completedCount}/{tasks.length} 완료
+          {completedCount}/{localTasks.length} 완료
           {allCompleted && <CheckCircle2 className="inline-block ml-1 size-4" />}
         </span>
       </div>
@@ -104,13 +119,13 @@ export function StandupChecklist({ tasks, onTaskUpdated }: StandupChecklistProps
             "h-full transition-all duration-300",
             allCompleted ? "bg-green-500" : "bg-primary"
           )}
-          style={{ width: `${(completedCount / tasks.length) * 100}%` }}
+          style={{ width: `${(completedCount / localTasks.length) * 100}%` }}
         />
       </div>
 
       {/* 태스크 목록 */}
       <div className="space-y-2">
-        {tasks.map((task) => (
+        {localTasks.map((task) => (
           <div
             key={task.id}
             className={cn(
@@ -120,14 +135,10 @@ export function StandupChecklist({ tasks, onTaskUpdated }: StandupChecklistProps
             onClick={() => handleToggleComplete(task)}
           >
             <div className="pt-0.5">
-              {updatingTasks.has(task.id) ? (
-                <Loader2 className="size-4 animate-spin text-muted-foreground" />
-              ) : (
-                <Checkbox
-                  checked={task.isCompleted}
-                  onCheckedChange={() => {}}
-                />
-              )}
+              <Checkbox
+                checked={task.isCompleted}
+                onCheckedChange={() => {}}
+              />
             </div>
 
             <p

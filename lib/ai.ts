@@ -476,7 +476,7 @@ JSON만 출력하고, 다른 설명은 추가하지 마세요.`;
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20250514",
+      model: "claude-sonnet-4-5-20250514",
       max_tokens: 2048,
       messages: [{ role: "user", content: prompt }],
     });

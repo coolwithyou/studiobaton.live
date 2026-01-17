@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 
 export default function PublicLayout({
   children,
@@ -8,7 +9,7 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
       {/* 왼쪽 고정 로고 - container 그리드에 맞춤, 모바일에서 숨김 */}
@@ -16,7 +17,7 @@ export default function PublicLayout({
         <div className="container mx-auto px-4">
           <Link href="/" className="pointer-events-auto inline-block">
             <Image
-              src="/header_logo.png"
+              src="/log_baton_logo.png"
               alt="studiobaton log"
               width={160}
               height={160}
@@ -27,7 +28,8 @@ export default function PublicLayout({
         </div>
       </div>
 
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
+      <Footer />
     </div>
   );
 }

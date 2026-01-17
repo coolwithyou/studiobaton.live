@@ -17,6 +17,25 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+// 마크다운 문법 제거하여 순수 텍스트 추출
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "") // 제목 (# ## ### 등)
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // 볼드 **text**
+    .replace(/\*([^*]+)\*/g, "$1") // 이탤릭 *text*
+    .replace(/__([^_]+)__/g, "$1") // 볼드 __text__
+    .replace(/_([^_]+)_/g, "$1") // 이탤릭 _text_
+    .replace(/`{1,3}[^`]*`{1,3}/g, "") // 인라인 코드 및 코드 블록
+    .replace(/^\s*[-*+]\s+/gm, "") // 리스트 아이템
+    .replace(/^\s*\d+\.\s+/gm, "") // 숫자 리스트
+    .replace(/^\s*>\s+/gm, "") // 인용문
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // 링크 [text](url)
+    .replace(/!\[([^\]]*)\]\([^)]+\)/g, "") // 이미지 ![alt](url)
+    .replace(/\n+/g, " ") // 줄바꿈을 공백으로
+    .replace(/\s+/g, " ") // 연속 공백 정리
+    .trim();
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
 
@@ -37,7 +56,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const description = post.summary || post.content?.slice(0, 160) || "";
+  const rawDescription = post.summary || post.content || "";
+  const description = stripMarkdown(rawDescription).slice(0, 160);
 
   return {
     title: `${post.title} | studiobaton`,

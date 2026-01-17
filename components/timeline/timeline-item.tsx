@@ -2,6 +2,7 @@ import Link from "next/link";
 import { format, formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { stripMarkdown } from "@/lib/strip-markdown";
 
 interface Commit {
   id: string;
@@ -78,7 +79,7 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
 
         {/* 본문 미리보기 */}
         <p className="text-muted-foreground mt-2 line-clamp-3 text-sm leading-relaxed">
-          {post.summary || post.content?.slice(0, 200)}
+          {stripMarkdown(post.summary || post.content || "").slice(0, 200)}
         </p>
 
         {/* 메타 정보 */}

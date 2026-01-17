@@ -361,7 +361,7 @@ export default function PostEditPage({
         </div>
 
         {/* 우측: 수정 폼 */}
-        <div>
+        <div className="min-w-0">
           {/* 버전 선택 탭 */}
           {(!isPublished || isEditMode) && post.versions.length > 0 && (
             <Tabs

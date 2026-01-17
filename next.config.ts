@@ -2,7 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // jsdom ESM/CommonJS 호환성 문제 해결 (Vercel 서버리스 환경)
-  serverExternalPackages: ["jsdom", "isomorphic-dompurify"],
+  // Prisma 관련 패키지 추가 (Edge/Serverless 번들링 이슈 해결)
+  serverExternalPackages: [
+    "jsdom",
+    "isomorphic-dompurify",
+    "@prisma/client",
+    "@prisma/adapter-pg",
+    "pg",
+  ],
   async redirects() {
     return [
       {

@@ -19,9 +19,9 @@ export default function PublicLayout({
             <Image
               src="/log_baton_logo.png"
               alt="studiobaton log"
-              width={160}
+              width={140}
               height={160}
-              className="rounded-xl"
+              // className="rounded-xl"
               priority
             />
           </Link>

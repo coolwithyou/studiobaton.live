@@ -112,19 +112,20 @@ model Post {
 }
 
 model PostVersion {
-  id         String      @id @default(cuid())
-  post       Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
-  postId     String
+  id            String      @id @default(cuid())
+  post          Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId        String
 
-  version    Int
-  title      String
-  content    String
-  summary    String?
-  tone       VersionTone
+  version       Int
+  title         String
+  content       String
+  summary       String?
+  suggestedSlug String?     // AI가 제안한 SEO 친화적 영문 slug
+  tone          VersionTone
 
-  isSelected Boolean     @default(false)
+  isSelected    Boolean     @default(false)
 
-  createdAt  DateTime    @default(now())
+  createdAt     DateTime    @default(now())
 
   @@unique([postId, version])
 }
@@ -141,6 +142,22 @@ enum VersionTone {
   TECHNICAL
 }
 
+// GitHub 리포지토리 캐시 (수동 동기화)
+model Repository {
+  id          String   @id @default(cuid())
+  name        String   @unique // GitHub 리포지토리명
+  description String?          // GitHub 설명
+  isPrivate   Boolean  @default(false)
+  url         String?
+  isDeleted   Boolean  @default(false) // GitHub에서 삭제됨
+  syncedAt    DateTime @default(now()) // 마지막 동기화 시간
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ProjectMapping과 1:1 관계
+  projectMapping ProjectMapping?
+}
+
 model ProjectMapping {
   id             String   @id @default(cuid())
   repositoryName String   @unique // GitHub 리포지토리 이름 (예: "kiaf.web")
@@ -150,6 +167,9 @@ model ProjectMapping {
   isActive       Boolean  @default(true) // 활성화 여부 (글 생성에 포함할지)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  // Repository와 1:1 관계 (FK)
+  repository Repository @relation(fields: [repositoryName], references: [name])
 }
 
 model Member {

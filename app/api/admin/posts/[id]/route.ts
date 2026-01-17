@@ -69,7 +69,7 @@ export async function PATCH(
     const title = body.title ? sanitizeMarkdown(body.title) : undefined;
     const content = body.content ? sanitizeMarkdown(body.content) : undefined;
     const summary = body.summary ? sanitizeMarkdown(body.summary) : undefined;
-    const { action, versionId } = body;
+    const { action, versionId, slug: userSlug } = body;
 
     const post = await prisma.post.findUnique({
       where: { id },
@@ -86,11 +86,40 @@ export async function PATCH(
     if (action === "publish") {
       // 발행
       const dateSlug = format(post.targetDate, "yyyy-MM-dd");
-      const titleSlug = slugify(title || "post", {
-        lower: true,
-        strict: true,
+
+      // 사용자가 입력한 slug 또는 제목 기반 자동 생성
+      let slugPart: string;
+      if (userSlug && userSlug.trim()) {
+        // 사용자 입력 slug 정제 (혹시 모를 잘못된 문자 제거)
+        slugPart = userSlug
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+      } else {
+        // 기존 방식: 제목에서 slugify
+        slugPart = slugify(title || "post", {
+          lower: true,
+          strict: true,
+        });
+      }
+
+      const slug = `${dateSlug}-${slugPart}`;
+
+      // slug 중복 검사 (자신 제외)
+      const existingPost = await prisma.post.findFirst({
+        where: {
+          slug,
+          id: { not: id },
+        },
       });
-      const slug = `${dateSlug}-${titleSlug}`;
+
+      if (existingPost) {
+        return NextResponse.json(
+          { error: "이미 사용 중인 URL입니다. 다른 URL을 입력해주세요." },
+          { status: 400 }
+        );
+      }
 
       const updatedPost = await prisma.post.update({
         where: { id },

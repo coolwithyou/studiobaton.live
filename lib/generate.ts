@@ -163,6 +163,7 @@ export async function generatePostForDate(
         title: generatedPost.title,
         content: generatedPost.content,
         summary: generatedPost.summary,
+        suggestedSlug: generatedPost.slug,
         tone: tone as VersionTone,
       },
     });

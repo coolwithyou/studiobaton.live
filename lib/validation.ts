@@ -21,10 +21,20 @@ export const dateRangeSchema = z.object({
  */
 export const postStatusSchema = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]);
 
+export const slugSchema = z
+  .string()
+  .min(1, "URL slug를 입력해주세요.")
+  .max(100, "URL slug는 100자 이내여야 합니다.")
+  .regex(
+    /^[a-z0-9]+(-[a-z0-9]+)*$/,
+    "URL slug는 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다."
+  );
+
 export const postUpdateSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   content: z.string().max(50000).optional(),
   summary: z.string().max(500).optional(),
+  slug: slugSchema.optional(),
   action: z.enum(["publish", "save"]).optional(),
   versionId: z.string().cuid().optional(),
 });

@@ -19,6 +19,7 @@ interface PostVersion {
   title: string;
   content: string;
   summary: string | null;
+  suggestedSlug: string | null;
   tone: "PROFESSIONAL" | "CASUAL" | "TECHNICAL";
   isSelected: boolean;
 }
@@ -69,12 +70,14 @@ export default function PostEditPage({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [summary, setSummary] = useState("");
+  const [slug, setSlug] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [originalData, setOriginalData] = useState<{
     title: string;
     content: string;
     summary: string;
+    slug: string;
   } | null>(null);
 
   useEffect(() => {
@@ -93,12 +96,20 @@ export default function PostEditPage({
         setTitle(data.title || "");
         setContent(data.content || "");
         setSummary(data.summary || "");
+        // 발행된 포스트의 slug에서 날짜 부분 제거하여 설정
+        if (data.slug) {
+          const slugParts = data.slug.split("-");
+          // YYYY-MM-DD 형식 제거 (처음 3개 부분)
+          const slugWithoutDate = slugParts.slice(3).join("-");
+          setSlug(slugWithoutDate);
+        }
       } else if (data.versions.length > 0) {
         const firstVersion = data.versions[0];
         setSelectedVersionId(firstVersion.id);
         setTitle(firstVersion.title);
         setContent(firstVersion.content);
         setSummary(firstVersion.summary || "");
+        setSlug(firstVersion.suggestedSlug || "");
       }
     } catch (error) {
       console.error("Error fetching post:", error);
@@ -113,11 +124,12 @@ export default function PostEditPage({
     setTitle(version.title);
     setContent(version.content);
     setSummary(version.summary || "");
+    setSlug(version.suggestedSlug || "");
     setIsEditing(false);
   };
 
   const handleEnterEditMode = () => {
-    setOriginalData({ title, content, summary });
+    setOriginalData({ title, content, summary, slug });
     setIsEditMode(true);
   };
 
@@ -126,6 +138,7 @@ export default function PostEditPage({
       setTitle(originalData.title);
       setContent(originalData.content);
       setSummary(originalData.summary);
+      setSlug(originalData.slug);
     }
     setIsEditMode(false);
     setOriginalData(null);
@@ -173,12 +186,17 @@ export default function PostEditPage({
           title,
           content,
           summary,
+          slug,
           action: "publish",
           versionId: selectedVersionId,
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to publish");
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "발행 중 오류가 발생했습니다.");
+        return;
+      }
 
       router.push("/admin");
       router.refresh();
@@ -293,6 +311,33 @@ export default function PostEditPage({
             disabled={isPublished && !isEditMode}
             placeholder="제목을 입력하세요"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="slug">URL Slug</Label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              /post/{format(new Date(post.targetDate), "yyyy-MM-dd")}-
+            </span>
+            <Input
+              id="slug"
+              value={slug}
+              onChange={(e) => {
+                // 소문자, 숫자, 하이픈만 허용
+                const value = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9-]/g, "");
+                setSlug(value);
+                setIsEditing(true);
+              }}
+              disabled={isPublished && !isEditMode}
+              placeholder="seo-friendly-url"
+              className="font-mono"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다. AI가 제안한 slug를 수정할 수 있습니다.
+          </p>
         </div>
 
         <div className="space-y-2">

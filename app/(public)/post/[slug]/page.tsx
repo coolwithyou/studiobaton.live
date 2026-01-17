@@ -190,7 +190,7 @@ export default async function PostPage({ params }: PageProps) {
         {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
         {!isAuthenticated && (
           <p className="text-xs text-muted-foreground text-center mt-6">
-            고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
+            개발자 개인정보와 고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
           </p>
         )}
 
@@ -224,19 +224,18 @@ export default async function PostPage({ params }: PageProps) {
               const CommitWrapper = commit.url ? "a" : "div";
               const wrapperProps = commit.url
                 ? {
-                    href: commit.url,
-                    target: "_blank",
-                    rel: "noopener noreferrer",
-                  }
+                  href: commit.url,
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                }
                 : {};
 
               return (
                 <CommitWrapper
                   key={commit.id}
                   {...wrapperProps}
-                  className={`block p-3 rounded-lg transition-colors ${
-                    commit.url ? "hover:bg-muted/50 group cursor-pointer" : "bg-muted/30"
-                  }`}
+                  className={`block p-3 rounded-lg transition-colors ${commit.url ? "hover:bg-muted/50 group cursor-pointer" : "bg-muted/30"
+                    }`}
                 >
                   <div className="flex items-start gap-3">
                     <Avatar className="w-6 h-6 mt-0.5">
@@ -247,9 +246,8 @@ export default async function PostPage({ params }: PageProps) {
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p
-                        className={`text-sm font-mono truncate transition-colors ${
-                          commit.url ? "group-hover:text-primary" : ""
-                        }`}
+                        className={`text-sm font-mono truncate transition-colors ${commit.url ? "group-hover:text-primary" : ""
+                          }`}
                       >
                         {commit.message.split("\n")[0]}
                       </p>
@@ -270,7 +268,7 @@ export default async function PostPage({ params }: PageProps) {
         {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
         {!isAuthenticated && (
           <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
-            고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
+            개발자 개인정보와 고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
           </p>
         )}
       </article>

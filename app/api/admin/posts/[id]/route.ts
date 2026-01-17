@@ -41,7 +41,17 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(post);
+    // 커밋에 포함된 리포지토리들의 ProjectMapping 정보 조회
+    const repositories = [...new Set(post.commits.map((c) => c.repository))];
+    const repositoryMappings = await prisma.projectMapping.findMany({
+      where: { repositoryName: { in: repositories } },
+      select: {
+        repositoryName: true,
+        displayName: true,
+      },
+    });
+
+    return NextResponse.json({ ...post, repositoryMappings });
   } catch (error) {
     console.error("Fetch admin post error:", error);
     return NextResponse.json(

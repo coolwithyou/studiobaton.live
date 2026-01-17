@@ -37,6 +37,11 @@ interface Commit {
   committedAt: string;
 }
 
+interface RepositoryMapping {
+  repositoryName: string;
+  displayName: string;
+}
+
 interface Post {
   id: string;
   targetDate: string;
@@ -47,6 +52,7 @@ interface Post {
   slug: string | null;
   versions: PostVersion[];
   commits: Commit[];
+  repositoryMappings: RepositoryMapping[];
 }
 
 const TONE_LABELS: Record<string, string> = {
@@ -245,17 +251,20 @@ export default function PostEditPage({
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8">
         <Skeleton className="h-8 w-64 mb-4" />
         <Skeleton className="h-4 w-32 mb-8" />
-        <Skeleton className="h-[400px] w-full" />
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+          <Skeleton className="h-[200px] w-full" />
+          <Skeleton className="h-[400px] w-full" />
+        </div>
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-4xl text-center">
+      <div className="container mx-auto px-4 py-8 text-center">
         <p>포스트를 찾을 수 없습니다.</p>
         <Button onClick={() => router.push("/admin")} className="mt-4">
           돌아가기
@@ -266,8 +275,16 @@ export default function PostEditPage({
 
   const isPublished = post.status === "PUBLISHED";
 
+  // 리포지토리명 → displayName 매핑
+  const repoDisplayNameMap = new Map(
+    post.repositoryMappings.map((m) => [m.repositoryName, m.displayName])
+  );
+
+  // 커밋에서 사용된 고유 리포지토리 목록
+  const usedRepositories = [...new Set(post.commits.map((c) => c.repository))];
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-8">
       {/* 헤더 */}
       <div className="flex items-start justify-between mb-6">
         <div>
@@ -317,126 +334,156 @@ export default function PostEditPage({
         </div>
       </div>
 
-      {/* 버전 선택 탭 */}
-      {(!isPublished || isEditMode) && post.versions.length > 0 && (
-        <Tabs
-          value={selectedVersionId || post.versions[0].id}
-          onValueChange={(v) => {
-            const version = post.versions.find((ver) => ver.id === v);
-            if (version) handleVersionSelect(version);
-          }}
-          className="mb-6"
-        >
-          <TabsList>
-            {post.versions.map((version) => (
-              <TabsTrigger key={version.id} value={version.id}>
-                {TONE_LABELS[version.tone]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      )}
-
-      {/* 편집 폼 */}
-      <div className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="title">제목</Label>
-          <Input
-            id="title"
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setIsEditing(true);
-            }}
-            disabled={isPublished && !isEditMode}
-            placeholder="제목을 입력하세요"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="slug">URL Slug</Label>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
-              /post/{format(new Date(post.targetDate), "yyyy-MM-dd")}-
-            </span>
-            <Input
-              id="slug"
-              value={slug}
-              onChange={(e) => {
-                // 소문자, 숫자, 하이픈만 허용
-                const value = e.target.value
-                  .toLowerCase()
-                  .replace(/[^a-z0-9-]/g, "");
-                setSlug(value);
-                setIsEditing(true);
-              }}
-              disabled={isPublished && !isEditMode}
-              placeholder="seo-friendly-url"
-              className="font-mono"
-            />
+      {/* 2열 레이아웃 */}
+      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
+        {/* 좌측: 리포지토리 목록 */}
+        <div className="space-y-4">
+          <div className="p-4 border rounded-lg bg-muted/30">
+            <h3 className="font-semibold mb-3">사용된 리포지토리</h3>
+            <ul className="space-y-3">
+              {usedRepositories.map((repo) => {
+                const displayName = repoDisplayNameMap.get(repo);
+                return (
+                  <li key={repo} className="text-sm">
+                    <div className="font-medium">
+                      {displayName || repo}
+                    </div>
+                    {displayName && (
+                      <div className="text-muted-foreground font-mono text-xs">
+                        {repo}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-          <p className="text-xs text-muted-foreground">
-            영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다. AI가 제안한 slug를 수정할 수 있습니다.
-          </p>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="content">내용</Label>
-          <MarkdownEditor
-            value={content}
-            onChange={(val) => {
-              setContent(val);
-              setIsEditing(true);
-            }}
-            disabled={isPublished && !isEditMode}
-            minHeight={400}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="summary">요약 (선택)</Label>
-          <Input
-            id="summary"
-            value={summary}
-            onChange={(e) => {
-              setSummary(e.target.value);
-              setIsEditing(true);
-            }}
-            disabled={isPublished && !isEditMode}
-            placeholder="짧은 요약을 입력하세요"
-          />
-        </div>
-      </div>
-
-      <Separator className="my-8" />
-
-      {/* 커밋 목록 */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">커밋 내역</h2>
-        <div className="space-y-3">
-          {post.commits.map((commit) => (
-            <a
-              key={commit.id}
-              href={commit.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+        {/* 우측: 수정 폼 */}
+        <div>
+          {/* 버전 선택 탭 */}
+          {(!isPublished || isEditMode) && post.versions.length > 0 && (
+            <Tabs
+              value={selectedVersionId || post.versions[0].id}
+              onValueChange={(v) => {
+                const version = post.versions.find((ver) => ver.id === v);
+                if (version) handleVersionSelect(version);
+              }}
+              className="mb-6"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="font-mono text-sm truncate">{commit.message}</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {commit.repository} · {commit.author}
-                  </p>
-                </div>
-                <div className="text-sm text-muted-foreground whitespace-nowrap">
-                  <span className="text-green-600">+{commit.additions}</span>
-                  {" / "}
-                  <span className="text-red-600">-{commit.deletions}</span>
-                </div>
+              <TabsList>
+                {post.versions.map((version) => (
+                  <TabsTrigger key={version.id} value={version.id}>
+                    {TONE_LABELS[version.tone]}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          )}
+
+          {/* 편집 폼 */}
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="title">제목</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setIsEditing(true);
+                }}
+                disabled={isPublished && !isEditMode}
+                placeholder="제목을 입력하세요"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="slug">URL Slug</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  /post/{format(new Date(post.targetDate), "yyyy-MM-dd")}-
+                </span>
+                <Input
+                  id="slug"
+                  value={slug}
+                  onChange={(e) => {
+                    // 소문자, 숫자, 하이픈만 허용
+                    const value = e.target.value
+                      .toLowerCase()
+                      .replace(/[^a-z0-9-]/g, "");
+                    setSlug(value);
+                    setIsEditing(true);
+                  }}
+                  disabled={isPublished && !isEditMode}
+                  placeholder="seo-friendly-url"
+                  className="font-mono"
+                />
               </div>
-            </a>
-          ))}
+              <p className="text-xs text-muted-foreground">
+                영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다. AI가 제안한 slug를 수정할 수 있습니다.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="content">내용</Label>
+              <MarkdownEditor
+                value={content}
+                onChange={(val) => {
+                  setContent(val);
+                  setIsEditing(true);
+                }}
+                disabled={isPublished && !isEditMode}
+                minHeight={400}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="summary">요약 (선택)</Label>
+              <Input
+                id="summary"
+                value={summary}
+                onChange={(e) => {
+                  setSummary(e.target.value);
+                  setIsEditing(true);
+                }}
+                disabled={isPublished && !isEditMode}
+                placeholder="짧은 요약을 입력하세요"
+              />
+            </div>
+          </div>
+
+          <Separator className="my-8" />
+
+          {/* 커밋 목록 */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4">커밋 내역</h2>
+            <div className="space-y-3">
+              {post.commits.map((commit) => (
+                <a
+                  key={commit.id}
+                  href={commit.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-mono text-sm truncate">{commit.message}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {repoDisplayNameMap.get(commit.repository) || commit.repository} · {commit.author}
+                      </p>
+                    </div>
+                    <div className="text-sm text-muted-foreground whitespace-nowrap">
+                      <span className="text-green-600">+{commit.additions}</span>
+                      {" / "}
+                      <span className="text-red-600">-{commit.deletions}</span>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>

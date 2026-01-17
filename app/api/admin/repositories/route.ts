@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { Octokit } from "@octokit/rest";
 import { getServerSession } from "@/lib/auth-helpers";
+import prisma from "@/lib/prisma";
 
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
-});
-
+/**
+ * GET /api/admin/repositories
+ * DB에서 리포지토리 목록 조회 (ProjectMapping 정보 포함)
+ */
 export async function GET() {
   const session = await getServerSession();
 
@@ -14,26 +14,45 @@ export async function GET() {
   }
 
   try {
-    const repos = await octokit.paginate(octokit.repos.listForOrg, {
-      org: "studiobaton",
-      type: "all",
-      per_page: 100,
+    // Repository와 ProjectMapping 조인 조회
+    const repositories = await prisma.repository.findMany({
+      where: { isDeleted: false },
+      orderBy: { name: "asc" },
     });
 
-    const repoList = repos.map((repo) => ({
-      name: repo.name,
-      description: repo.description || "",
-      isPrivate: repo.private,
-      url: repo.html_url,
-      updatedAt: repo.updated_at,
-    }));
+    const projectMappings = await prisma.projectMapping.findMany();
+    const mappingByRepo = new Map(
+      projectMappings.map((m) => [m.repositoryName, m])
+    );
 
-    // 최근 업데이트 순으로 정렬
-    repoList.sort((a, b) => {
-      return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
+    // 마지막 동기화 시간 조회
+    const lastSynced = repositories[0]?.syncedAt || null;
+
+    const repoList = repositories.map((repo) => {
+      const mapping = mappingByRepo.get(repo.name);
+      return {
+        name: repo.name,
+        description: repo.description || "",
+        isPrivate: repo.isPrivate,
+        url: repo.url,
+        syncedAt: repo.syncedAt,
+        // ProjectMapping 정보
+        mapping: mapping
+          ? {
+              id: mapping.id,
+              displayName: mapping.displayName,
+              maskName: mapping.maskName,
+              description: mapping.description,
+              isActive: mapping.isActive,
+            }
+          : null,
+      };
     });
 
-    return NextResponse.json({ repositories: repoList });
+    return NextResponse.json({
+      repositories: repoList,
+      lastSyncedAt: lastSynced?.toISOString() || null,
+    });
   } catch (error) {
     console.error("Failed to fetch repositories:", error);
     return NextResponse.json(

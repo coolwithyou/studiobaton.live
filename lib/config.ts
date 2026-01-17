@@ -8,7 +8,7 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://log.ba-ton.kr";
 
 // 사이트 메타데이터
-export const SITE_NAME = "studiobaton";
-export const SITE_TITLE = "studiobaton - 개발 이야기";
+export const SITE_NAME = "스튜디오 바톤 개발 로그";
+export const SITE_TITLE = "스튜디오 바톤 개발 로그";
 export const SITE_DESCRIPTION =
-  "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.";
+  "스튜디오 바톤 개발팀의 일상과 기술 이야기";

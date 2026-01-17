@@ -90,6 +90,19 @@ export function invalidateProjectMappingsCache(): void {
   cacheTimestamp = 0;
 }
 
+// 인덱스를 Excel 스타일 알파벳으로 변환 (A, B, ... Z, AA, AB, ... AZ, BA, ...)
+export function indexToAlpha(index: number): string {
+  let result = "";
+  let n = index;
+
+  do {
+    result = String.fromCharCode(65 + (n % 26)) + result;
+    n = Math.floor(n / 26) - 1;
+  } while (n >= 0);
+
+  return result;
+}
+
 // 리포지토리 인덱스 맵 생성 (Repository A, B, C... 형식용)
 export function createRepositoryIndexMap(
   repositories: string[]
@@ -118,7 +131,7 @@ export function maskProjectName(
 
   // Repository A, B, C... 형식으로 표시
   const index = repoIndexMap?.get(repositoryName) ?? 0;
-  return `Repository ${String.fromCharCode(65 + index)}`;
+  return `Repository ${indexToAlpha(index)}`;
 }
 
 // 커밋 메시지 마스킹 (비로그인 시 카테고리로 표시)
@@ -158,7 +171,7 @@ export function maskAuthorName(
   isAuthenticated: boolean
 ): string {
   if (isAuthenticated) return name;
-  return `개발자 ${String.fromCharCode(65 + authorIndex)}`; // A, B, C...
+  return `개발자 ${indexToAlpha(authorIndex)}`; // A, B, C... AA, AB...
 }
 
 // 글 본문 마스킹 (repositoryName, displayName → maskName 또는 Repository A 치환)
@@ -181,7 +194,7 @@ export function maskContent(
   const mappingEntries = Array.from(mappings.entries());
   mappingEntries.forEach(([repositoryName, { displayName, maskName }]) => {
     const index = repoIndexMap?.get(repositoryName) ?? 0;
-    const maskedName = maskName || `Repository ${String.fromCharCode(65 + index)}`;
+    const maskedName = maskName || `Repository ${indexToAlpha(index)}`;
 
     // displayName → maskedName
     if (displayName) {
@@ -200,7 +213,7 @@ export function maskContent(
       if (mappings.has(repoName)) return;
 
       const index = repoIndexMap?.get(repoName) ?? 0;
-      const maskedName = `Repository ${String.fromCharCode(65 + index)}`;
+      const maskedName = `Repository ${indexToAlpha(index)}`;
 
       // 이미 동일한 from이 있는지 확인
       if (!replacements.find((r) => r.from === repoName)) {

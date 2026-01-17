@@ -21,6 +21,7 @@ interface Repository {
   isPrivate: boolean;
   url: string | null;
   syncedAt: string;
+  lastCommitAt: string | null;
   mapping: RepositoryMapping | null;
 }
 
@@ -194,12 +195,8 @@ export function RepositorySpreadsheet({ onDataChange }: RepositorySpreadsheetPro
     }
   };
 
-  // 등록된 리포지토리 상단, 미등록 하단으로 정렬
-  const sortedRepositories = [...repositories].sort((a, b) => {
-    if (a.mapping && !b.mapping) return -1;
-    if (!a.mapping && b.mapping) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  // 서버에서 최신 커밋 순으로 정렬된 상태 유지
+  const sortedRepositories = repositories;
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "-";
@@ -269,9 +266,9 @@ export function RepositorySpreadsheet({ onDataChange }: RepositorySpreadsheetPro
                   {/* 리포지토리명 */}
                   <td className="p-3">
                     <div className="font-mono text-sm">{repo.name}</div>
-                    {repo.description && (
-                      <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                        {repo.description}
+                    {repo.lastCommitAt && (
+                      <div className="text-xs text-muted-foreground">
+                        최신 커밋: {formatDate(repo.lastCommitAt)}
                       </div>
                     )}
                   </td>

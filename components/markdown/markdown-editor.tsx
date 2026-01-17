@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { GiphyPickerDialog } from "@/components/giphy/giphy-picker-dialog";
 import type { ICommand } from "@uiw/react-md-editor";
 
@@ -158,6 +159,7 @@ export function MarkdownEditor({
         <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
             components={{
               code: ({ className, children, ...props }) => {
                 // 인라인 코드인 경우

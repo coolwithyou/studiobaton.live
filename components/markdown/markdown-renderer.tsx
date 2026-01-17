@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { codeToHtml } from "shiki";
 
 interface MarkdownRendererProps {
@@ -15,6 +16,7 @@ export async function MarkdownRenderer({
     <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw]}
         components={{
           code: async ({ className, children, ...props }) => {
             const match = /language-(\w+)/.exec(className || "");

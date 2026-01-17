@@ -2,8 +2,8 @@ import { ImageResponse } from "next/og";
 import prisma from "@/lib/prisma";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
-
-// Node.js runtime (Prisma 사용을 위해)
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const alt = "studiobaton 블로그 포스트";
 export const size = {
@@ -12,25 +12,40 @@ export const size = {
 };
 export const contentType = "image/png";
 
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Image({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
 
-  const post = await prisma.post.findUnique({
-    where: { slug },
-    select: {
-      title: true,
-      targetDate: true,
-      summary: true,
-      commits: {
-        select: { author: true },
-        distinct: ["author"],
-        take: 5,
+  const [pretendardBold, post] = await Promise.all([
+    readFile(join(process.cwd(), "assets/fonts/Pretendard-Bold.otf")),
+    prisma.post.findUnique({
+      where: { slug },
+      select: {
+        title: true,
+        targetDate: true,
+        summary: true,
+        commits: {
+          select: { author: true },
+          distinct: ["author"],
+          take: 5,
+        },
       },
+    }),
+  ]);
+
+  const fonts = [
+    {
+      name: "Pretendard",
+      data: pretendardBold,
+      style: "normal" as const,
+      weight: 700 as const,
     },
-  });
+  ];
 
   if (!post) {
-    // 포스트가 없으면 기본 이미지
     return new ImageResponse(
       (
         <div
@@ -43,12 +58,13 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             backgroundColor: "#0a0a0a",
             color: "#ffffff",
             fontSize: 48,
+            fontFamily: "Pretendard",
           }}
         >
           studiobaton
         </div>
       ),
-      { ...size }
+      { ...size, fonts }
     );
   }
 
@@ -69,6 +85,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             "radial-gradient(circle at 25px 25px, #1a1a1a 2%, transparent 0%), radial-gradient(circle at 75px 75px, #1a1a1a 2%, transparent 0%)",
           backgroundSize: "100px 100px",
           padding: 60,
+          fontFamily: "Pretendard",
         }}
       >
         {/* 상단: 로고 + 날짜 */}
@@ -174,6 +191,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     ),
     {
       ...size,
+      fonts,
     }
   );
 }

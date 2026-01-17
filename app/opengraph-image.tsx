@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
-
-export const runtime = "edge";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const alt = "studiobaton - 개발 이야기";
 export const size = {
@@ -10,6 +10,10 @@ export const size = {
 export const contentType = "image/png";
 
 export default async function Image() {
+  const pretendardBold = await readFile(
+    join(process.cwd(), "assets/fonts/Pretendard-Bold.otf")
+  );
+
   return new ImageResponse(
     (
       <div
@@ -24,6 +28,7 @@ export default async function Image() {
           backgroundImage:
             "radial-gradient(circle at 25px 25px, #1a1a1a 2%, transparent 0%), radial-gradient(circle at 75px 75px, #1a1a1a 2%, transparent 0%)",
           backgroundSize: "100px 100px",
+          fontFamily: "Pretendard",
         }}
       >
         <div
@@ -83,6 +88,14 @@ export default async function Image() {
     ),
     {
       ...size,
+      fonts: [
+        {
+          name: "Pretendard",
+          data: pretendardBold,
+          style: "normal",
+          weight: 700,
+        },
+      ],
     }
   );
 }

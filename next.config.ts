@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     "jsdom",
     "isomorphic-dompurify",
     "@prisma/client",
+    "@prisma/client-runtime-utils",
     "@prisma/adapter-pg",
     "pg",
   ],

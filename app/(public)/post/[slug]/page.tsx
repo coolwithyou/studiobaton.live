@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
@@ -130,21 +129,6 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto px-4 max-w-2xl py-8">
-      {/* 왼쪽 고정 로고 - 모바일에서 숨김 */}
-      <Link
-        href="/"
-        className="fixed left-16 top-20 z-50 hidden lg:block"
-      >
-        <Image
-          src="/header_logo.png"
-          alt="studiobaton log"
-          width={160}
-          height={160}
-          className="rounded-xl"
-          priority
-        />
-      </Link>
-
       {/* 뒤로가기 */}
       <Link
         href="/"

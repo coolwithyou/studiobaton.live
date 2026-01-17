@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
+import { SITE_URL } from "@/lib/config";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const postUrls = posts.map((post) => ({
-    url: `https://log.ba-ton.kr/post/${post.slug}`,
+    url: `${SITE_URL}/post/${post.slug}`,
     lastModified: post.updatedAt,
     changeFrequency: "weekly" as const,
     priority: 0.8,
@@ -28,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     {
-      url: "https://log.ba-ton.kr",
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,

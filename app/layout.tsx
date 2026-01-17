@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_DESCRIPTION,
+} from "@/lib/config";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,30 +21,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://log.ba-ton.kr"),
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "studiobaton - 개발 이야기",
-    template: "%s | studiobaton",
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
-  keywords: ["studiobaton", "개발", "블로그", "기술", "에이전시", "웹개발", "앱개발"],
-  authors: [{ name: "studiobaton" }],
-  creator: "studiobaton",
+  description: SITE_DESCRIPTION,
+  keywords: [SITE_NAME, "개발", "블로그", "기술", "에이전시", "웹개발", "앱개발"],
+  authors: [{ name: SITE_NAME }],
+  creator: SITE_NAME,
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://log.ba-ton.kr",
-    siteName: "studiobaton",
-    title: "studiobaton - 개발 이야기",
-    description:
-      "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "studiobaton - 개발 이야기",
-    description:
-      "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
   },
   robots: {
     index: true,

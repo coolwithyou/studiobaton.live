@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+import { SITE_URL, SITE_NAME } from "@/lib/config";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
@@ -60,21 +61,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const description = stripMarkdown(rawDescription).slice(0, 160);
 
   return {
-    title: `${post.title} | studiobaton`,
+    title: `${post.title} | ${SITE_NAME}`,
     description,
     openGraph: {
-      title: post.title || "studiobaton",
+      title: post.title || SITE_NAME,
       description,
       type: "article",
       publishedTime: post.publishedAt?.toISOString(),
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title || "studiobaton",
+      title: post.title || SITE_NAME,
       description,
     },
     alternates: {
-      canonical: `https://log.ba-ton.kr/post/${slug}`,
+      canonical: `${SITE_URL}/post/${slug}`,
     },
   };
 }

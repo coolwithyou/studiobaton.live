@@ -5,16 +5,21 @@ import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
 import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_DESCRIPTION,
+} from "@/lib/config";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "studiobaton - 개발 이야기",
-  description:
-    "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
   alternates: {
-    canonical: "https://log.ba-ton.kr",
+    canonical: SITE_URL,
   },
 };
 
@@ -93,36 +98,34 @@ export default function HomePage() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://log.ba-ton.kr/#website",
-        url: "https://log.ba-ton.kr",
-        name: "studiobaton",
-        description:
-          "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+        "@id": `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: SITE_NAME,
+        description: SITE_DESCRIPTION,
         publisher: {
-          "@id": "https://log.ba-ton.kr/#organization",
+          "@id": `${SITE_URL}/#organization`,
         },
         inLanguage: "ko-KR",
       },
       {
         "@type": "Organization",
-        "@id": "https://log.ba-ton.kr/#organization",
-        name: "studiobaton",
-        url: "https://log.ba-ton.kr",
+        "@id": `${SITE_URL}/#organization`,
+        name: SITE_NAME,
+        url: SITE_URL,
         logo: {
           "@type": "ImageObject",
-          url: "https://log.ba-ton.kr/opengraph-image",
+          url: `${SITE_URL}/opengraph-image`,
         },
         sameAs: [],
       },
       {
         "@type": "Blog",
-        "@id": "https://log.ba-ton.kr/#blog",
-        url: "https://log.ba-ton.kr",
-        name: "studiobaton - 개발 이야기",
-        description:
-          "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+        "@id": `${SITE_URL}/#blog`,
+        url: SITE_URL,
+        name: SITE_TITLE,
+        description: SITE_DESCRIPTION,
         publisher: {
-          "@id": "https://log.ba-ton.kr/#organization",
+          "@id": `${SITE_URL}/#organization`,
         },
         inLanguage: "ko-KR",
       },

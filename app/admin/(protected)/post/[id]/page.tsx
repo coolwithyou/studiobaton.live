@@ -208,6 +208,41 @@ export default function PostEditPage({
     }
   };
 
+  const handleUnpublish = async () => {
+    if (!confirm("정말 발행을 취소하시겠습니까?\n\n발행 취소 시 공개 페이지에서 더 이상 볼 수 없게 됩니다.")) {
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/posts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content,
+          summary,
+          action: "unpublish",
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "발행 취소 중 오류가 발생했습니다.");
+        return;
+      }
+
+      await fetchPost();
+      setIsEditMode(false);
+      setOriginalData(null);
+    } catch (error) {
+      console.error("Error unpublishing:", error);
+      alert("발행 취소 중 오류가 발생했습니다.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -262,7 +297,12 @@ export default function PostEditPage({
             </Button>
           )}
           {isPublished && !isEditMode && (
-            <Button onClick={handleEnterEditMode}>수정하기</Button>
+            <>
+              <Button variant="outline" onClick={handleUnpublish} disabled={saving}>
+                발행 취소
+              </Button>
+              <Button onClick={handleEnterEditMode}>수정하기</Button>
+            </>
           )}
           {isPublished && isEditMode && (
             <>

@@ -147,6 +147,29 @@ export async function PATCH(
       }
 
       return NextResponse.json(updatedPost);
+    } else if (action === "unpublish") {
+      // 발행 취소
+      if (post.status !== "PUBLISHED") {
+        return NextResponse.json(
+          { error: "발행된 포스트만 발행 취소할 수 있습니다." },
+          { status: 400 }
+        );
+      }
+
+      const updatedPost = await prisma.post.update({
+        where: { id },
+        data: {
+          title,
+          content,
+          summary,
+          status: "DRAFT",
+          slug: null,
+          publishedAt: null,
+          publishedById: null,
+        },
+      });
+
+      return NextResponse.json(updatedPost);
     } else {
       // 업데이트만 (저장)
       const updatedPost = await prisma.post.update({

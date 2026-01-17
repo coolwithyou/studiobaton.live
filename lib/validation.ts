@@ -35,7 +35,7 @@ export const postUpdateSchema = z.object({
   content: z.string().max(50000).optional(),
   summary: z.string().max(500).optional(),
   slug: slugSchema.optional(),
-  action: z.enum(["publish", "save"]).optional(),
+  action: z.enum(["publish", "unpublish", "save"]).optional(),
   versionId: z.string().cuid().optional(),
 });
 

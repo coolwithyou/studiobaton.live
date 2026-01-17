@@ -95,7 +95,7 @@ export async function PATCH(
 
     if (action === "publish") {
       // 발행
-      const dateSlug = format(post.targetDate, "yyyy-MM-dd");
+      const dateSlug = format(post.targetDate, "yyyyMMdd");
 
       // 사용자가 입력한 slug 또는 제목 기반 자동 생성
       let slugPart: string;

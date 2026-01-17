@@ -161,6 +161,7 @@ interface CommitSummary {
 
 interface GeneratedPost {
   title: string;
+  slug: string;
   content: string;
   summary: string;
 }
@@ -271,15 +272,29 @@ ${TONE_PROMPTS[tone]}
    - 핵심 로직이나 인상적인 해결책만 짧게 발췌
    - 언어 명시 필수 (예: \`\`\`typescript)
    - 코드 블록은 10줄 이내로 간결하게
+7. **중요: 프로젝트명은 제공된 이름을 정확히 그대로 사용**:
+   - "매거진비"를 "매거진비 프로젝트"로 확장하지 말 것
+   - "하이츠"를 "하이츠 백오피스"로 변형하지 말 것
+   - 레포지토리별 요약에 나온 프로젝트명을 그대로 사용할 것
 
 ## 출력 형식 (정확히 이 형식을 따라주세요):
 ---TITLE---
 [제목]
+---SLUG---
+[SEO 친화적 영문 URL slug - 3~5개 단어, 소문자, 하이픈 구분, 핵심 키워드만]
 ---CONTENT---
 [본문 내용]
 ---SUMMARY---
 [요약 1-2문장]
----END---`;
+---END---
+
+## SLUG 작성 가이드:
+- 한글 제목의 핵심 키워드를 영문으로 번역
+- 예: "React 캐싱 전략 개선" → react-caching-strategy
+- 예: "사용자 인증 버그 수정" → user-auth-bug-fix
+- 예: "성능 최적화 작업" → performance-optimization
+- 영문 소문자, 숫자, 하이픈만 사용
+- 최대 5단어, 60자 이내`;
 
   try {
     const message = await anthropic.messages.create({
@@ -298,12 +313,22 @@ ${TONE_PROMPTS[tone]}
 }
 
 function parseGeneratedContent(text: string): GeneratedPost {
-  const titleMatch = text.match(/---TITLE---\s*([\s\S]*?)\s*---CONTENT---/);
+  const titleMatch = text.match(/---TITLE---\s*([\s\S]*?)\s*---SLUG---/);
+  const slugMatch = text.match(/---SLUG---\s*([\s\S]*?)\s*---CONTENT---/);
   const contentMatch = text.match(/---CONTENT---\s*([\s\S]*?)\s*---SUMMARY---/);
   const summaryMatch = text.match(/---SUMMARY---\s*([\s\S]*?)\s*---END---/);
 
+  // slug 정제: 소문자, 하이픈, 영문숫자만 허용
+  const rawSlug = slugMatch?.[1]?.trim() || "";
+  const cleanSlug = rawSlug
+    .toLowerCase()
+    .replace(/[^a-z0-9\-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
   return {
     title: titleMatch?.[1]?.trim() || "오늘의 개발 이야기",
+    slug: cleanSlug || "daily-dev-story",
     content: contentMatch?.[1]?.trim() || text,
     summary: summaryMatch?.[1]?.trim() || "",
   };

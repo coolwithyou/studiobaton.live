@@ -37,7 +37,7 @@ async function AdminHeader() {
       <div className="container mx-auto px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link href="/admin" className="font-bold text-lg">
-            studiobaton
+            studiobaton log
           </Link>
           <nav className="flex items-center gap-4">
             {visibleNavItems.map((item) => (

@@ -11,6 +11,8 @@ import type { Metadata } from "next";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { extractHeadings } from "@/lib/extract-headings";
+import { TableOfContents } from "@/components/toc/table-of-contents";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
@@ -127,17 +129,23 @@ export default async function PostPage({ params }: PageProps) {
     return acc;
   }, {} as Record<string, { commits: number; additions: number; deletions: number }>);
 
-  return (
-    <div className="container mx-auto px-4 max-w-2xl py-8">
-      {/* 뒤로가기 */}
-      <Link
-        href="/"
-        className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
-      >
-        ← 타임라인으로
-      </Link>
+  // 마크다운에서 헤딩 추출 (TOC용)
+  const headings = extractHeadings(maskedPost.content || "");
 
-      <article>
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex gap-8 max-w-5xl mx-auto">
+        {/* 메인 콘텐츠 */}
+        <div className="flex-1 min-w-0 max-w-2xl">
+          {/* 뒤로가기 */}
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
+          >
+            ← 타임라인으로
+          </Link>
+
+          <article>
         {/* 헤더 */}
         <header className="mb-8">
           <time className="text-sm text-muted-foreground">
@@ -172,7 +180,7 @@ export default async function PostPage({ params }: PageProps) {
         {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
         {!isAuthenticated && (
           <p className="text-xs text-muted-foreground text-center mt-6">
-            개발자 개인정보와 고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
+            개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
           </p>
         )}
 
@@ -250,33 +258,44 @@ export default async function PostPage({ params }: PageProps) {
         {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
         {!isAuthenticated && (
           <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
-            개발자 개인정보와 고객사 정보 보호를 위해 프로젝트명 및 일부 세부 정보가 마스킹 처리되어 있습니다.
+            개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
           </p>
         )}
-      </article>
+          </article>
 
-      {/* JSON-LD (마스킹된 데이터 사용) */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BlogPosting",
-            headline: post.title,
-            description: maskedPost.summary || maskedPost.content?.slice(0, 160),
-            datePublished: post.publishedAt?.toISOString(),
-            dateModified: post.updatedAt.toISOString(),
-            author: authors.map((a) => ({
-              "@type": "Person",
-              name: a.name,
-            })),
-            publisher: {
-              "@type": "Organization",
-              name: "studiobaton",
-            },
-          }),
-        }}
-      />
+          {/* JSON-LD (마스킹된 데이터 사용) */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "BlogPosting",
+                headline: post.title,
+                description: maskedPost.summary || maskedPost.content?.slice(0, 160),
+                datePublished: post.publishedAt?.toISOString(),
+                dateModified: post.updatedAt.toISOString(),
+                author: authors.map((a) => ({
+                  "@type": "Person",
+                  name: a.name,
+                })),
+                publisher: {
+                  "@type": "Organization",
+                  name: "studiobaton",
+                },
+              }),
+            }}
+          />
+        </div>
+
+        {/* 우측 사이드바 - TOC */}
+        {headings.length > 0 && (
+          <aside className="hidden lg:block w-48 shrink-0">
+            <div className="sticky top-24">
+              <TableOfContents headings={headings} />
+            </div>
+          </aside>
+        )}
+      </div>
     </div>
   );
 }

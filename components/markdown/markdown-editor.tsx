@@ -1,15 +1,59 @@
 "use client";
 
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { GiphyPickerDialog } from "@/components/giphy/giphy-picker-dialog";
+import type { ICommand } from "@uiw/react-md-editor";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {
   ssr: false,
   loading: () => <Skeleton className="h-[400px] w-full" />,
 });
+
+// GIF 아이콘 컴포넌트
+function GifIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="2" y="2" width="20" height="20" rx="2" />
+      <text
+        x="12"
+        y="16"
+        textAnchor="middle"
+        fontSize="10"
+        fontWeight="bold"
+        fill="currentColor"
+        stroke="none"
+      >
+        GIF
+      </text>
+    </svg>
+  );
+}
+
+// GIF 이미지 HTML 생성 (50% 폭, 가운데 정렬, 캡션 opacity 70%)
+function createGifHtml(gifUrl: string, altText: string): string {
+  const caption = altText.trim();
+  const figcaptionHtml = caption
+    ? `\n  <figcaption style="font-size: 0.875rem; opacity: 0.7; margin-top: 0.5em;">${caption}</figcaption>`
+    : "";
+
+  return `<figure style="text-align: center; margin: 1.5em 0;">
+  <img src="${gifUrl}" alt="${caption || "GIF"}" style="max-width: 50%; height: auto;" />${figcaptionHtml}
+</figure>`;
+}
 
 interface MarkdownEditorProps {
   value: string;
@@ -27,6 +71,82 @@ export function MarkdownEditor({
   minHeight = 400,
 }: MarkdownEditorProps) {
   const { resolvedTheme } = useTheme();
+  const [giphyOpen, setGiphyOpen] = useState(false);
+  const cursorPositionRef = useRef<number>(value.length);
+  const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  // 에디터 textarea의 커서 위치 추적
+  useEffect(() => {
+    const container = editorContainerRef.current;
+    if (!container) return;
+
+    const handleSelectionChange = () => {
+      const textarea = container.querySelector("textarea");
+      if (textarea && document.activeElement === textarea) {
+        cursorPositionRef.current = textarea.selectionStart;
+      }
+    };
+
+    // 클릭, 키 입력 시 커서 위치 업데이트
+    container.addEventListener("click", handleSelectionChange);
+    container.addEventListener("keyup", handleSelectionChange);
+
+    return () => {
+      container.removeEventListener("click", handleSelectionChange);
+      container.removeEventListener("keyup", handleSelectionChange);
+    };
+  }, []);
+
+  // GIF 삽입 핸들러 - 커서 위치에 삽입
+  const handleGifInsert = useCallback(
+    (gifUrl: string, altText: string) => {
+      const gifHtml = createGifHtml(gifUrl, altText);
+      const pos = cursorPositionRef.current;
+
+      // 커서 위치에 삽입
+      const before = value.slice(0, pos);
+      const after = value.slice(pos);
+
+      // 앞뒤로 줄바꿈 추가 (이미 줄바꿈이 있으면 생략)
+      const needNewlineBefore = before.length > 0 && !before.endsWith("\n");
+      const needNewlineAfter = after.length > 0 && !after.startsWith("\n");
+
+      const newValue =
+        before +
+        (needNewlineBefore ? "\n\n" : "") +
+        gifHtml +
+        (needNewlineAfter ? "\n\n" : "") +
+        after;
+
+      onChange(newValue);
+    },
+    [value, onChange]
+  );
+
+  // GIF 커스텀 커맨드
+  const gifCommand: ICommand = useMemo(
+    () => ({
+      name: "gif",
+      keyCommand: "gif",
+      buttonProps: {
+        "aria-label": "GIF 삽입",
+        title: "GIF 삽입",
+      },
+      icon: <GifIcon />,
+      execute: () => {
+        // 모달 열기 전 현재 커서 위치 저장
+        const container = editorContainerRef.current;
+        if (container) {
+          const textarea = container.querySelector("textarea");
+          if (textarea) {
+            cursorPositionRef.current = textarea.selectionStart;
+          }
+        }
+        setGiphyOpen(true);
+      },
+    }),
+    []
+  );
 
   if (disabled) {
     // 발행된 글은 마크다운 렌더링으로 표시
@@ -40,7 +160,6 @@ export function MarkdownEditor({
             remarkPlugins={[remarkGfm]}
             components={{
               code: ({ className, children, ...props }) => {
-                const match = /language-(\w+)/.exec(className || "");
                 // 인라인 코드인 경우
                 if (!className) {
                   return (
@@ -67,16 +186,27 @@ export function MarkdownEditor({
   }
 
   return (
-    <div data-color-mode={resolvedTheme === "dark" ? "dark" : "light"}>
-      <MDEditor
-        value={value}
-        onChange={(val) => onChange(val || "")}
-        preview="live"
-        height={minHeight}
-        textareaProps={{
-          placeholder,
-        }}
+    <>
+      <div
+        ref={editorContainerRef}
+        data-color-mode={resolvedTheme === "dark" ? "dark" : "light"}
+      >
+        <MDEditor
+          value={value}
+          onChange={(val) => onChange(val || "")}
+          preview="live"
+          height={minHeight}
+          textareaProps={{
+            placeholder,
+          }}
+          extraCommands={[gifCommand]}
+        />
+      </div>
+      <GiphyPickerDialog
+        open={giphyOpen}
+        onOpenChange={setGiphyOpen}
+        onInsert={handleGifInsert}
       />
-    </div>
+    </>
   );
 }

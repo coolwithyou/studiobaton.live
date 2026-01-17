@@ -12,3 +12,6 @@ export const SITE_NAME = "스튜디오 바톤 개발 로그";
 export const SITE_TITLE = "스튜디오 바톤 개발 로그";
 export const SITE_DESCRIPTION =
   "스튜디오 바톤 개발팀의 일상과 기술 이야기";
+
+// GIPHY API (서버 전용)
+export const GIPHY_API_KEY = process.env.GIPHY_API_KEY;

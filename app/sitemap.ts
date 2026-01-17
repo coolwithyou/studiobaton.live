@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const postUrls = posts.map((post) => ({
-    url: `https://studiobaton.live/post/${post.slug}`,
+    url: `https://log.ba-ton.kr/post/${post.slug}`,
     lastModified: post.updatedAt,
     changeFrequency: "weekly" as const,
     priority: 0.8,
@@ -28,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     {
-      url: "https://studiobaton.live",
+      url: "https://log.ba-ton.kr",
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,

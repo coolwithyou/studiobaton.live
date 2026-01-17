@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://studiobaton.live"),
+  metadataBase: new URL("https://log.ba-ton.kr"),
   title: {
     default: "studiobaton - 개발 이야기",
     template: "%s | studiobaton",
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://studiobaton.live",
+    url: "https://log.ba-ton.kr",
     siteName: "studiobaton",
     title: "studiobaton - 개발 이야기",
     description:

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description:
     "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
   alternates: {
-    canonical: "https://studiobaton.live",
+    canonical: "https://log.ba-ton.kr",
   },
 };
 
@@ -93,36 +93,36 @@ export default function HomePage() {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://studiobaton.live/#website",
-        url: "https://studiobaton.live",
+        "@id": "https://log.ba-ton.kr/#website",
+        url: "https://log.ba-ton.kr",
         name: "studiobaton",
         description:
           "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
         publisher: {
-          "@id": "https://studiobaton.live/#organization",
+          "@id": "https://log.ba-ton.kr/#organization",
         },
         inLanguage: "ko-KR",
       },
       {
         "@type": "Organization",
-        "@id": "https://studiobaton.live/#organization",
+        "@id": "https://log.ba-ton.kr/#organization",
         name: "studiobaton",
-        url: "https://studiobaton.live",
+        url: "https://log.ba-ton.kr",
         logo: {
           "@type": "ImageObject",
-          url: "https://studiobaton.live/opengraph-image",
+          url: "https://log.ba-ton.kr/opengraph-image",
         },
         sameAs: [],
       },
       {
         "@type": "Blog",
-        "@id": "https://studiobaton.live/#blog",
-        url: "https://studiobaton.live",
+        "@id": "https://log.ba-ton.kr/#blog",
+        url: "https://log.ba-ton.kr",
         name: "studiobaton - 개발 이야기",
         description:
           "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
         publisher: {
-          "@id": "https://studiobaton.live/#organization",
+          "@id": "https://log.ba-ton.kr/#organization",
         },
         inLanguage: "ko-KR",
       },

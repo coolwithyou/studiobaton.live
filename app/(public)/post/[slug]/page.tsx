@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description,
     },
     alternates: {
-      canonical: `https://studiobaton.live/post/${slug}`,
+      canonical: `https://log.ba-ton.kr/post/${slug}`,
     },
   };
 }

@@ -134,9 +134,12 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex gap-8 max-w-5xl mx-auto">
+      <div className="grid grid-cols-12 gap-6 max-w-6xl mx-auto">
+        {/* 왼쪽 여백 */}
+        <div className="hidden lg:block col-span-2" />
+
         {/* 메인 콘텐츠 */}
-        <div className="flex-1 min-w-0 max-w-2xl">
+        <div className="col-span-12 lg:col-span-7">
           {/* 뒤로가기 */}
           <Link
             href="/"
@@ -288,13 +291,13 @@ export default async function PostPage({ params }: PageProps) {
         </div>
 
         {/* 우측 사이드바 - TOC */}
-        {headings.length > 0 && (
-          <aside className="hidden lg:block w-48 shrink-0">
+        <aside className="hidden lg:block col-span-3">
+          {headings.length > 0 && (
             <div className="sticky top-24">
               <TableOfContents headings={headings} />
             </div>
-          </aside>
-        )}
+          )}
+        </aside>
       </div>
     </div>
   );

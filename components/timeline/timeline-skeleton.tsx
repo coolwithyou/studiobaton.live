@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function TimelineSkeleton() {
   return (
-    <div className="space-y-8">
+    <div className="py-8 space-y-8">
       {Array.from({ length: 5 }).map((_, i) => (
         <div key={i} className="relative pl-8 pb-8">
           <div className="absolute left-[11px] top-6 bottom-0 w-px bg-border" />

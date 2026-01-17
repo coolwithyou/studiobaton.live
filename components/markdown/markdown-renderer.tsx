@@ -1,6 +1,5 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
 import { codeToHtml } from "shiki";
 
 interface MarkdownRendererProps {
@@ -16,8 +15,32 @@ export async function MarkdownRenderer({
     <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
         components={{
+          img: ({ src, alt }) => {
+            const srcStr = typeof src === "string" ? src : "";
+            const isGif = srcStr.includes("giphy.com") || srcStr.endsWith(".gif");
+            if (isGif) {
+              return (
+                <figure className="text-center my-6">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={src}
+                    alt={alt || "GIF"}
+                    className="inline-block max-w-[50%] h-auto"
+                  />
+                  {alt && alt !== "GIF" && (
+                    <figcaption className="text-sm opacity-70 mt-2">
+                      {alt}
+                    </figcaption>
+                  )}
+                </figure>
+              );
+            }
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={src} alt={alt || ""} className="max-w-full h-auto" />
+            );
+          },
           code: async ({ className, children, ...props }) => {
             const match = /language-(\w+)/.exec(className || "");
             const lang = match ? match[1] : "text";

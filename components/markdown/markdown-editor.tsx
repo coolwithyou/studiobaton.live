@@ -6,7 +6,6 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
 import { GiphyPickerDialog } from "@/components/giphy/giphy-picker-dialog";
 import type { ICommand } from "@uiw/react-md-editor";
 
@@ -44,16 +43,11 @@ function GifIcon() {
   );
 }
 
-// GIF 이미지 HTML 생성 (50% 폭, 가운데 정렬, 캡션 opacity 70%)
-function createGifHtml(gifUrl: string, altText: string): string {
-  const caption = altText.trim();
-  const figcaptionHtml = caption
-    ? `\n  <figcaption style="font-size: 0.875rem; opacity: 0.7; margin-top: 0.5em;">${caption}</figcaption>`
-    : "";
-
-  return `<figure style="text-align: center; margin: 1.5em 0;">
-  <img src="${gifUrl}" alt="${caption || "GIF"}" style="max-width: 50%; height: auto;" />${figcaptionHtml}
-</figure>`;
+// GIF 이미지 마크다운 생성 (data-gif 속성으로 구분)
+function createGifMarkdown(gifUrl: string, altText: string): string {
+  const caption = altText.trim() || "GIF";
+  // 마크다운 이미지 문법 사용 (렌더러에서 스타일 적용)
+  return `![${caption}](${gifUrl})`;
 }
 
 interface MarkdownEditorProps {
@@ -101,7 +95,7 @@ export function MarkdownEditor({
   // GIF 삽입 핸들러 - 커서 위치에 삽입
   const handleGifInsert = useCallback(
     (gifUrl: string, altText: string) => {
-      const gifHtml = createGifHtml(gifUrl, altText);
+      const gifMarkdown = createGifMarkdown(gifUrl, altText);
       const pos = cursorPositionRef.current;
 
       // 커서 위치에 삽입
@@ -115,7 +109,7 @@ export function MarkdownEditor({
       const newValue =
         before +
         (needNewlineBefore ? "\n\n" : "") +
-        gifHtml +
+        gifMarkdown +
         (needNewlineAfter ? "\n\n" : "") +
         after;
 
@@ -159,8 +153,32 @@ export function MarkdownEditor({
         <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
             components={{
+              img: ({ src, alt }) => {
+                const srcStr = typeof src === "string" ? src : "";
+                const isGif = srcStr.includes("giphy.com") || srcStr.endsWith(".gif");
+                if (isGif) {
+                  return (
+                    <figure className="text-center my-6">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt={alt || "GIF"}
+                        className="inline-block max-w-[50%] h-auto"
+                      />
+                      {alt && alt !== "GIF" && (
+                        <figcaption className="text-sm opacity-70 mt-2">
+                          {alt}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                }
+                return (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={src} alt={alt || ""} className="max-w-full h-auto" />
+                );
+              },
               code: ({ className, children, ...props }) => {
                 // 인라인 코드인 경우
                 if (!className) {

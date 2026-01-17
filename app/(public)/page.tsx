@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
@@ -7,6 +8,15 @@ import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "studiobaton - 개발 이야기",
+  description:
+    "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+  alternates: {
+    canonical: "https://studiobaton.live",
+  },
+};
 
 async function Timeline() {
   const isAuthenticated = await hasUnmaskPermission();
@@ -78,8 +88,53 @@ async function Timeline() {
 }
 
 export default function HomePage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://studiobaton.live/#website",
+        url: "https://studiobaton.live",
+        name: "studiobaton",
+        description:
+          "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+        publisher: {
+          "@id": "https://studiobaton.live/#organization",
+        },
+        inLanguage: "ko-KR",
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://studiobaton.live/#organization",
+        name: "studiobaton",
+        url: "https://studiobaton.live",
+        logo: {
+          "@type": "ImageObject",
+          url: "https://studiobaton.live/opengraph-image",
+        },
+        sameAs: [],
+      },
+      {
+        "@type": "Blog",
+        "@id": "https://studiobaton.live/#blog",
+        url: "https://studiobaton.live",
+        name: "studiobaton - 개발 이야기",
+        description:
+          "studiobaton 개발팀의 일상과 기술 이야기. 매일 자동으로 생성되는 개발 블로그입니다.",
+        publisher: {
+          "@id": "https://studiobaton.live/#organization",
+        },
+        inLanguage: "ko-KR",
+      },
+    ],
+  };
+
   return (
     <div className="container mx-auto px-4 max-w-2xl">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Suspense fallback={<TimelineSkeleton />}>
         <Timeline />
       </Suspense>

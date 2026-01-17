@@ -4,44 +4,89 @@ import prisma from "@/lib/prisma";
 export interface ProjectMaskingInfo {
   displayName: string;
   maskName: string | null;
+  isRegistered: boolean; // ProjectMapping이 등록되어 있는지 여부
 }
 
 export type ProjectMappingsMap = Map<string, ProjectMaskingInfo>;
 
-// 프로젝트 매핑 캐시 (5분 TTL)
+// 전체 리포지토리 목록 (마스킹 인덱스 부여용)
+export type AllRepositoriesMap = Map<string, number>; // repositoryName -> 고정 인덱스
+
+// 캐시 (5분 TTL)
 let projectMappingsCache: ProjectMappingsMap | null = null;
+let allRepositoriesCache: AllRepositoriesMap | null = null;
 let cacheTimestamp = 0;
 const CACHE_TTL = 5 * 60 * 1000; // 5분
 
-// 프로젝트 매핑 데이터 조회 (캐싱)
+// Repository 테이블 + ProjectMapping 조인하여 전체 데이터 조회 (캐싱)
 export async function getProjectMappings(): Promise<ProjectMappingsMap> {
   const now = Date.now();
   if (projectMappingsCache && now - cacheTimestamp < CACHE_TTL) {
     return projectMappingsCache;
   }
 
-  const mappings = await prisma.projectMapping.findMany({
-    select: {
-      repositoryName: true,
-      displayName: true,
-      maskName: true,
-    },
+  // Repository와 ProjectMapping 모두 조회
+  const [repositories, mappings] = await Promise.all([
+    prisma.repository.findMany({
+      where: { isDeleted: false },
+      select: { name: true },
+      orderBy: { name: "asc" }, // 이름순 정렬로 일관된 인덱스 부여
+    }),
+    prisma.projectMapping.findMany({
+      select: {
+        repositoryName: true,
+        displayName: true,
+        maskName: true,
+      },
+    }),
+  ]);
+
+  // ProjectMapping을 Map으로 변환
+  const mappingsByRepo = new Map(
+    mappings.map((m) => [m.repositoryName, m])
+  );
+
+  // 모든 리포지토리에 대해 마스킹 정보 생성
+  // Repository 테이블에 있는 리포지토리들에게 일관된 인덱스 부여
+  projectMappingsCache = new Map();
+  allRepositoriesCache = new Map();
+
+  repositories.forEach((repo, index) => {
+    const mapping = mappingsByRepo.get(repo.name);
+    allRepositoriesCache!.set(repo.name, index);
+
+    if (mapping) {
+      // ProjectMapping이 있는 경우
+      projectMappingsCache!.set(repo.name, {
+        displayName: mapping.displayName,
+        maskName: mapping.maskName,
+        isRegistered: true,
+      });
+    } else {
+      // ProjectMapping이 없는 경우 - Repository 테이블 기반 자동 마스킹
+      projectMappingsCache!.set(repo.name, {
+        displayName: repo.name, // 로그인 사용자에게는 원본 이름
+        maskName: null, // 비로그인 사용자에게는 "Repository A, B, C" 형식
+        isRegistered: false,
+      });
+    }
   });
 
-  projectMappingsCache = new Map(
-    mappings.map((m) => [
-      m.repositoryName,
-      { displayName: m.displayName, maskName: m.maskName },
-    ])
-  );
   cacheTimestamp = now;
-
   return projectMappingsCache;
+}
+
+// 전체 리포지토리 인덱스 맵 조회 (캐싱된 값 반환)
+export async function getAllRepositoriesIndexMap(): Promise<AllRepositoriesMap> {
+  // getProjectMappings 호출하여 캐시 갱신
+  await getProjectMappings();
+  return allRepositoriesCache || new Map();
 }
 
 // 캐시 무효화 (관리자가 매핑을 수정할 때 호출)
 export function invalidateProjectMappingsCache(): void {
   projectMappingsCache = null;
+  allRepositoriesCache = null;
   cacheTimestamp = 0;
 }
 
@@ -234,7 +279,8 @@ interface MaskedPost {
 export function applyPostMasking(
   post: PostData,
   mappings: ProjectMappingsMap,
-  isAuthenticated: boolean
+  isAuthenticated: boolean,
+  globalRepoIndexMap?: AllRepositoriesMap // 전역 리포지토리 인덱스 맵
 ): MaskedPost {
   // 고유 저자 목록 생성 (인덱스 매핑용)
   const uniqueAuthors = [...new Set(post.commits.map((c) => c.author))];
@@ -243,8 +289,8 @@ export function applyPostMasking(
   // 커밋의 리포지토리명 목록 (중복 제거)
   const commitRepositories = [...new Set(post.commits.map((c) => c.repository))];
 
-  // 고유 리포지토리 목록 생성 (Repository A, B, C... 형식용)
-  const repoIndexMap = createRepositoryIndexMap(commitRepositories);
+  // 리포지토리 인덱스 맵: 전역 맵 우선 사용, 없으면 로컬 생성
+  const repoIndexMap = globalRepoIndexMap || createRepositoryIndexMap(commitRepositories);
 
   return {
     ...post,
@@ -288,8 +334,12 @@ export async function applyPostListMasking(
   posts: PostData[],
   isAuthenticated: boolean
 ): Promise<MaskedPost[]> {
-  const mappings = await getProjectMappings();
-  return posts.map((post) => applyPostMasking(post, mappings, isAuthenticated));
+  // Repository 테이블 기반 전역 인덱스 맵 사용
+  const [mappings, globalRepoIndexMap] = await Promise.all([
+    getProjectMappings(),
+    getAllRepositoriesIndexMap(),
+  ]);
+  return posts.map((post) => applyPostMasking(post, mappings, isAuthenticated, globalRepoIndexMap));
 }
 
 // 단일 포스트에 마스킹 적용 (async 버전)
@@ -297,6 +347,10 @@ export async function applyPostMaskingAsync(
   post: PostData,
   isAuthenticated: boolean
 ): Promise<MaskedPost> {
-  const mappings = await getProjectMappings();
-  return applyPostMasking(post, mappings, isAuthenticated);
+  // Repository 테이블 기반 전역 인덱스 맵 사용
+  const [mappings, globalRepoIndexMap] = await Promise.all([
+    getProjectMappings(),
+    getAllRepositoriesIndexMap(),
+  ]);
+  return applyPostMasking(post, mappings, isAuthenticated, globalRepoIndexMap);
 }

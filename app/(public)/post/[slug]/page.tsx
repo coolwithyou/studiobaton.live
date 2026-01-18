@@ -285,12 +285,10 @@ export default async function PostPage({ params }: PageProps) {
           }}
         />
 
-        {/* 우측 사이드바 - TOC (본문 영역 오른쪽에 배치) */}
+        {/* 우측 사이드바 - TOC (화면에 고정) */}
         {headings.length > 0 && (
-          <aside className="hidden xl:block absolute left-full top-0 ml-8 w-48">
-            <div className="sticky top-24">
-              <TableOfContents headings={headings} />
-            </div>
+          <aside className="hidden xl:block fixed top-24 left-[calc(50%+21rem+2rem)] w-48">
+            <TableOfContents headings={headings} />
           </aside>
         )}
       </div>

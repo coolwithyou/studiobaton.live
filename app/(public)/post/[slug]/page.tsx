@@ -134,21 +134,17 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-12 gap-6 max-w-6xl mx-auto">
-        {/* 왼쪽 여백 */}
-        <div className="hidden lg:block col-span-2" />
+      {/* 루트 페이지와 동일한 max-w-2xl 중앙 배치 */}
+      <div className="max-w-2xl mx-auto relative">
+        {/* 뒤로가기 */}
+        <Link
+          href="/"
+          className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
+        >
+          ← 타임라인으로
+        </Link>
 
-        {/* 메인 콘텐츠 */}
-        <div className="col-span-12 lg:col-span-7">
-          {/* 뒤로가기 */}
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
-          >
-            ← 타임라인으로
-          </Link>
-
-          <article>
+        <article>
         {/* 헤더 */}
         <header className="mb-8">
           <time className="text-sm text-muted-foreground">
@@ -264,40 +260,39 @@ export default async function PostPage({ params }: PageProps) {
             개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
           </p>
         )}
-          </article>
+        </article>
 
-          {/* JSON-LD (마스킹된 데이터 사용) */}
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "BlogPosting",
-                headline: post.title,
-                description: maskedPost.summary || maskedPost.content?.slice(0, 160),
-                datePublished: post.publishedAt?.toISOString(),
-                dateModified: post.updatedAt.toISOString(),
-                author: authors.map((a) => ({
-                  "@type": "Person",
-                  name: a.name,
-                })),
-                publisher: {
-                  "@type": "Organization",
-                  name: "studiobaton",
-                },
-              }),
-            }}
-          />
-        </div>
+        {/* JSON-LD (마스킹된 데이터 사용) */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              headline: post.title,
+              description: maskedPost.summary || maskedPost.content?.slice(0, 160),
+              datePublished: post.publishedAt?.toISOString(),
+              dateModified: post.updatedAt.toISOString(),
+              author: authors.map((a) => ({
+                "@type": "Person",
+                name: a.name,
+              })),
+              publisher: {
+                "@type": "Organization",
+                name: "studiobaton",
+              },
+            }),
+          }}
+        />
 
-        {/* 우측 사이드바 - TOC */}
-        <aside className="hidden lg:block col-span-3">
-          {headings.length > 0 && (
+        {/* 우측 사이드바 - TOC (본문 영역 오른쪽에 배치) */}
+        {headings.length > 0 && (
+          <aside className="hidden xl:block absolute left-full top-0 ml-8 w-48">
             <div className="sticky top-24">
               <TableOfContents headings={headings} />
             </div>
-          )}
-        </aside>
+          </aside>
+        )}
       </div>
     </div>
   );

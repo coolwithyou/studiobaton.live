@@ -21,6 +21,8 @@ import Image from "next/image";
 interface DeveloperStats {
   author: string;
   email: string | null;
+  displayEmail: string | null;
+  isNoreplyEmail: boolean;
   avatar: string | null;
   summary: {
     totalCommits: number;
@@ -103,8 +105,13 @@ function DeveloperCard({
           )}
           <div className="text-left">
             <p className="font-medium">{developer.author}</p>
-            {developer.email && (
-              <p className="text-xs text-muted-foreground">{developer.email}</p>
+            {developer.displayEmail && (
+              <p className="text-xs text-muted-foreground">
+                {developer.displayEmail}
+                {developer.isNoreplyEmail && (
+                  <span className="ml-1 text-[10px] opacity-60">(private)</span>
+                )}
+              </p>
             )}
           </div>
         </div>

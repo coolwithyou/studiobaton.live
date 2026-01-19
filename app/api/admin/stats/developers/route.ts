@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { formatKST, nowKST, subDaysKST } from "@/lib/date-utils";
 import { logError, normalizeError, AuthError, ValidationError } from "@/lib/errors";
 import { formatZodError } from "@/lib/validation";
+import { normalizeEmailForDisplay, isGitHubNoreplyEmail } from "@/lib/github";
 import { z } from "zod";
 
 const developerStatsQuerySchema = z.object({
@@ -13,6 +14,8 @@ const developerStatsQuerySchema = z.object({
 interface DeveloperStats {
   author: string;
   email: string | null;
+  displayEmail: string | null;
+  isNoreplyEmail: boolean;
   avatar: string | null;
   summary: {
     totalCommits: number;
@@ -164,6 +167,8 @@ export async function GET(request: NextRequest) {
       developers.push({
         author,
         email,
+        displayEmail: normalizeEmailForDisplay(email),
+        isNoreplyEmail: isGitHubNoreplyEmail(email),
         avatar,
         summary: {
           totalCommits: authorCommits.length,

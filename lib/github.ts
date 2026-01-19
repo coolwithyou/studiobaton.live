@@ -323,3 +323,77 @@ export function buildGitHubSearchUrl(githubName: string, date: Date): string {
   const dateStr = date.toISOString().split("T")[0];
   return `https://github.com/search?q=org:${ORG_NAME}+author:${githubName}+committer-date:${dateStr}&type=commits`;
 }
+
+/**
+ * GitHub noreply 이메일에서 사용자명 추출
+ * 형식: {user_id}+{username}@users.noreply.github.com
+ * 예: 101326118+sangheedev@users.noreply.github.com -> sangheedev
+ */
+export function extractUsernameFromNoreplyEmail(email: string | null): string | null {
+  if (!email) return null;
+
+  const noreplyMatch = email.match(/^\d+\+(.+)@users\.noreply\.github\.com$/);
+  if (noreplyMatch) {
+    return noreplyMatch[1];
+  }
+
+  // 구버전 noreply 형식: {username}@users.noreply.github.com
+  const oldNoreplyMatch = email.match(/^(.+)@users\.noreply\.github\.com$/);
+  if (oldNoreplyMatch) {
+    return oldNoreplyMatch[1];
+  }
+
+  return null;
+}
+
+/**
+ * 이메일이 GitHub noreply 형식인지 확인
+ */
+export function isGitHubNoreplyEmail(email: string | null): boolean {
+  if (!email) return false;
+  return email.endsWith("@users.noreply.github.com");
+}
+
+/**
+ * 이메일을 표시용으로 정규화
+ * - noreply 이메일: 사용자명만 표시 (예: sangheedev@github)
+ * - 일반 이메일: 그대로 표시
+ */
+export function normalizeEmailForDisplay(email: string | null): string | null {
+  if (!email) return null;
+
+  const username = extractUsernameFromNoreplyEmail(email);
+  if (username) {
+    return `${username}@github`;
+  }
+
+  return email;
+}
+
+/**
+ * 개발자 아이덴티티 정규화
+ * author(GitHub 사용자명)를 기준으로 통합하고,
+ * 이메일은 표시용으로 정규화
+ */
+export interface NormalizedDeveloperIdentity {
+  /** GitHub 사용자명 (primary key) */
+  username: string;
+  /** 표시용 이메일 (noreply는 username@github 형식으로 변환) */
+  displayEmail: string | null;
+  /** 원본 이메일 */
+  originalEmail: string | null;
+  /** noreply 이메일 여부 */
+  isNoreplyEmail: boolean;
+}
+
+export function normalizeDeveloperIdentity(
+  author: string,
+  email: string | null
+): NormalizedDeveloperIdentity {
+  return {
+    username: author,
+    displayEmail: normalizeEmailForDisplay(email),
+    originalEmail: email,
+    isNoreplyEmail: isGitHubNoreplyEmail(email),
+  };
+}

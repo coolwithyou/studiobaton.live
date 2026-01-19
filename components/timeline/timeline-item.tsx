@@ -12,6 +12,12 @@ interface Commit {
   deletions: number;
 }
 
+interface Author {
+  name: string;
+  avatar: string | null;
+  originalAuthors: string[];
+}
+
 interface TimelineItemProps {
   post: {
     id: string;
@@ -23,23 +29,14 @@ interface TimelineItemProps {
     publishedAt: string | null;
     commits: Commit[];
   };
+  /** 정규화된 저자 목록 (서버에서 계산) */
+  authors: Author[];
   isLatest?: boolean;
 }
 
-export function TimelineItem({ post, isLatest }: TimelineItemProps) {
+export function TimelineItem({ post, authors, isLatest }: TimelineItemProps) {
   // 고유한 레포지토리 목록
   const repos = [...new Set(post.commits.map((c) => c.repository))];
-
-  // 고유한 저자 목록 (아바타 포함)
-  const authors = post.commits.reduce((acc, commit) => {
-    if (!acc.find((a) => a.name === commit.author)) {
-      acc.push({
-        name: commit.author,
-        avatar: commit.authorAvatar,
-      });
-    }
-    return acc;
-  }, [] as { name: string; avatar: string | null }[]);
 
   // 총 변경량
   const totalAdditions = post.commits.reduce((sum, c) => sum + c.additions, 0);
@@ -82,20 +79,15 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
         {/* 메타 정보 */}
         <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
           {/* 저자 아바타들 */}
-          <div className="flex items-center">
-            <div className="flex -space-x-2">
-              {authors.slice(0, 3).map((author, i) => (
-                <Avatar key={i} className="w-6 h-6 border-2 border-background">
-                  <AvatarImage src={author.avatar || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {author.name.slice(0, 1).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-            {authors.length > 3 && (
-              <span className="ml-2 text-xs">+{authors.length - 3}</span>
-            )}
+          <div className="flex -space-x-2">
+            {authors.map((author, i) => (
+              <Avatar key={i} className="w-6 h-6 border-2 border-background">
+                <AvatarImage src={author.avatar || undefined} />
+                <AvatarFallback className="text-xs">
+                  {author.name.slice(0, 1).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            ))}
           </div>
 
           {/* 레포지토리 태그 */}

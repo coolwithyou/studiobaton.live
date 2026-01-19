@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
+import { getUniqueAuthors } from "@/lib/author-normalizer";
 import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
 import {
@@ -41,6 +42,7 @@ async function Timeline() {
           repository: true,
           message: true,
           author: true,
+          authorEmail: true,
           authorAvatar: true,
           additions: true,
           deletions: true,
@@ -70,9 +72,23 @@ async function Timeline() {
     isAuthenticated
   );
 
+  // 각 포스트에 대해 정규화된 저자 목록 계산
+  const postsWithAuthors = await Promise.all(
+    maskedPosts.map(async (post, index) => {
+      const authors = await getUniqueAuthors(
+        posts[index].commits.map((c) => ({
+          author: c.author,
+          authorEmail: c.authorEmail,
+          authorAvatar: c.authorAvatar,
+        }))
+      );
+      return { post, authors };
+    })
+  );
+
   return (
     <div className="py-8">
-      {maskedPosts.map((post, index) => (
+      {postsWithAuthors.map(({ post, authors }, index) => (
         <TimelineItem
           key={post.id}
           post={{
@@ -85,6 +101,7 @@ async function Timeline() {
             publishedAt: post.publishedAt?.toISOString() || null,
             commits: post.commits,
           }}
+          authors={authors}
           isLatest={index === 0}
         />
       ))}

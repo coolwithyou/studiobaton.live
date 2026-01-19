@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
     "@prisma/adapter-pg",
     "pg",
   ],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+    ],
+  },
   async redirects() {
     return [
       {

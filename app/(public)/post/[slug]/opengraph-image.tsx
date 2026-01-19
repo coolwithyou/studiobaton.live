@@ -89,10 +89,7 @@ export default async function Image({
           width: "100%",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: "#0a0a0a",
-          backgroundImage:
-            "radial-gradient(circle at 25px 25px, #1a1a1a 2%, transparent 0%), radial-gradient(circle at 75px 75px, #1a1a1a 2%, transparent 0%)",
-          backgroundSize: "100px 100px",
+          backgroundImage: "linear-gradient(to bottom right, #0a0a0a 0%, #18181b 50%, #0f0f0f 100%)",
           padding: 60,
           fontFamily: "Pretendard",
         }}

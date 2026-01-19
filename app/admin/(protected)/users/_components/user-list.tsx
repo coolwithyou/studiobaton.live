@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -217,9 +216,9 @@ export function UserList({ users, onUserChange, showPendingActions }: UserListPr
                   )}
                 </div>
                 <div className="text-xs text-muted-foreground mt-0.5">
-                  가입: {format(new Date(user.createdAt), "yyyy.MM.dd", { locale: ko })}
+                  가입: {formatKST(user.createdAt, "yyyy.MM.dd")}
                   {user.approvedAt && (
-                    <> · 승인: {format(new Date(user.approvedAt), "yyyy.MM.dd", { locale: ko })}</>
+                    <> · 승인: {formatKST(user.approvedAt, "yyyy.MM.dd")}</>
                   )}
                 </div>
               </div>

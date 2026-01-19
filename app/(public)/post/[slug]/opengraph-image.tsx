@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
 import prisma from "@/lib/prisma";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -68,7 +67,7 @@ export default async function Image({
     );
   }
 
-  const dateStr = format(post.targetDate, "yyyy년 M월 d일", { locale: ko });
+  const dateStr = formatKST(post.targetDate, "yyyy년 M월 d일");
   const authors = post.commits.map((c) => c.author).slice(0, 3);
   const authorText = authors.length > 0 ? authors.join(", ") : "studiobaton";
 

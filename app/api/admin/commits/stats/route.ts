@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
-import { format, parseISO, eachDayOfInterval } from "date-fns";
+import { parseISO, eachDayOfInterval } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
     // 날짜별 커밋 수 맵 생성
     const commitCountByDate = new Map<string, number>();
     for (const stat of commitStats) {
-      const dateKey = format(new Date(stat.committedAt), "yyyy-MM-dd");
+      const dateKey = formatKST(stat.committedAt, "yyyy-MM-dd");
       const currentCount = commitCountByDate.get(dateKey) || 0;
       commitCountByDate.set(dateKey, currentCount + stat._count.id);
     }
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
       { status: string; commitCount: number }
     >();
     for (const post of posts) {
-      const dateKey = format(new Date(post.targetDate), "yyyy-MM-dd");
+      const dateKey = formatKST(post.targetDate, "yyyy-MM-dd");
       postByDate.set(dateKey, {
         status: post.status,
         commitCount: post._count.commits,
@@ -91,7 +92,7 @@ export async function GET(request: NextRequest) {
 
     // 결과 생성
     const stats = dates.map((date) => {
-      const dateKey = format(date, "yyyy-MM-dd");
+      const dateKey = formatKST(date, "yyyy-MM-dd");
       const postInfo = postByDate.get(dateKey);
 
       return {

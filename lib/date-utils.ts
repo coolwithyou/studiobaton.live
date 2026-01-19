@@ -4,6 +4,7 @@ import {
   endOfDay as fnsEndOfDay,
   format as fnsFormat,
   subDays as fnsSubDays,
+  formatDistanceToNow as fnsFormatDistanceToNow,
   parseISO,
 } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -82,4 +83,19 @@ export function getKSTDayRange(date: Date | string): { start: Date; end: Date } 
     start: startOfDayKST(date),
     end: endOfDayKST(date),
   };
+}
+
+/**
+ * KST 기준 상대 시간 표시 (예: "3일 전", "방금 전")
+ * 서버 시간대(UTC)와 관계없이 항상 KST 기준으로 계산
+ */
+export function formatDistanceToNowKST(
+  date: Date | string,
+  options?: { addSuffix?: boolean }
+): string {
+  const kstDate = toKST(date);
+  return fnsFormatDistanceToNow(kstDate, {
+    locale: ko,
+    addSuffix: options?.addSuffix ?? true,
+  });
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import {
   Dialog,
   DialogContent,
@@ -93,7 +92,7 @@ export function CommitDiagnoseDialog({
     setError(null);
 
     try {
-      const dateStr = format(date, "yyyy-MM-dd");
+      const dateStr = formatKST(date, "yyyy-MM-dd");
       const response = await fetch(
         `/api/admin/commits/diagnose?date=${dateStr}&memberId=${memberId}`
       );
@@ -136,7 +135,7 @@ export function CommitDiagnoseDialog({
             <Stethoscope className="size-5" />
             커밋 진단 - {memberName}
             <span className="text-muted-foreground font-normal text-sm">
-              ({format(date, "PPP", { locale: ko })})
+              ({formatKST(date, "PPP")})
             </span>
           </DialogTitle>
         </DialogHeader>

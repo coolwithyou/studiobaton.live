@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST, nowKST, subDaysKST } from "@/lib/date-utils";
 import { statsQuerySchema, formatZodError } from "@/lib/validation";
 import { logError, normalizeError, AuthError, ValidationError } from "@/lib/errors";
 import { z } from "zod";
@@ -21,8 +20,8 @@ export async function GET(request: NextRequest) {
     let params;
     try {
       params = statsQuerySchema.parse({
-        startDate: searchParams.get("startDate") || format(subDays(new Date(), 30), "yyyy-MM-dd"),
-        endDate: searchParams.get("endDate") || format(new Date(), "yyyy-MM-dd"),
+        startDate: searchParams.get("startDate") || formatKST(subDaysKST(nowKST(), 30), "yyyy-MM-dd"),
+        endDate: searchParams.get("endDate") || formatKST(nowKST(), "yyyy-MM-dd"),
         groupBy: searchParams.get("groupBy") || "day",
       });
     } catch (error) {
@@ -99,7 +98,7 @@ export async function GET(request: NextRequest) {
       prisma.commitLog.groupBy({
         by: ["committedAt"],
         where: {
-          committedAt: { gte: subDays(new Date(), 7) },
+          committedAt: { gte: subDaysKST(nowKST(), 7) },
         },
         _count: { id: true },
       }),
@@ -108,11 +107,11 @@ export async function GET(request: NextRequest) {
     // 일별 활동 데이터 정리
     const activityByDay = new Map<string, number>();
     for (let i = 6; i >= 0; i--) {
-      const date = format(subDays(new Date(), i), "yyyy-MM-dd");
+      const date = formatKST(subDaysKST(nowKST(), i), "yyyy-MM-dd");
       activityByDay.set(date, 0);
     }
     for (const activity of recentActivity) {
-      const dateKey = format(new Date(activity.committedAt), "yyyy-MM-dd");
+      const dateKey = formatKST(activity.committedAt, "yyyy-MM-dd");
       if (activityByDay.has(dateKey)) {
         activityByDay.set(dateKey, (activityByDay.get(dateKey) || 0) + activity._count.id);
       }
@@ -121,7 +120,7 @@ export async function GET(request: NextRequest) {
     // 트렌드 데이터 구성
     const trendData = Array.from(activityByDay.entries()).map(([date, count]) => ({
       date,
-      label: format(new Date(date), "EEE", { locale: ko }),
+      label: formatKST(date, "EEE"),
       commits: count,
     }));
 
@@ -155,8 +154,8 @@ export async function GET(request: NextRequest) {
       trend: trendData,
       repositories: repositoryData,
       period: {
-        startDate: format(startDate, "yyyy-MM-dd"),
-        endDate: format(endDate, "yyyy-MM-dd"),
+        startDate: formatKST(startDate, "yyyy-MM-dd"),
+        endDate: formatKST(endDate, "yyyy-MM-dd"),
         groupBy,
       },
     });

@@ -13,8 +13,7 @@ import {
   FileX,
   FileEdit,
 } from "lucide-react";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 
@@ -319,7 +318,7 @@ export function CommitCard({ commit }: CommitCardProps) {
             {commit.message}
           </p>
           <p className="text-xs text-muted-foreground">
-            {format(new Date(commit.committedAt), "HH:mm:ss", { locale: ko })}
+            {formatKST(commit.committedAt, "HH:mm:ss")}
           </p>
         </div>
         <a

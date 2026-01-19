@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { format, formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST, formatDistanceToNowKST } from "@/lib/date-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stripMarkdown } from "@/lib/strip-markdown";
 
@@ -28,8 +27,6 @@ interface TimelineItemProps {
 }
 
 export function TimelineItem({ post, isLatest }: TimelineItemProps) {
-  const targetDate = new Date(post.targetDate);
-
   // 고유한 레포지토리 목록
   const repos = [...new Set(post.commits.map((c) => c.repository))];
 
@@ -64,9 +61,9 @@ export function TimelineItem({ post, isLatest }: TimelineItemProps) {
       <div className="ml-4">
         {/* 날짜 */}
         <time className="text-sm text-muted-foreground flex items-center gap-2">
-          <span>{format(targetDate, "M월 d일 (EEEE)", { locale: ko })}</span>
+          <span>{formatKST(post.targetDate, "M월 d일 (EEEE)")}</span>
           <span className="text-xs">
-            · {formatDistanceToNow(targetDate, { addSuffix: true, locale: ko })}
+            · {formatDistanceToNowKST(post.targetDate)}
           </span>
         </time>
 

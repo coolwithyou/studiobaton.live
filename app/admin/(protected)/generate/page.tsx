@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { format, eachDayOfInterval } from "date-fns";
+import { eachDayOfInterval } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -105,7 +106,7 @@ export default function GeneratePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            date: format(selectedDates[0], "yyyy-MM-dd"),
+            date: formatKST(selectedDates[0], "yyyy-MM-dd"),
             forceRegenerate,
           }),
         });
@@ -127,8 +128,8 @@ export default function GeneratePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            startDate: format(rangeStart, "yyyy-MM-dd"),
-            endDate: format(rangeEnd, "yyyy-MM-dd"),
+            startDate: formatKST(rangeStart, "yyyy-MM-dd"),
+            endDate: formatKST(rangeEnd, "yyyy-MM-dd"),
             excludeHolidays,
             minCommitCount,
             forceRegenerate,

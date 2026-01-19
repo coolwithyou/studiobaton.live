@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 import { ko } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -118,7 +118,7 @@ export default function WrapUpPage() {
 
     setFetching(true);
     try {
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const dateStr = formatKST(selectedDate, "yyyy-MM-dd");
 
       // 병렬 요청
       const [standupRes, reviewRes] = await Promise.all([
@@ -176,7 +176,7 @@ export default function WrapUpPage() {
   }
 
   const isToday =
-    format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+    formatKST(selectedDate, "yyyy-MM-dd") === formatKST(new Date(), "yyyy-MM-dd");
   const tasks = standupData?.standup?.tasks || [];
   const hasCommits = (reviewData?.summary?.totalCommits || 0) > 0;
 
@@ -212,7 +212,7 @@ export default function WrapUpPage() {
               className="w-[240px] justify-start text-left font-normal"
             >
               <CalendarIcon className="mr-2 size-4" />
-              {format(selectedDate, "PPP", { locale: ko })}
+              {formatKST(selectedDate, "PPP")}
               {isToday && (
                 <span className="ml-2 text-xs text-muted-foreground">(오늘)</span>
               )}
@@ -301,7 +301,7 @@ export default function WrapUpPage() {
               {!hasCommits && (() => {
                 const selectedMemberData = members.find((m) => m.id === selectedMember);
                 const githubSearchUrl = selectedMemberData?.githubName
-                  ? `https://github.com/search?q=org:studiobaton+author:${selectedMemberData.githubName}+committer-date:${format(selectedDate, "yyyy-MM-dd")}&type=commits`
+                  ? `https://github.com/search?q=org:studiobaton+author:${selectedMemberData.githubName}+committer-date:${formatKST(selectedDate, "yyyy-MM-dd")}&type=commits`
                   : null;
 
                 return (

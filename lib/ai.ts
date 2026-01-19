@@ -1,6 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import { VersionTone } from "@/app/generated/prisma";
 import prisma from "./prisma";
 
@@ -216,7 +215,7 @@ export async function generatePostVersion(
   targetDate: Date,
   tone: VersionTone
 ): Promise<GeneratedPost> {
-  const dateStr = format(targetDate, "yyyy년 M월 d일 (EEEE)", { locale: ko });
+  const dateStr = formatKST(targetDate, "yyyy년 M월 d일 (EEEE)");
 
   // 프로젝트 매핑 가져오기
   const projectMappings = await getProjectMappings();

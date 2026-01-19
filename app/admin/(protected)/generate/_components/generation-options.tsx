@@ -4,8 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import { Calendar, CalendarRange, Loader2 } from "lucide-react";
 
 interface GenerationOptionsProps {
@@ -44,10 +43,10 @@ export function GenerationOptions({
 
   const getSelectionText = () => {
     if (rangeStart && rangeEnd) {
-      return `${format(rangeStart, "M월 d일", { locale: ko })} ~ ${format(rangeEnd, "M월 d일", { locale: ko })}`;
+      return `${formatKST(rangeStart, "M월 d일")} ~ ${formatKST(rangeEnd, "M월 d일")}`;
     }
     if (selectedDates.length === 1) {
-      return format(selectedDates[0], "yyyy년 M월 d일", { locale: ko });
+      return formatKST(selectedDates[0], "yyyy년 M월 d일");
     }
     if (selectedDates.length > 1) {
       return `${selectedDates.length}개 날짜 선택됨`;

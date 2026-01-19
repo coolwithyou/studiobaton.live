@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { format } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 import { ko } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -83,7 +83,7 @@ export default function StandupPage() {
     }
 
     try {
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const dateStr = formatKST(selectedDate, "yyyy-MM-dd");
       const response = await fetch(
         `/api/admin/standup?date=${dateStr}&memberId=${selectedMember}`
       );
@@ -144,7 +144,7 @@ export default function StandupPage() {
   }
 
   const isToday =
-    format(selectedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+    formatKST(selectedDate, "yyyy-MM-dd") === formatKST(new Date(), "yyyy-MM-dd");
   const tasks = standupData?.standup?.tasks || [];
   const completedCount = tasks.filter((t) => t.isCompleted).length;
 
@@ -167,7 +167,7 @@ export default function StandupPage() {
               className="w-[240px] justify-start text-left font-normal"
             >
               <CalendarIcon className="mr-2 size-4" />
-              {format(selectedDate, "PPP", { locale: ko })}
+              {formatKST(selectedDate, "PPP")}
               {isToday && (
                 <span className="ml-2 text-xs text-muted-foreground">(오늘)</span>
               )}

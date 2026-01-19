@@ -3,8 +3,7 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
@@ -148,7 +147,7 @@ export default async function PostPage({ params }: PageProps) {
         {/* 헤더 */}
         <header className="mb-8">
           <time className="text-sm text-muted-foreground">
-            {format(post.targetDate, "yyyy년 M월 d일 (EEEE)", { locale: ko })}
+            {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
           </time>
           <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
 

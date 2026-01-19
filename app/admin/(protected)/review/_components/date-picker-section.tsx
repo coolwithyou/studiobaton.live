@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 import { ko } from "date-fns/locale";
 
 interface DatePickerSectionProps {
@@ -24,7 +24,7 @@ export function DatePickerSection({ selectedDate, onDateChange }: DatePickerSect
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-[240px] justify-start text-left font-normal">
             <CalendarIcon className="mr-2 size-4" />
-            {format(selectedDate, "PPP", { locale: ko })}
+            {formatKST(selectedDate, "PPP")}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">

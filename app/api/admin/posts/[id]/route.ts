@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import slugify from "slugify";
-import { format } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 import { sanitizeMarkdown } from "@/lib/sanitize-markdown";
 
 export async function GET(
@@ -95,7 +95,7 @@ export async function PATCH(
 
     if (action === "publish") {
       // 발행
-      const dateSlug = format(post.targetDate, "yyyyMMdd");
+      const dateSlug = formatKST(post.targetDate, "yyyyMMdd");
 
       // 사용자가 입력한 slug 또는 제목 기반 자동 생성
       let slugPart: string;

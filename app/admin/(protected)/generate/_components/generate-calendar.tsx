@@ -2,7 +2,6 @@
 
 import { useState, useCallback, useEffect } from "react";
 import {
-  format,
   startOfMonth,
   endOfMonth,
   eachDayOfInterval,
@@ -15,7 +14,7 @@ import {
   startOfWeek,
   endOfWeek,
 } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -91,7 +90,7 @@ export function GenerateCalendar({
       // 커밋 통계와 공휴일 병렬 로드
       const [statsRes, holidaysRes] = await Promise.all([
         fetch(
-          `/api/admin/commits/stats?startDate=${format(monthStart, "yyyy-MM-dd")}&endDate=${format(monthEnd, "yyyy-MM-dd")}`
+          `/api/admin/commits/stats?startDate=${formatKST(monthStart, "yyyy-MM-dd")}&endDate=${formatKST(monthEnd, "yyyy-MM-dd")}`
         ),
         fetch(`/api/admin/holidays?year=${year}`),
       ]);
@@ -185,7 +184,7 @@ export function GenerateCalendar({
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <h2 className="text-lg font-semibold">
-          {format(currentMonth, "yyyy년 M월", { locale: ko })}
+          {formatKST(currentMonth, "yyyy년 M월")}
         </h2>
         <Button variant="ghost" size="icon" onClick={handleNextMonth}>
           <ChevronRight className="h-4 w-4" />
@@ -221,7 +220,7 @@ export function GenerateCalendar({
       {/* 날짜 그리드 */}
       <div className="grid grid-cols-7 gap-1">
         {days.map((day) => {
-          const dateKey = format(day, "yyyy-MM-dd");
+          const dateKey = formatKST(day, "yyyy-MM-dd");
           const stat = commitStats.get(dateKey);
           const isHoliday = holidays.has(dateKey);
           const holidayName = holidayNames.get(dateKey);
@@ -265,7 +264,7 @@ export function GenerateCalendar({
                   "hover:bg-accent cursor-pointer"
               )}
             >
-              <span className="text-xs">{format(day, "d")}</span>
+              <span className="text-xs">{formatKST(day, "d")}</span>
               {stat && isCurrentMonth && (
                 <div className="flex items-center gap-0.5 mt-0.5">
                   {stat.hasPost && (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 import { DatePickerSection } from "./_components/date-picker-section";
 import { MemberTabs } from "./_components/member-tabs";
 import { CommitRepositoryGroup } from "./_components/commit-repository-group";
@@ -91,7 +91,7 @@ export default function ReviewPage() {
 
     setFetching(true);
     try {
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const dateStr = formatKST(selectedDate, "yyyy-MM-dd");
       const response = await fetch(
         `/api/admin/review?date=${dateStr}&memberId=${selectedMember}`
       );

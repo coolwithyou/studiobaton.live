@@ -10,8 +10,7 @@ import { MarkdownEditor } from "@/components/markdown/markdown-editor";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 
 interface PostVersion {
   id: string;
@@ -301,7 +300,7 @@ export default function PostEditPage({
             </Badge>
           </div>
           <h1 className="text-2xl font-bold">
-            {format(new Date(post.targetDate), "yyyy년 M월 d일", { locale: ko })}
+            {formatKST(post.targetDate, "yyyy년 M월 d일")}
           </h1>
           <p className="text-muted-foreground mt-1">
             {post.commits.length}개의 커밋
@@ -402,7 +401,7 @@ export default function PostEditPage({
               <Label htmlFor="slug">URL Slug</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  /post/{format(new Date(post.targetDate), "yyyy-MM-dd")}-
+                  /post/{formatKST(post.targetDate, "yyyyMMdd")}-
                 </span>
                 <Input
                   id="slug"

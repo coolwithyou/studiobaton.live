@@ -4,8 +4,7 @@ import prisma from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import { formatKST } from "@/lib/date-utils";
 
 // 동적 렌더링 강제
 export const dynamic = "force-dynamic";
@@ -54,9 +53,7 @@ async function PostList() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <time className="text-sm text-muted-foreground">
-                  {format(post.targetDate, "yyyy년 M월 d일 (EEE)", {
-                    locale: ko,
-                  })}
+                  {formatKST(post.targetDate, "yyyy년 M월 d일 (EEE)")}
                 </time>
                 <Badge
                   variant={post.status === "PUBLISHED" ? "default" : "secondary"}

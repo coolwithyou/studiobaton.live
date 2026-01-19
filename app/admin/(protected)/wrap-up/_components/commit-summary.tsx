@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
+import { formatKST } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +76,7 @@ export function CommitSummary({ date, memberId, hasCommits, commitHashToRepo }: 
     }
 
     try {
-      const dateStr = format(date, "yyyy-MM-dd");
+      const dateStr = formatKST(date, "yyyy-MM-dd");
       const response = await fetch(
         `/api/admin/wrap-up/summarize?date=${dateStr}&memberId=${memberId}`
       );

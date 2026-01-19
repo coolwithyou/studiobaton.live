@@ -11,7 +11,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
-import { format, subDays } from "date-fns";
+import { formatKST, nowKST, subDaysKST } from "@/lib/date-utils";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -67,8 +67,8 @@ export function StatsDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState({
-    startDate: format(subDays(new Date(), 30), "yyyy-MM-dd"),
-    endDate: format(new Date(), "yyyy-MM-dd"),
+    startDate: formatKST(subDaysKST(nowKST(), 30), "yyyy-MM-dd"),
+    endDate: formatKST(nowKST(), "yyyy-MM-dd"),
   });
 
   const fetchStats = useCallback(async () => {

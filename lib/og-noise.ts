@@ -87,6 +87,6 @@ export const noiseOverlayStyle = {
   backgroundImage: `url('${noiseBase64}')`,
   backgroundSize: "100px 100px",
   backgroundRepeat: "repeat",
-  opacity: 0.04,
+  opacity: 0.06,
   pointerEvents: "none" as const,
 };

@@ -15,6 +15,7 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
   const [content, setContent] = useState("");
   const [repository, setRepository] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [mentionPopupOpen, setMentionPopupOpen] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +58,15 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
   };
 
   // Enter로 제출 (Shift+Enter는 줄바꿈)
+  // mention 팝업이 열려있으면 Enter는 repo 선택용으로 사용
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // 1차 방어: mention 팝업 열려있으면 Enter는 mention-autocomplete가 처리
+    if (mentionPopupOpen) return;
+
+    // 2차 방어: 이미 처리된 이벤트는 무시
+    if (e.defaultPrevented) return;
+
+    // 팝업 닫혀있을 때: Enter로 submit, Shift+Enter로 줄바꿈
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (content.trim()) {
@@ -73,6 +82,7 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
           value={content}
           onChange={setContent}
           onRepositorySelect={handleRepositorySelect}
+          onOpenChange={setMentionPopupOpen}
           inputRef={inputRef}
         />
       </div>

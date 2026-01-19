@@ -14,6 +14,7 @@ interface MentionAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
   onRepositorySelect: (repo: string) => void;
+  onOpenChange?: (open: boolean) => void;
   inputRef: React.RefObject<HTMLTextAreaElement | null>;
 }
 
@@ -21,6 +22,7 @@ export function MentionAutocomplete({
   value,
   onChange,
   onRepositorySelect,
+  onOpenChange,
   inputRef,
 }: MentionAutocompleteProps) {
   const [open, setOpen] = useState(false);
@@ -71,6 +73,11 @@ export function MentionAutocomplete({
   useEffect(() => {
     setSelectedIndex(0);
   }, [repositories]);
+
+  // 팝업 상태 변경 시 부모에게 알림
+  useEffect(() => {
+    onOpenChange?.(open);
+  }, [open, onOpenChange]);
 
   // @ 입력 감지
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -143,6 +150,7 @@ export function MentionAutocomplete({
         break;
       case "Enter":
         e.preventDefault();
+        e.stopPropagation(); // 이벤트 버블링 차단
         if (repositories[selectedIndex]) {
           handleSelect(repositories[selectedIndex]);
         }

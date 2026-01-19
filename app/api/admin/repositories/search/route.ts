@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Octokit } from "@octokit/rest";
 import { getServerSession, hasTeamAccess } from "@/lib/auth-helpers";
 import { repoSearchSchema, formatZodError } from "@/lib/validation";
 import {
@@ -10,37 +9,32 @@ import {
   ValidationError,
 } from "@/lib/errors";
 import { z } from "zod";
+import prisma from "@/lib/prisma";
 
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
-});
+interface RepoSearchResult {
+  name: string;
+  fullName: string;
+  description: string | null;
+}
 
-// 캐시 (5분)
-let repoCache: { name: string; fullName: string; description: string | null }[] | null = null;
-let cacheTime = 0;
-const CACHE_TTL = 5 * 60 * 1000;
-
-async function getRepositories() {
-  const now = Date.now();
-
-  if (repoCache && now - cacheTime < CACHE_TTL) {
-    return repoCache;
-  }
-
-  const repos = await octokit.paginate(octokit.repos.listForOrg, {
-    org: "studiobaton",
-    type: "all",
-    per_page: 100,
+/**
+ * DB에서 레포지토리 목록 조회 (isDeleted: false만)
+ */
+async function getRepositories(): Promise<RepoSearchResult[]> {
+  const repos = await prisma.repository.findMany({
+    where: { isDeleted: false },
+    orderBy: { name: "asc" },
+    select: {
+      name: true,
+      description: true,
+    },
   });
 
-  repoCache = repos.map((repo) => ({
+  return repos.map((repo): RepoSearchResult => ({
     name: repo.name,
     fullName: `studiobaton/${repo.name}`,
     description: repo.description,
   }));
-
-  cacheTime = now;
-  return repoCache;
 }
 
 /**

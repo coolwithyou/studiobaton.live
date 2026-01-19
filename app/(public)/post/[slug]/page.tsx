@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
 import { formatKST } from "@/lib/date-utils";
+import { getUniqueAuthors } from "@/lib/author-normalizer";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
@@ -106,16 +107,14 @@ export default async function PostPage({ params }: PageProps) {
     isAuthenticated
   );
 
-  // 고유한 저자 목록 (마스킹된 데이터 기준)
-  const authors = maskedPost.commits.reduce((acc, commit) => {
-    if (!acc.find((a) => a.name === commit.author)) {
-      acc.push({
-        name: commit.author,
-        avatar: commit.authorAvatar,
-      });
-    }
-    return acc;
-  }, [] as { name: string; avatar: string | null }[]);
+  // 고유한 저자 목록 (Member 테이블 기반 정규화 적용)
+  // GitHub username과 Git config name이 다른 경우에도 동일인으로 통합
+  const authors = await getUniqueAuthors(
+    maskedPost.commits.map((c) => ({
+      author: c.author,
+      authorAvatar: c.authorAvatar,
+    }))
+  );
 
   // 레포지토리별 통계 (마스킹된 데이터 기준)
   const repoStats = maskedPost.commits.reduce((acc, commit) => {

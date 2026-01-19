@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import prisma from "@/lib/prisma";
 import { formatKST } from "@/lib/date-utils";
+import { getUniqueAuthors } from "@/lib/author-normalizer";
 
 // Node.js runtime (Prisma 사용을 위해)
 
@@ -51,8 +52,17 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   }
 
   const dateStr = formatKST(post.targetDate, "yyyy년 M월 d일");
-  const authors = post.commits.map((c) => c.author).slice(0, 3);
-  const authorText = authors.length > 0 ? authors.join(", ") : "studiobaton";
+  // Member 테이블 기반 저자 정규화 (동일인 통합)
+  const normalizedAuthors = await getUniqueAuthors(
+    post.commits.map((c) => ({ author: c.author }))
+  );
+  const authorText =
+    normalizedAuthors.length > 0
+      ? normalizedAuthors
+          .slice(0, 3)
+          .map((a) => a.name)
+          .join(", ")
+      : "studiobaton";
 
   return new ImageResponse(
     (

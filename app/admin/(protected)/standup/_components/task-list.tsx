@@ -117,11 +117,11 @@ export function TaskList({ tasks, onTaskUpdated, readOnly = false }: TaskListPro
         <div
           key={task.id}
           className={cn(
-            "flex items-start gap-3 p-3 border rounded-lg transition-colors",
+            "flex items-center gap-3 p-3 border rounded-lg transition-colors",
             task.isCompleted && "bg-muted/50"
           )}
         >
-          <div className="pt-0.5">
+          <div>
             {updatingTasks.has(task.id) ? (
               <Loader2 className="size-4 animate-spin text-muted-foreground" />
             ) : (

@@ -28,7 +28,7 @@ export default async function Image({
         targetDate: true,
         summary: true,
         commits: {
-          select: { author: true },
+          select: { author: true, authorEmail: true },
           distinct: ["author"],
           take: 5,
         },
@@ -71,7 +71,7 @@ export default async function Image({
   const dateStr = formatKST(post.targetDate, "yyyy년 M월 d일");
   // Member 테이블 기반 저자 정규화 (동일인 통합)
   const normalizedAuthors = await getUniqueAuthors(
-    post.commits.map((c) => ({ author: c.author }))
+    post.commits.map((c) => ({ author: c.author, authorEmail: c.authorEmail }))
   );
   const authorText =
     normalizedAuthors.length > 0

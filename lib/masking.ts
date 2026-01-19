@@ -238,6 +238,7 @@ interface CommitData {
   repository: string;
   message: string;
   author: string;
+  authorEmail?: string | null;
   authorAvatar: string | null;
   additions: number;
   deletions: number;
@@ -252,6 +253,7 @@ interface MaskedCommit {
   repository: string;
   message: string;
   author: string;
+  authorEmail?: string | null;
   authorAvatar: string | null;
   additions: number;
   deletions: number;

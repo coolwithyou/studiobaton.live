@@ -97,6 +97,7 @@ export default async function PostPage({ params }: PageProps) {
         repository: c.repository,
         message: c.message,
         author: c.author,
+        authorEmail: c.authorEmail,
         authorAvatar: c.authorAvatar,
         additions: c.additions,
         deletions: c.deletions,
@@ -112,6 +113,7 @@ export default async function PostPage({ params }: PageProps) {
   const authors = await getUniqueAuthors(
     maskedPost.commits.map((c) => ({
       author: c.author,
+      authorEmail: c.authorEmail,
       authorAvatar: c.authorAvatar,
     }))
   );

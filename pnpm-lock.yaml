@@ -92,6 +92,9 @@ importers:
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
+      github-slugger:
+        specifier: ^2.0.0
+        version: 2.0.0
       hast-util-to-jsx-runtime:
         specifier: ^2.3.6
         version: 2.3.6

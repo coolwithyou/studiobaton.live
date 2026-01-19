@@ -72,6 +72,7 @@
     "tailwind-merge": "^3.4.0",
     "unified": "^11.0.5",
     "unist-util-visit": "^5.0.0",
+    "use-scramble": "^2.2.15",
     "zod": "^4.2.1"
   },
   "devDependencies": {

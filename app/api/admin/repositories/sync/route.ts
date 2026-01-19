@@ -20,17 +20,26 @@ export async function POST() {
 
   try {
     // GitHub에서 리포지토리 목록 조회
-    const repos = await octokit.paginate(octokit.repos.listForOrg, {
+    const allRepos = await octokit.paginate(octokit.repos.listForOrg, {
       org: "studiobaton",
       type: "all",
       per_page: 100,
     });
 
     const now = new Date();
-    const githubRepoNames = new Set(repos.map((repo) => repo.name));
 
-    // GitHub 리포지토리를 DB에 upsert
-    const upsertPromises = repos.map((repo) =>
+    // __deprecated__ 포함 또는 archived된 리포지토리 필터링
+    const isExcludedRepo = (repo: { name: string; archived?: boolean }) =>
+      repo.name.includes("__deprecated__") || repo.archived === true;
+
+    const activeRepos = allRepos.filter((repo) => !isExcludedRepo(repo));
+    const excludedRepos = allRepos.filter((repo) => isExcludedRepo(repo));
+
+    const activeRepoNames = new Set(activeRepos.map((repo) => repo.name));
+    const excludedRepoNames = excludedRepos.map((repo) => repo.name);
+
+    // 활성 GitHub 리포지토리를 DB에 upsert
+    const upsertPromises = activeRepos.map((repo) =>
       prisma.repository.upsert({
         where: { name: repo.name },
         create: {
@@ -53,11 +62,21 @@ export async function POST() {
 
     await Promise.all(upsertPromises);
 
-    // GitHub에 없는 리포지토리는 isDeleted 플래그 설정
+    // GitHub에 없거나 제외 대상인 리포지토리는 isDeleted 플래그 설정
     await prisma.repository.updateMany({
       where: {
-        name: { notIn: Array.from(githubRepoNames) },
-        isDeleted: false,
+        OR: [
+          // GitHub에 존재하지 않는 리포지토리
+          {
+            name: { notIn: Array.from(activeRepoNames) },
+            isDeleted: false,
+          },
+          // __deprecated__ 또는 archived된 리포지토리
+          {
+            name: { in: excludedRepoNames },
+            isDeleted: false,
+          },
+        ],
       },
       data: {
         isDeleted: true,
@@ -66,7 +85,7 @@ export async function POST() {
     });
 
     // 동기화된 리포지토리 수 반환
-    const syncedCount = repos.length;
+    const syncedCount = activeRepos.length;
     const deletedCount = await prisma.repository.count({
       where: { isDeleted: true },
     });

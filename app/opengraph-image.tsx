@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { noiseBase64 } from "@/lib/og-noise";
 
 export const alt = "studiobaton - 개발 이야기";
 export const size = {
@@ -26,8 +27,23 @@ export default async function Image() {
           justifyContent: "center",
           backgroundImage: "linear-gradient(to bottom right, #0a0a0a 0%, #18181b 50%, #0f0f0f 100%)",
           fontFamily: "Pretendard",
+          position: "relative",
         }}
       >
+        {/* 노이즈 텍스처 오버레이 */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundImage: `url('${noiseBase64}')`,
+            backgroundSize: "100px 100px",
+            backgroundRepeat: "repeat",
+            opacity: 0.04,
+          }}
+        />
         <div
           style={{
             display: "flex",

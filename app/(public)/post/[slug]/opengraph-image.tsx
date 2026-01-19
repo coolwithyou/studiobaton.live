@@ -4,6 +4,7 @@ import { formatKST } from "@/lib/date-utils";
 import { getUniqueAuthors } from "@/lib/author-normalizer";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
+import { noiseBase64 } from "@/lib/og-noise";
 
 export const alt = "studiobaton 블로그 포스트";
 export const size = {
@@ -55,12 +56,27 @@ export default async function Image({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#0a0a0a",
+            backgroundImage: "linear-gradient(to bottom right, #0a0a0a 0%, #18181b 50%, #0f0f0f 100%)",
             color: "#ffffff",
             fontSize: 48,
             fontFamily: "Pretendard",
+            position: "relative",
           }}
         >
+          {/* 노이즈 텍스처 오버레이 */}
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              backgroundImage: `url('${noiseBase64}')`,
+              backgroundSize: "100px 100px",
+              backgroundRepeat: "repeat",
+              opacity: 0.04,
+            }}
+          />
           studiobaton
         </div>
       ),
@@ -92,8 +108,23 @@ export default async function Image({
           backgroundImage: "linear-gradient(to bottom right, #0a0a0a 0%, #18181b 50%, #0f0f0f 100%)",
           padding: 60,
           fontFamily: "Pretendard",
+          position: "relative",
         }}
       >
+        {/* 노이즈 텍스처 오버레이 */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundImage: `url('${noiseBase64}')`,
+            backgroundSize: "100px 100px",
+            backgroundRepeat: "repeat",
+            opacity: 0.04,
+          }}
+        />
         {/* 상단: 로고 + 날짜 */}
         <div
           style={{

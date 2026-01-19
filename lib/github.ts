@@ -45,6 +45,23 @@ export async function getOrgRepos(): Promise<string[]> {
   }
 }
 
+/**
+ * 레포지토리의 모든 브랜치 목록 조회
+ */
+export async function getRepoBranches(repo: string): Promise<string[]> {
+  try {
+    const branches = await octokit.paginate(octokit.repos.listBranches, {
+      owner: ORG_NAME,
+      repo,
+      per_page: 100,
+    });
+    return branches.map((branch) => branch.name);
+  } catch (error) {
+    console.error(`Error fetching branches for ${repo}:`, error);
+    return [];
+  }
+}
+
 // 병렬 처리 배치 크기 (GitHub API rate limit 고려)
 const BATCH_SIZE = 10;
 
@@ -70,16 +87,46 @@ export async function getCommitsSince(
   until: Date
 ): Promise<CommitData[]> {
   try {
-    const commits = await octokit.paginate(octokit.repos.listCommits, {
-      owner: ORG_NAME,
-      repo,
-      since: since.toISOString(),
-      until: until.toISOString(),
-      per_page: 100,
-    });
+    // 모든 브랜치 목록 조회
+    const branches = await getRepoBranches(repo);
+
+    if (branches.length === 0) {
+      return [];
+    }
+
+    // 각 브랜치별로 커밋 조회 (병렬 처리)
+    const branchCommitsResults = await processBatch(
+      branches,
+      async (branch) => {
+        try {
+          return await octokit.paginate(octokit.repos.listCommits, {
+            owner: ORG_NAME,
+            repo,
+            sha: branch, // 브랜치 지정
+            since: since.toISOString(),
+            until: until.toISOString(),
+            per_page: 100,
+          });
+        } catch (error) {
+          console.error(`Error fetching commits for ${repo}/${branch}:`, error);
+          return [];
+        }
+      },
+      5
+    );
+
+    // 모든 브랜치의 커밋을 합치고 SHA 기준으로 중복 제거
+    const allCommits = branchCommitsResults.flat();
+    const uniqueCommitsMap = new Map<string, (typeof allCommits)[0]>();
+    for (const commit of allCommits) {
+      if (!uniqueCommitsMap.has(commit.sha)) {
+        uniqueCommitsMap.set(commit.sha, commit);
+      }
+    }
+    const uniqueCommits = Array.from(uniqueCommitsMap.values());
 
     // 병렬로 커밋 상세 정보 조회 (배치 처리)
-    const commitDetails = await processBatch(commits, async (commit) => {
+    const commitDetails = await processBatch(uniqueCommits, async (commit) => {
       try {
         const detail = await getCommitDetail(repo, commit.sha);
         return {
@@ -197,23 +244,44 @@ export async function getCommitsByAuthor(
   const { start: startOfDay, end: endOfDay } = getKSTDayRange(targetDate);
   const repos = await getOrgRepos();
 
-  const allCommits: GitHubCommitSimple[] = [];
-
-  // 리포지토리별로 병렬 처리
+  // 리포지토리별로 병렬 처리 (각 리포의 모든 브랜치 조회)
   const repoResults = await processBatch(
     repos,
     async (repo) => {
       try {
-        const commits = await octokit.paginate(octokit.repos.listCommits, {
-          owner: ORG_NAME,
-          repo,
-          author: githubName,
-          since: startOfDay.toISOString(),
-          until: endOfDay.toISOString(),
-          per_page: 100,
-        });
+        // 해당 리포지토리의 모든 브랜치 조회
+        const branches = await getRepoBranches(repo);
 
-        return commits.map((c) => ({
+        if (branches.length === 0) {
+          return [];
+        }
+
+        // 각 브랜치별로 커밋 조회
+        const branchResults = await processBatch(
+          branches,
+          async (branch) => {
+            try {
+              return await octokit.paginate(octokit.repos.listCommits, {
+                owner: ORG_NAME,
+                repo,
+                sha: branch, // 브랜치 지정
+                author: githubName,
+                since: startOfDay.toISOString(),
+                until: endOfDay.toISOString(),
+                per_page: 100,
+              });
+            } catch (error) {
+              console.error(`Error fetching commits for ${repo}/${branch} by ${githubName}:`, error);
+              return [];
+            }
+          },
+          5
+        );
+
+        // 브랜치별 커밋을 합침
+        const allBranchCommits = branchResults.flat();
+
+        return allBranchCommits.map((c) => ({
           sha: c.sha,
           message: c.commit.message,
           authorEmail: c.commit.author?.email || null,
@@ -230,16 +298,22 @@ export async function getCommitsByAuthor(
     5
   );
 
-  for (const commits of repoResults) {
-    allCommits.push(...commits);
+  // 모든 리포지토리의 커밋을 합치고 SHA 기준으로 중복 제거
+  const allCommits = repoResults.flat();
+  const uniqueCommitsMap = new Map<string, GitHubCommitSimple>();
+  for (const commit of allCommits) {
+    if (!uniqueCommitsMap.has(commit.sha)) {
+      uniqueCommitsMap.set(commit.sha, commit);
+    }
   }
+  const uniqueCommits = Array.from(uniqueCommitsMap.values());
 
   // 커밋 시간순 정렬
-  allCommits.sort(
+  uniqueCommits.sort(
     (a, b) => new Date(a.committedAt).getTime() - new Date(b.committedAt).getTime()
   );
 
-  return allCommits;
+  return uniqueCommits;
 }
 
 /**

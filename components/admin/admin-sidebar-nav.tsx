@@ -23,6 +23,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ScrollableContainer } from "@/components/ui/scrollable-container";
 import type { MenuGroup, MenuItem, IconName } from "./admin-sidebar-config";
 import { EXTERNAL_LINK } from "./admin-sidebar-config";
 
@@ -104,7 +105,11 @@ export function AdminSidebarNav({
   };
 
   return (
-    <nav className="flex-1 overflow-y-auto py-4">
+    <ScrollableContainer
+      className="flex-1 py-4"
+      autoHide="leave"
+      autoHideDelay={400}
+    >
       <div className="space-y-6 px-3">
         {groups.map((group) => (
           <div key={group.id}>
@@ -122,6 +127,6 @@ export function AdminSidebarNav({
           {renderMenuItem(EXTERNAL_LINK)}
         </div>
       </div>
-    </nav>
+    </ScrollableContainer>
   );
 }

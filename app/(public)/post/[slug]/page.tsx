@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+import { ContentGrid } from "@/components/layout/content-grid";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { extractHeadings } from "@/lib/extract-headings";
@@ -142,156 +143,163 @@ export default async function PostPage({ params }: PageProps) {
   const headings = extractHeadings(maskedPost.content || "");
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto relative">
-        <Link
-          href="/"
-          className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
-        >
-          ← 타임라인으로
-        </Link>
-        <article>
-          <header className="mb-8">
-            <time className="text-sm text-muted-foreground">
-              {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
-            </time>
-            <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
+    <ContentGrid
+      maxWidth="3xl"
+      aside={headings.length > 0 ? <TableOfContents headings={headings} /> : undefined}
+    >
+      <Link
+        href="/"
+        className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
+      >
+        ← 타임라인으로
+      </Link>
+      <article>
+        <header className="mb-8">
+          <time className="text-sm text-muted-foreground">
+            {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
+          </time>
+          <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
 
-            <div className="flex items-center gap-3 mt-4">
-              <div className="flex -space-x-2">
-                {authors.slice(0, 5).map((author, i) => (
-                  <Avatar key={i} className="w-8 h-8 border-2 border-background">
-                    <AvatarImage src={author.avatar || undefined} />
-                    <AvatarFallback className="text-xs">
-                      {author.name.slice(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {authors.map((a) => a.name).join(", ")}
-              </span>
-            </div>
-          </header>
-          <Suspense fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}>
-            <MarkdownRenderer
-              content={maskedPost.content || ""}
-              className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
-            />
-          </Suspense>
-          {!isAuthenticated && (
-            <p className="text-xs text-muted-foreground text-center mt-6">
-              개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
-            </p>
-          )}
-
-          <Separator className="my-8" />
-          <section className="mb-8">
-            <h2 className="text-lg font-semibold mb-4">작업한 프로젝트</h2>
-            <div className="grid gap-3">
-              {Object.entries(repoStats).map(([repo, stats]) => (
-                <div
-                  key={repo}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <span className="font-medium">{repo}</span>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>{stats.commits}개 커밋</span>
-                    <span className="text-green-600">+{stats.additions}</span>
-                    <span className="text-red-600">-{stats.deletions}</span>
-                  </div>
-                </div>
+          <div className="flex items-center gap-3 mt-4">
+            <div className="flex -space-x-2">
+              {authors.slice(0, 5).map((author, i) => (
+                <Avatar key={i} className="w-8 h-8 border-2 border-background">
+                  <AvatarImage src={author.avatar || undefined} />
+                  <AvatarFallback className="text-xs">
+                    {author.name.slice(0, 1).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               ))}
             </div>
-          </section>
-          <section>
-            <h2 className="text-lg font-semibold mb-4">상세 커밋 내역</h2>
-            <div className="space-y-2">
-              {maskedPost.commits.map((commit) => {
-                const CommitWrapper = commit.url ? "a" : "div";
-                const wrapperProps = commit.url
-                  ? {
-                      href: commit.url,
-                      target: "_blank",
-                      rel: "noopener noreferrer",
-                    }
-                  : {};
-
-                return (
-                  <CommitWrapper
-                    key={commit.id}
-                    {...wrapperProps}
-                    className={`block p-3 rounded-lg transition-colors ${
-                      commit.url
-                        ? "hover:bg-muted/50 group cursor-pointer"
-                        : "bg-muted/30"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Avatar className="w-6 h-6 mt-0.5">
-                        <AvatarImage src={authorAvatarMap.get(commit.author) || commit.authorAvatar || undefined} />
-                        <AvatarFallback className="text-xs">
-                          {commit.author.slice(0, 1).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-sm font-mono truncate transition-colors ${
-                            commit.url ? "group-hover:text-primary" : ""
-                          }`}
-                        >
-                          {commit.message.split("\n")[0]}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {commit.repository} · {commit.author} ·{" "}
-                          <span className="text-green-600">
-                            +{commit.additions}
-                          </span>
-                          {" / "}
-                          <span className="text-red-600">
-                            -{commit.deletions}
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  </CommitWrapper>
-                );
-              })}
-            </div>
-          </section>
-          {!isAuthenticated && (
-            <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
-              개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
-            </p>
-          )}
-        </article>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BlogPosting",
-              headline: post.title,
-              description: maskedPost.summary || maskedPost.content?.slice(0, 160),
-              datePublished: post.publishedAt?.toISOString(),
-              dateModified: post.updatedAt.toISOString(),
-              author: authors.map((a) => ({
-                "@type": "Person",
-                name: a.name,
-              })),
-              publisher: {
-                "@type": "Organization",
-                name: "studiobaton",
-              },
-            }),
-          }}
-        />
-        {headings.length > 0 && (
-          <aside className="hidden xl:block fixed top-24 left-[calc(50%+21rem+2rem)] w-48">
-            <TableOfContents headings={headings} />
-          </aside>
+            <span className="text-sm text-muted-foreground">
+              {authors.map((a) => a.name).join(", ")}
+            </span>
+          </div>
+        </header>
+        <Suspense
+          fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}
+        >
+          <MarkdownRenderer
+            content={maskedPost.content || ""}
+            className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
+          />
+        </Suspense>
+        {!isAuthenticated && (
+          <p className="text-xs text-muted-foreground text-center mt-6">
+            개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부
+            정보는 마스킹 처리되어 있습니다.
+          </p>
         )}
-      </div>
-    </div>
+
+        <Separator className="my-8" />
+        <section className="mb-8">
+          <h2 className="text-lg font-semibold mb-4">작업한 프로젝트</h2>
+          <div className="grid gap-3">
+            {Object.entries(repoStats).map(([repo, stats]) => (
+              <div
+                key={repo}
+                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+              >
+                <span className="font-medium">{repo}</span>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span>{stats.commits}개 커밋</span>
+                  <span className="text-green-600">+{stats.additions}</span>
+                  <span className="text-red-600">-{stats.deletions}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section>
+          <h2 className="text-lg font-semibold mb-4">상세 커밋 내역</h2>
+          <div className="space-y-2">
+            {maskedPost.commits.map((commit) => {
+              const CommitWrapper = commit.url ? "a" : "div";
+              const wrapperProps = commit.url
+                ? {
+                    href: commit.url,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                  }
+                : {};
+
+              return (
+                <CommitWrapper
+                  key={commit.id}
+                  {...wrapperProps}
+                  className={`block p-3 rounded-lg transition-colors ${
+                    commit.url
+                      ? "hover:bg-muted/50 group cursor-pointer"
+                      : "bg-muted/30"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <Avatar className="w-6 h-6 mt-0.5">
+                      <AvatarImage
+                        src={
+                          authorAvatarMap.get(commit.author) ||
+                          commit.authorAvatar ||
+                          undefined
+                        }
+                      />
+                      <AvatarFallback className="text-xs">
+                        {commit.author.slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`text-sm font-mono truncate transition-colors ${
+                          commit.url ? "group-hover:text-primary" : ""
+                        }`}
+                      >
+                        {commit.message.split("\n")[0]}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {commit.repository} · {commit.author} ·{" "}
+                        <span className="text-green-600">
+                          +{commit.additions}
+                        </span>
+                        {" / "}
+                        <span className="text-red-600">
+                          -{commit.deletions}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </CommitWrapper>
+              );
+            })}
+          </div>
+        </section>
+        {!isAuthenticated && (
+          <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
+            개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부
+            정보는 마스킹 처리되어 있습니다.
+          </p>
+        )}
+      </article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            headline: post.title,
+            description:
+              maskedPost.summary || maskedPost.content?.slice(0, 160),
+            datePublished: post.publishedAt?.toISOString(),
+            dateModified: post.updatedAt.toISOString(),
+            author: authors.map((a) => ({
+              "@type": "Person",
+              name: a.name,
+            })),
+            publisher: {
+              "@type": "Organization",
+              name: "studiobaton",
+            },
+          }),
+        }}
+      />
+    </ContentGrid>
   );
 }

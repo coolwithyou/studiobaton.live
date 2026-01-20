@@ -6,6 +6,7 @@ import { applyPostListMasking } from "@/lib/masking";
 import { getUniqueAuthors } from "@/lib/author-normalizer";
 import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
+import { ContentGrid } from "@/components/layout/content-grid";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
 import { Prisma } from "@/app/generated/prisma";
 
@@ -150,9 +151,9 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   const type = params.type;
 
   return (
-    <div className="container mx-auto px-4 max-w-2xl">
+    <ContentGrid maxWidth="3xl">
       {category && (
-        <div className="pt-8 pb-4 border-b mb-4">
+        <div className="pb-4 border-b mb-4">
           <h1 className="text-2xl font-bold">{category}</h1>
           <p className="text-muted-foreground mt-1">
             {category} 카테고리의 포스트 목록
@@ -162,6 +163,6 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
       <Suspense fallback={<TimelineSkeleton />}>
         <PostList category={category} type={type} />
       </Suspense>
-    </div>
+    </ContentGrid>
   );
 }

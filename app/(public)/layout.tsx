@@ -15,16 +15,22 @@ export default function PublicLayout({
       <div className="flex-1">
         <div className="container mx-auto px-4">
           <div className="flex">
-            {/* 사이드바 - lg 이상에서만 표시, 로고 그리드 라인에 맞춤 */}
+            {/* 좌측 사이드바 - lg 이상에서만 표시 */}
             <div className="hidden lg:block w-56 shrink-0">
               <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto pr-6">
-                <Suspense fallback={<div className="py-6 text-sm text-muted-foreground">로딩 중...</div>}>
+                <Suspense
+                  fallback={
+                    <div className="py-6 text-sm text-muted-foreground">
+                      로딩 중...
+                    </div>
+                  }
+                >
                   <Sidebar />
                 </Suspense>
               </div>
             </div>
 
-            {/* 메인 콘텐츠 */}
+            {/* 메인 콘텐츠 영역 - 각 페이지에서 ContentGrid로 우측 위젯 배치 */}
             <main className="flex-1 min-w-0">{children}</main>
           </div>
         </div>

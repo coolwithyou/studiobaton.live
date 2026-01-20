@@ -66,9 +66,15 @@ export function MarkdownEditor({
   minHeight = 400,
 }: MarkdownEditorProps) {
   const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [giphyOpen, setGiphyOpen] = useState(false);
   const cursorPositionRef = useRef<number>(value.length);
   const editorContainerRef = useRef<HTMLDivElement>(null);
+
+  // 클라이언트 마운트 감지 (하이드레이션 불일치 방지)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 에디터 textarea의 커서 위치 추적
   useEffect(() => {
@@ -147,7 +153,7 @@ export function MarkdownEditor({
     // 발행된 글은 마크다운 렌더링으로 표시
     return (
       <div
-        data-color-mode={resolvedTheme === "dark" ? "dark" : "light"}
+        data-color-mode={mounted && resolvedTheme === "dark" ? "dark" : "light"}
         className="border rounded-md p-6 bg-muted/30 min-h-[400px]"
       >
         <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
@@ -227,7 +233,7 @@ export function MarkdownEditor({
     <>
       <div
         ref={editorContainerRef}
-        data-color-mode={resolvedTheme === "dark" ? "dark" : "light"}
+        data-color-mode={mounted && resolvedTheme === "dark" ? "dark" : "light"}
       >
         <MDEditor
           value={value}

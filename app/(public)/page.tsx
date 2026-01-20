@@ -6,6 +6,7 @@ import { applyPostListMasking } from "@/lib/masking";
 import { getUniqueAuthors } from "@/lib/author-normalizer";
 import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
+import { ContentGrid } from "@/components/layout/content-grid";
 import {
   SITE_URL,
   SITE_NAME,
@@ -155,7 +156,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 max-w-2xl">
+    <ContentGrid maxWidth="3xl">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -163,6 +164,6 @@ export default function HomePage() {
       <Suspense fallback={<TimelineSkeleton />}>
         <Timeline />
       </Suspense>
-    </div>
+    </ContentGrid>
   );
 }

@@ -10,6 +10,7 @@ import { MemberProfileHeader } from "@/components/member/member-profile-header";
 import { MemberCommitList } from "@/components/member/member-commit-list";
 import { MemberActivitySection } from "@/components/member/member-activity-section";
 import { EditableBio } from "@/components/member/editable-bio";
+import { ContentGrid } from "@/components/layout/content-grid";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -120,48 +121,48 @@ async function MemberProfile({ githubName }: { githubName: string }) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        <Link
-          href="/members"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          팀원 목록으로
-        </Link>
+    <ContentGrid maxWidth="3xl">
+      <Link
+        href="/members"
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        팀원 목록으로
+      </Link>
 
-        <MemberProfileHeader member={member} stats={stats} canEdit={canEdit} />
+      <MemberProfileHeader member={member} stats={stats} canEdit={canEdit} />
 
-        {/* 자기소개 섹션 */}
-        {(member.bio || canEdit) && (
-          <section className="mt-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-2">소개</h3>
-            <EditableBio
-              memberId={member.id}
-              currentBio={member.bio}
-              canEdit={canEdit}
-            />
-          </section>
-        )}
-
-        <Separator className="my-8" />
-
-        {/* 개발 활동 지표 섹션 */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">📊 개발 활동</h2>
-          <Suspense fallback={<ActivitySectionSkeleton />}>
-            <MemberActivitySection githubName={member.githubName} />
-          </Suspense>
+      {/* 자기소개 섹션 */}
+      {(member.bio || canEdit) && (
+        <section className="mt-6">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">
+            소개
+          </h3>
+          <EditableBio
+            memberId={member.id}
+            currentBio={member.bio}
+            canEdit={canEdit}
+          />
         </section>
+      )}
 
-        <Separator className="my-8" />
+      <Separator className="my-8" />
 
-        <section>
-          <h2 className="text-xl font-semibold mb-4">최근 커밋</h2>
-          <MemberCommitList commits={recentCommits} />
-        </section>
-      </div>
-    </div>
+      {/* 개발 활동 지표 섹션 */}
+      <section className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">📊 개발 활동</h2>
+        <Suspense fallback={<ActivitySectionSkeleton />}>
+          <MemberActivitySection githubName={member.githubName} />
+        </Suspense>
+      </section>
+
+      <Separator className="my-8" />
+
+      <section>
+        <h2 className="text-xl font-semibold mb-4">최근 커밋</h2>
+        <MemberCommitList commits={recentCommits} />
+      </section>
+    </ContentGrid>
   );
 }
 

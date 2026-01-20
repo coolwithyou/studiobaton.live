@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
 import { MemberCard } from "@/components/member/member-card";
 import { MembersSkeleton } from "@/components/member/members-skeleton";
+import { ContentGrid } from "@/components/layout/content-grid";
 
 export const dynamic = "force-dynamic";
 
@@ -66,7 +67,7 @@ async function MemberGrid() {
 
 export default function MembersPage() {
   return (
-    <div className="container mx-auto px-4 max-w-4xl py-8">
+    <ContentGrid maxWidth="4xl">
       <header className="mb-8">
         <h1 className="text-3xl font-bold">팀원 소개</h1>
         <p className="text-muted-foreground mt-2">
@@ -77,6 +78,6 @@ export default function MembersPage() {
       <Suspense fallback={<MembersSkeleton />}>
         <MemberGrid />
       </Suspense>
-    </div>
+    </ContentGrid>
   );
 }

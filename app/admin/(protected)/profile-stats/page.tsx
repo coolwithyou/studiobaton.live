@@ -22,10 +22,28 @@ import {
   Activity,
   AlertCircle,
   CheckCircle2,
+  FolderGit2,
+  Users,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+
+interface RepositoryStats {
+  name: string;
+  commitCount: number;
+  lastCommitAt: string | null;
+}
+
+interface MemberCommitStats {
+  id: string;
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+  commitCount: number;
+}
 
 interface CollectStatus {
   totalCommits: number;
@@ -37,6 +55,8 @@ interface CollectStatus {
     limit: number;
     reset: string;
   };
+  repositories: RepositoryStats[];
+  memberCommits: MemberCommitStats[];
 }
 
 interface AggregateStatus {
@@ -85,6 +105,7 @@ export default function ProfileStatsPage() {
   const [collecting, setCollecting] = useState(false);
   const [aggregating, setAggregating] = useState(false);
   const [progress, setProgress] = useState<ProgressEvent["data"] | null>(null);
+  const [showRepos, setShowRepos] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchStatus = useCallback(async () => {
@@ -336,6 +357,88 @@ export default function ProfileStatsPage() {
                 상태 새로고침
               </Button>
             </div>
+
+            {/* 멤버별 커밋 현황 */}
+            {collectStatus?.memberCommits && collectStatus.memberCommits.length > 0 && (
+              <div className="pt-4 border-t">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">멤버별 커밋 현황</span>
+                </div>
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>멤버</TableHead>
+                        <TableHead className="text-right">커밋 수</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {collectStatus.memberCommits.map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{member.name}</div>
+                              <div className="text-xs text-muted-foreground">{member.email}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
+                            {member.commitCount.toLocaleString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+
+            {/* 레포지토리 목록 */}
+            {collectStatus?.repositories && collectStatus.repositories.length > 0 && (
+              <div className="pt-4 border-t">
+                <button
+                  type="button"
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setShowRepos(!showRepos)}
+                >
+                  <FolderGit2 className="size-4" />
+                  <span>레포지토리 목록 ({collectStatus.repositories.length}개)</span>
+                  {showRepos ? (
+                    <ChevronUp className="size-4" />
+                  ) : (
+                    <ChevronDown className="size-4" />
+                  )}
+                </button>
+                {showRepos && (
+                  <div className="mt-3 border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>레포지토리</TableHead>
+                          <TableHead className="text-right">커밋 수</TableHead>
+                          <TableHead className="text-right">마지막 커밋</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {collectStatus.repositories.map((repo) => (
+                          <TableRow key={repo.name}>
+                            <TableCell className="font-medium">{repo.name}</TableCell>
+                            <TableCell className="text-right">
+                              {repo.commitCount.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right text-muted-foreground text-sm">
+                              {repo.lastCommitAt
+                                ? format(new Date(repo.lastCommitAt), "yy.MM.dd", { locale: ko })
+                                : "-"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 

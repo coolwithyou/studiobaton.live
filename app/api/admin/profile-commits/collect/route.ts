@@ -322,6 +322,36 @@ export async function GET() {
     // Rate limit 상태
     const rateLimit = await getRateLimitStatus();
 
+    // 레포지토리별 커밋 수
+    const repoStats = await prisma.commitLog.groupBy({
+      by: ["repository"],
+      _count: { id: true },
+      _max: { committedAt: true },
+      orderBy: { _count: { id: "desc" } },
+    });
+
+    const repositories = repoStats.map((r) => ({
+      name: r.repository,
+      commitCount: r._count.id,
+      lastCommitAt: r._max.committedAt,
+    }));
+
+    // 멤버별 커밋 수
+    const members = await prisma.member.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, email: true, avatarUrl: true },
+      orderBy: { displayOrder: "asc" },
+    });
+
+    const memberCommits = await Promise.all(
+      members.map(async (member) => ({
+        ...member,
+        commitCount: await prisma.commitLog.count({
+          where: { authorEmail: member.email },
+        }),
+      }))
+    );
+
     return Response.json({
       totalCommits: stats._count.id,
       profileOnlyCommits: profileOnlyCount,
@@ -332,6 +362,8 @@ export async function GET() {
         limit: rateLimit.limit,
         reset: rateLimit.reset.toISOString(),
       },
+      repositories,
+      memberCommits,
     });
   } catch (error) {
     console.error("Error fetching commit stats:", error);

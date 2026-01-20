@@ -20,6 +20,7 @@ export const dateRangeSchema = z.object({
  * 포스트 관련 스키마
  */
 export const postStatusSchema = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]);
+export const postTypeSchema = z.enum(["COMMIT_BASED", "MANUAL"]);
 
 export const slugSchema = z
   .string()
@@ -43,6 +44,24 @@ export const postQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
   status: postStatusSchema.optional(),
+  type: postTypeSchema.optional(),
+  category: z.string().max(50).optional(),
+});
+
+/**
+ * 수동 포스트 관련 스키마
+ */
+export const manualPostCreateSchema = z.object({
+  title: z.string().min(1, "제목을 입력해주세요.").max(200),
+  content: z.string().min(1, "내용을 입력해주세요.").max(100000),
+  summary: z.string().max(500).optional(),
+  slug: slugSchema,
+  category: z.string().max(50).optional(),
+  status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
+});
+
+export const manualPostUpdateSchema = manualPostCreateSchema.partial().extend({
+  id: z.string().cuid(),
 });
 
 /**
@@ -235,6 +254,68 @@ export const userUpdateSchema = z.object({
   id: z.string().cuid(),
   role: userRoleSchema.optional(),
   status: userStatusSchema.optional(),
+});
+
+/**
+ * 사이드 메뉴 관련 스키마
+ */
+export const linkTypeSchema = z.enum(["INTERNAL", "EXTERNAL", "POST_CATEGORY"]);
+
+export const sideMenuSectionCreateSchema = z.object({
+  title: z.string().min(1, "섹션 제목을 입력해주세요.").max(50),
+  displayOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export const sideMenuSectionUpdateSchema = sideMenuSectionCreateSchema.partial().extend({
+  id: z.string().cuid(),
+});
+
+export const sideMenuItemCreateSchema = z.object({
+  sectionId: z.string().cuid("유효한 섹션 ID를 선택해주세요."),
+  title: z.string().min(1, "메뉴 제목을 입력해주세요.").max(50),
+  displayOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+  linkType: linkTypeSchema.default("INTERNAL"),
+  internalPath: z.string().max(200).optional(),
+  externalUrl: z.string().url("유효한 URL을 입력해주세요.").optional(),
+  postCategory: z.string().max(50).optional(),
+}).refine(
+  (data) => {
+    // 링크 타입에 따라 필수 필드 검증
+    if (data.linkType === "INTERNAL" && !data.internalPath) {
+      return false;
+    }
+    if (data.linkType === "EXTERNAL" && !data.externalUrl) {
+      return false;
+    }
+    if (data.linkType === "POST_CATEGORY" && !data.postCategory) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "링크 타입에 맞는 경로 또는 URL을 입력해주세요.",
+  }
+);
+
+export const sideMenuItemUpdateSchema = z.object({
+  id: z.string().cuid(),
+  sectionId: z.string().cuid().optional(),
+  title: z.string().min(1).max(50).optional(),
+  displayOrder: z.number().int().min(0).optional(),
+  isActive: z.boolean().optional(),
+  linkType: linkTypeSchema.optional(),
+  internalPath: z.string().max(200).nullable().optional(),
+  externalUrl: z.string().url().nullable().optional(),
+  postCategory: z.string().max(50).nullable().optional(),
+});
+
+export const reorderSchema = z.object({
+  items: z.array(z.object({
+    id: z.string().cuid(),
+    displayOrder: z.number().int().min(0),
+  })),
 });
 
 /**

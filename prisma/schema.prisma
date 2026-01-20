@@ -90,6 +90,10 @@ model Post {
   targetDate    DateTime
   status        PostStatus    @default(DRAFT)
 
+  // 포스트 타입 및 카테고리
+  type          PostType      @default(COMMIT_BASED)
+  category      String?       // 카테고리 (사이드 메뉴 연동용)
+
   title         String?
   content       String?
   summary       String?
@@ -109,6 +113,8 @@ model Post {
   @@index([targetDate])
   @@index([status])
   @@index([publishedAt])
+  @@index([type])
+  @@index([category])
 }
 
 model PostVersion {
@@ -140,6 +146,19 @@ enum VersionTone {
   PROFESSIONAL
   CASUAL
   TECHNICAL
+}
+
+// 포스트 타입
+enum PostType {
+  COMMIT_BASED // 기존: 커밋 기반 자동 생성
+  MANUAL       // 신규: 수동 마크다운 포스트
+}
+
+// 사이드 메뉴 아이템 링크 타입
+enum LinkType {
+  INTERNAL      // 내부 페이지
+  EXTERNAL      // 외부 링크
+  POST_CATEGORY // 카테고리별 포스트 목록
 }
 
 // GitHub 리포지토리 캐시 (수동 동기화)
@@ -377,4 +396,42 @@ model CommitCollectionLog {
   @@unique([repository, monthKey])
   @@index([repository])
   @@index([monthKey])
+}
+
+// 사이드 메뉴 섹션 (ABOUT US 같은 최상위 메뉴)
+model SideMenuSection {
+  id           String         @id @default(cuid())
+  title        String         // "ABOUT US"
+  displayOrder Int            @default(0)
+  isActive     Boolean        @default(true)
+
+  items        SideMenuItem[]
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([displayOrder])
+  @@index([isActive])
+}
+
+// 사이드 메뉴 아이템 (하위 메뉴)
+model SideMenuItem {
+  id           String           @id @default(cuid())
+  sectionId    String
+  section      SideMenuSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  title        String           // "BATON DEV", "TMI"
+  displayOrder Int              @default(0)
+  isActive     Boolean          @default(true)
+
+  linkType     LinkType         @default(INTERNAL)
+  internalPath String?          // 내부 경로: "/posts?category=dev"
+  externalUrl  String?          // 외부 URL
+  postCategory String?          // Post.category와 매핑
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([sectionId])
+  @@index([displayOrder])
 }

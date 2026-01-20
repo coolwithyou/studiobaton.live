@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
@@ -142,25 +143,20 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* 루트 페이지와 동일한 max-w-2xl 중앙 배치 */}
       <div className="max-w-2xl mx-auto relative">
-        {/* 뒤로가기 */}
         <Link
           href="/"
           className="text-sm text-muted-foreground hover:text-foreground mb-6 inline-block"
         >
           ← 타임라인으로
         </Link>
-
         <article>
-          {/* 헤더 */}
           <header className="mb-8">
             <time className="text-sm text-muted-foreground">
               {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
             </time>
             <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
 
-            {/* 저자 */}
             <div className="flex items-center gap-3 mt-4">
               <div className="flex -space-x-2">
                 {authors.slice(0, 5).map((author, i) => (
@@ -177,14 +173,12 @@ export default async function PostPage({ params }: PageProps) {
               </span>
             </div>
           </header>
-
-          {/* 본문 (마크다운 파싱) */}
-          <MarkdownRenderer
-            content={maskedPost.content || ""}
-            className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
-          />
-
-          {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
+          <Suspense fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}>
+            <MarkdownRenderer
+              content={maskedPost.content || ""}
+              className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
+            />
+          </Suspense>
           {!isAuthenticated && (
             <p className="text-xs text-muted-foreground text-center mt-6">
               개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
@@ -192,8 +186,6 @@ export default async function PostPage({ params }: PageProps) {
           )}
 
           <Separator className="my-8" />
-
-          {/* 레포지토리별 통계 */}
           <section className="mb-8">
             <h2 className="text-lg font-semibold mb-4">작업한 프로젝트</h2>
             <div className="grid gap-3">
@@ -212,8 +204,6 @@ export default async function PostPage({ params }: PageProps) {
               ))}
             </div>
           </section>
-
-          {/* 커밋 목록 */}
           <section>
             <h2 className="text-lg font-semibold mb-4">상세 커밋 내역</h2>
             <div className="space-y-2">
@@ -269,16 +259,12 @@ export default async function PostPage({ params }: PageProps) {
               })}
             </div>
           </section>
-
-          {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
           {!isAuthenticated && (
             <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
               개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
             </p>
           )}
         </article>
-
-        {/* JSON-LD (마스킹된 데이터 사용) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -300,8 +286,6 @@ export default async function PostPage({ params }: PageProps) {
             }),
           }}
         />
-
-        {/* 우측 사이드바 - TOC (화면에 고정) */}
         {headings.length > 0 && (
           <aside className="hidden xl:block fixed top-24 left-[calc(50%+21rem+2rem)] w-48">
             <TableOfContents headings={headings} />

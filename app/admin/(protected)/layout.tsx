@@ -10,6 +10,8 @@ import type { UserRole } from "@/app/generated/prisma";
 const NAV_ITEMS: { href: string; label: string; roles: UserRole[] }[] = [
   { href: "/admin", label: "대시보드", roles: ["ADMIN"] },
   { href: "/admin/generate", label: "수동 생성", roles: ["ADMIN"] },
+  { href: "/admin/posts/new", label: "포스트 작성", roles: ["ADMIN"] },
+  { href: "/admin/sidemenu", label: "사이드 메뉴", roles: ["ADMIN"] },
   { href: "/admin/projects", label: "프로젝트 설정", roles: ["ADMIN"] },
   { href: "/admin/stats", label: "통계", roles: ["ADMIN"] },
   { href: "/admin/standup", label: "스탠드업", roles: ["ADMIN", "TEAM_MEMBER"] },

@@ -3,8 +3,9 @@ import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
 import { createCacheHeaders, CACHE_TTL } from "@/lib/cache";
-import { paginationSchema } from "@/lib/validation";
+import { paginationSchema, postTypeSchema } from "@/lib/validation";
 import { logError, normalizeError } from "@/lib/errors";
+import { Prisma } from "@/app/generated/prisma";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,11 +19,21 @@ export async function GET(request: NextRequest) {
     });
     const skip = (page - 1) * limit;
 
+    // 선택적 필터
+    const category = searchParams.get("category");
+    const typeParam = searchParams.get("type");
+    const type = typeParam ? postTypeSchema.parse(typeParam) : undefined;
+
+    // 필터 조건 구성
+    const where: Prisma.PostWhereInput = {
+      status: "PUBLISHED",
+      ...(category && { category }),
+      ...(type && { type }),
+    };
+
     const [posts, total] = await Promise.all([
       prisma.post.findMany({
-        where: {
-          status: "PUBLISHED",
-        },
+        where,
         orderBy: {
           targetDate: "desc",
         },
@@ -43,11 +54,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.post.count({
-        where: {
-          status: "PUBLISHED",
-        },
-      }),
+      prisma.post.count({ where }),
     ]);
 
     // 마스킹 적용

@@ -1,7 +1,7 @@
-import Link from "next/link";
-import Image from "next/image";
+import { Suspense } from "react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { Sidebar } from "@/components/layout/sidebar";
 
 export default function PublicLayout({
   children,
@@ -12,24 +12,20 @@ export default function PublicLayout({
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
-      {/* 왼쪽 고정 로고 - container 그리드에 맞춤, 모바일에서 숨김 */}
-      <div className="fixed top-24 left-0 right-0 z-40 pointer-events-none hidden lg:block">
-        <div className="container mx-auto px-4">
-          {/* <Link href="/" className="pointer-events-auto inline-block">
-            <Image
-              src="/log_baton_logo_dark.png"
-              alt="studiobaton log"
-              width={140}
-              height={160}
-              className="opacity-10"
-              // className="rounded-xl"
-              priority
-            />
-          </Link> */}
+      <div className="flex-1 flex">
+        {/* 사이드바 - lg 이상에서만 표시 */}
+        <div className="hidden lg:block w-56 shrink-0 border-r">
+          <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto pl-4">
+            <Suspense fallback={<div className="py-6 px-4 text-sm text-muted-foreground">로딩 중...</div>}>
+              <Sidebar />
+            </Suspense>
+          </div>
         </div>
+
+        {/* 메인 콘텐츠 */}
+        <main className="flex-1 min-w-0">{children}</main>
       </div>
 
-      <main className="flex-1">{children}</main>
       <Footer />
     </div>
   );

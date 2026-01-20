@@ -104,11 +104,11 @@ function rehypeUnwrapImages() {
   };
 }
 
-// 이미지 스타일 처리 플러그인
+// 이미지 스타일 처리 플러그인 (HTML로 직접 작성된 figure/figcaption만 처리)
 function rehypeImageStyles() {
   return (tree: Root) => {
     visit(tree, "element", (node: Element) => {
-      // figure 스타일 처리
+      // figure 스타일 처리 (HTML로 직접 작성된 경우)
       if (node.tagName === "figure") {
         const existingClass = node.properties?.className;
         const classArray: string[] = Array.isArray(existingClass)
@@ -118,11 +118,36 @@ function rehypeImageStyles() {
             : [];
         node.properties = {
           ...node.properties,
-          className: [...classArray, "text-center", "my-6"].join(" "),
+          className: [...classArray, "!text-center", "!my-6"].join(" "),
         };
+
+        // figure 내부의 img에 스타일 적용 (figure 자식으로 있는 경우에만)
+        for (const child of node.children) {
+          if (child.type === "element" && (child as Element).tagName === "img") {
+            const imgNode = child as Element;
+            const src = imgNode.properties?.src as string;
+            const imgExistingClass = imgNode.properties?.className;
+            const imgClassArray: string[] = Array.isArray(imgExistingClass)
+              ? imgExistingClass.filter((c): c is string => typeof c === "string")
+              : typeof imgExistingClass === "string"
+                ? [imgExistingClass]
+                : [];
+            const isGifImage = src && isGif(src);
+            imgNode.properties = {
+              ...imgNode.properties,
+              className: [
+                ...imgClassArray,
+                "!inline-block",
+                "!h-auto",
+                "!m-0",
+                isGifImage ? "!max-w-[50%]" : "!max-w-full",
+              ].join(" "),
+            };
+          }
+        }
       }
 
-      // figcaption 스타일 처리
+      // figcaption 스타일 처리 (HTML로 직접 작성된 경우)
       if (node.tagName === "figcaption") {
         const existingClass = node.properties?.className;
         const classArray: string[] = Array.isArray(existingClass)
@@ -132,25 +157,8 @@ function rehypeImageStyles() {
             : [];
         node.properties = {
           ...node.properties,
-          className: [...classArray, "text-sm", "opacity-70", "mt-2"].join(" "),
+          className: [...classArray, "!text-sm", "!opacity-70", "!mt-2"].join(" "),
         };
-      }
-
-      // figure 내부의 GIF 이미지 스타일 처리
-      if (node.tagName === "img") {
-        const src = node.properties?.src as string;
-        if (src && isGif(src)) {
-          const existingClass = node.properties?.className;
-          const classArray: string[] = Array.isArray(existingClass)
-            ? existingClass.filter((c): c is string => typeof c === "string")
-            : typeof existingClass === "string"
-              ? [existingClass]
-              : [];
-          node.properties = {
-            ...node.properties,
-            className: [...classArray, "inline-block", "max-w-[50%]", "h-auto"].join(" "),
-          };
-        }
       }
     });
   };
@@ -169,33 +177,35 @@ function createComponents() {
       const isGifImage = isGif(srcStr);
       const classStr = typeof className === "string" ? className : "";
 
-      // GIF 이미지이면서 아직 스타일이 적용되지 않은 경우 (마크다운 ![alt](url) 형식)
-      if (isGifImage && !classStr.includes("max-w-[50%]")) {
+      // 이미 figure 내부에서 스타일이 적용된 이미지 (HTML로 직접 작성된 경우)
+      // rehypeImageStyles에서 !important 클래스를 추가했으므로 이를 체크
+      if (classStr.includes("!inline-block") || classStr.includes("!max-w-")) {
         return (
-          <figure className="text-center my-6">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={src}
-              alt={alt || "GIF"}
-              className="inline-block max-w-[50%] h-auto"
-              {...props}
-            />
-            {alt && alt !== "GIF" && (
-              <figcaption className="text-sm opacity-70 mt-2">{alt}</figcaption>
-            )}
-          </figure>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={src}
+            alt={alt || ""}
+            className={classStr}
+            {...props}
+          />
         );
       }
 
-      // 일반 이미지
+      // 마크다운 ![alt](url) 형식 이미지 - figure로 감싸서 가운데 정렬 + 캡션
+      // !important 적용으로 prose 스타일 덮어쓰기
       return (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt={alt || ""}
-          className={classStr || "max-w-full h-auto"}
-          {...props}
-        />
+        <figure className="!text-center !my-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={alt || ""}
+            className={`!inline-block !h-auto !m-0 ${isGifImage ? "!max-w-[50%]" : "!max-w-full"}`}
+            {...props}
+          />
+          {alt && alt !== "GIF" && alt.trim() !== "" && (
+            <figcaption className="!text-sm !opacity-70 !mt-2">{alt}</figcaption>
+          )}
+        </figure>
       );
     },
     // 인라인 코드 스타일

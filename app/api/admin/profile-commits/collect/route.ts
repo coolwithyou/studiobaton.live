@@ -101,8 +101,26 @@ export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
+      let isClosed = false;
+
       const send = (event: ProgressEvent) => {
-        controller.enqueue(encoder.encode(createSSEMessage(event)));
+        if (isClosed) return; // 이미 닫힌 경우 무시
+        try {
+          controller.enqueue(encoder.encode(createSSEMessage(event)));
+        } catch {
+          // Controller가 이미 닫힌 경우 (클라이언트 연결 끊김)
+          isClosed = true;
+        }
+      };
+
+      const closeController = () => {
+        if (isClosed) return;
+        isClosed = true;
+        try {
+          controller.close();
+        } catch {
+          // 이미 닫힌 경우 무시
+        }
       };
 
       try {
@@ -127,7 +145,7 @@ export async function POST(request: NextRequest) {
               error: `GitHub API rate limit이 부족합니다. ${rateLimit.reset.toLocaleString()}까지 기다려주세요.`,
             },
           });
-          controller.close();
+          closeController();
           return;
         }
 
@@ -253,13 +271,18 @@ export async function POST(request: NextRequest) {
           console.error("Collection errors:", result.errors);
         }
       } catch (error) {
-        console.error("Profile commits collect error:", error);
-        send({
-          type: "error",
-          data: { error: "수집 중 오류가 발생했습니다." },
-        });
+        // 연결 끊김 에러는 무시 (클라이언트가 페이지 떠남)
+        if (error instanceof Error && error.message.includes("Controller is already closed")) {
+          console.log("Client disconnected during collection");
+        } else {
+          console.error("Profile commits collect error:", error);
+          send({
+            type: "error",
+            data: { error: "수집 중 오류가 발생했습니다." },
+          });
+        }
       } finally {
-        controller.close();
+        closeController();
       }
     },
   });

@@ -12,6 +12,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { formatKST } from "@/lib/date-utils";
 import { Loader2, Plus, RefreshCw } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AVAILABLE_MODELS, AIModel, DEFAULT_MODEL } from "@/lib/ai-models";
 
 interface PostVersion {
   id: string;
@@ -86,6 +94,7 @@ export default function PostEditPage({
     slug: string;
   } | null>(null);
   const [generatingTone, setGeneratingTone] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(DEFAULT_MODEL);
 
   useEffect(() => {
     fetchPost();
@@ -259,7 +268,7 @@ export default function PostEditPage({
       const res = await fetch(`/api/admin/posts/${id}/versions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tone, forceRegenerate }),
+        body: JSON.stringify({ tone, forceRegenerate, model: selectedModel }),
       });
 
       const data = await res.json();
@@ -428,6 +437,22 @@ export default function PostEditPage({
           {!isPublished && post.commits.length > 0 && (
             <div className="flex items-center gap-2 mb-6 flex-wrap">
               <span className="text-sm text-muted-foreground">버전 관리:</span>
+              <Select
+                value={selectedModel}
+                onValueChange={(value) => setSelectedModel(value as AIModel)}
+                disabled={generatingTone !== null}
+              >
+                <SelectTrigger className="w-[200px] h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(AVAILABLE_MODELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {(["PROFESSIONAL", "CASUAL", "TECHNICAL"] as const).map((tone) => {
                 const hasVersion = post.versions.some((v) => v.tone === tone);
                 return (

@@ -17,13 +17,18 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [mentionPopupOpen, setMentionPopupOpen] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const submittingRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // 동기적 중복 제출 방지
+    if (submittingRef.current) return;
+
     const trimmedContent = content.trim();
     if (!trimmedContent) return;
 
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const response = await fetch("/api/admin/standup", {
@@ -49,6 +54,7 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
       console.error("Failed to add task:", error);
       alert(error instanceof Error ? error.message : "할 일 추가에 실패했습니다.");
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -60,6 +66,9 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
   // Enter로 제출 (Shift+Enter는 줄바꿈)
   // mention 팝업이 열려있으면 Enter는 repo 선택용으로 사용
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // IME 조합 중일 때는 무시 (한글 등)
+    if (e.nativeEvent.isComposing) return;
+
     // 1차 방어: mention 팝업 열려있으면 Enter는 mention-autocomplete가 처리
     if (mentionPopupOpen) return;
 

@@ -209,3 +209,75 @@
   background-color: rgba(136, 146, 176, 0.15) !important;
   color: rgb(136, 146, 176) !important;
 }
+
+/* OverlayScrollbars iOS Style */
+.os-theme-ios {
+  --os-handle-bg: rgba(155, 155, 155, 0.5);
+  --os-handle-bg-hover: rgba(155, 155, 155, 0.7);
+  --os-handle-bg-active: rgba(155, 155, 155, 0.8);
+  --os-size: 6px;
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 2px;
+  --os-handle-border-radius: 10px;
+  --os-handle-min-size: 33px;
+}
+
+/* 다크모드 스크롤바 색상 */
+.dark .os-theme-ios {
+  --os-handle-bg: rgba(200, 200, 200, 0.4);
+  --os-handle-bg-hover: rgba(200, 200, 200, 0.6);
+  --os-handle-bg-active: rgba(200, 200, 200, 0.7);
+}
+
+/* 스크롤바 트랙 투명 처리 */
+.os-theme-ios > .os-scrollbar-track {
+  background: transparent !important;
+}
+
+/* 스크롤바 핸들 스타일 */
+.os-theme-ios > .os-scrollbar-track > .os-scrollbar-handle {
+  background: var(--os-handle-bg) !important;
+  border-radius: var(--os-handle-border-radius) !important;
+  transition: background 0.2s ease, opacity 0.3s ease !important;
+}
+
+.os-theme-ios > .os-scrollbar-track > .os-scrollbar-handle:hover {
+  background: var(--os-handle-bg-hover) !important;
+}
+
+.os-theme-ios > .os-scrollbar-track > .os-scrollbar-handle:active {
+  background: var(--os-handle-bg-active) !important;
+}
+
+/* 세로 스크롤바 크기 */
+.os-theme-ios.os-scrollbar-vertical {
+  width: var(--os-size) !important;
+  padding: var(--os-padding-axis) var(--os-padding-perpendicular) !important;
+}
+
+/* 가로 스크롤바 크기 */
+.os-theme-ios.os-scrollbar-horizontal {
+  height: var(--os-size) !important;
+  padding: var(--os-padding-perpendicular) var(--os-padding-axis) !important;
+}
+
+/* auto-hide 애니메이션 */
+.os-scrollbar-auto-hide.os-scrollbar-auto-hide-hidden {
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+.os-scrollbar-auto-hide {
+  opacity: 1 !important;
+  transition: opacity 0.3s ease !important;
+}
+
+/* body에 적용된 스크롤바가 콘텐츠 위에 오버레이 되도록 */
+body[data-overlayscrollbars-body] {
+  overflow: hidden !important;
+}
+
+/* 스크롤 영역 내부 컨테이너 스타일 */
+.os-scrollbar {
+  z-index: 9999 !important;
+}

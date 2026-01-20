@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { ScrollbarProvider } from "@/components/scrollbar-provider";
 import { Toaster } from "sonner";
 import {
   SITE_URL,
@@ -93,8 +94,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster richColors position="top-center" />
+          <ScrollbarProvider>
+            {children}
+            <Toaster richColors position="top-center" />
+          </ScrollbarProvider>
         </ThemeProvider>
       </body>
     </html>

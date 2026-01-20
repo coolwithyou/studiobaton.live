@@ -2,14 +2,45 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  Home,
+  BarChart3,
+  PenSquare,
+  Wand2,
+  Menu,
+  MessageSquare,
+  CheckSquare,
+  GitCommit,
+  FolderGit2,
+  UserCog,
+  Shield,
+  ExternalLink,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { MenuGroup, MenuItem } from "./admin-sidebar-config";
+import type { MenuGroup, MenuItem, IconName } from "./admin-sidebar-config";
 import { EXTERNAL_LINK } from "./admin-sidebar-config";
+
+// 아이콘 이름 → 아이콘 컴포넌트 매핑
+const ICON_MAP: Record<IconName, LucideIcon> = {
+  Home,
+  BarChart3,
+  PenSquare,
+  Wand2,
+  Menu,
+  MessageSquare,
+  CheckSquare,
+  GitCommit,
+  FolderGit2,
+  UserCog,
+  Shield,
+  ExternalLink,
+};
 
 interface AdminSidebarNavProps {
   groups: MenuGroup[];
@@ -37,7 +68,7 @@ export function AdminSidebarNav({
 
   const renderMenuItem = (item: MenuItem) => {
     const active = isActive(item.href);
-    const Icon = item.icon;
+    const Icon = ICON_MAP[item.icon];
 
     const linkContent = (
       <Link

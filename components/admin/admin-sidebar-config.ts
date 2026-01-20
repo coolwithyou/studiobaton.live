@@ -1,24 +1,24 @@
 import type { UserRole } from "@/app/generated/prisma";
-import {
-  Home,
-  BarChart3,
-  PenSquare,
-  Wand2,
-  Menu,
-  MessageSquare,
-  CheckSquare,
-  GitCommit,
-  FolderGit2,
-  UserCog,
-  Shield,
-  ExternalLink,
-  type LucideIcon,
-} from "lucide-react";
+
+// 아이콘 이름 타입 (lucide-react 아이콘 이름)
+export type IconName =
+  | "Home"
+  | "BarChart3"
+  | "PenSquare"
+  | "Wand2"
+  | "Menu"
+  | "MessageSquare"
+  | "CheckSquare"
+  | "GitCommit"
+  | "FolderGit2"
+  | "UserCog"
+  | "Shield"
+  | "ExternalLink";
 
 export interface MenuItem {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconName; // 아이콘 컴포넌트 대신 문자열 이름 사용
   external?: boolean;
 }
 
@@ -35,8 +35,8 @@ export const MENU_GROUPS: MenuGroup[] = [
     title: "대시보드",
     roles: ["ADMIN"],
     items: [
-      { href: "/admin", label: "홈", icon: Home },
-      { href: "/admin/stats", label: "통계", icon: BarChart3 },
+      { href: "/admin", label: "홈", icon: "Home" },
+      { href: "/admin/stats", label: "통계", icon: "BarChart3" },
     ],
   },
   {
@@ -44,9 +44,9 @@ export const MENU_GROUPS: MenuGroup[] = [
     title: "콘텐츠",
     roles: ["ADMIN"],
     items: [
-      { href: "/admin/posts/new", label: "포스트 작성", icon: PenSquare },
-      { href: "/admin/generate", label: "수동 생성", icon: Wand2 },
-      { href: "/admin/sidemenu", label: "사이드 메뉴", icon: Menu },
+      { href: "/admin/posts/new", label: "포스트 작성", icon: "PenSquare" },
+      { href: "/admin/generate", label: "수동 생성", icon: "Wand2" },
+      { href: "/admin/sidemenu", label: "사이드 메뉴", icon: "Menu" },
     ],
   },
   {
@@ -54,9 +54,9 @@ export const MENU_GROUPS: MenuGroup[] = [
     title: "팀 활동",
     roles: ["ADMIN", "TEAM_MEMBER"],
     items: [
-      { href: "/admin/standup", label: "스탠드업", icon: MessageSquare },
-      { href: "/admin/wrap-up", label: "랩업", icon: CheckSquare },
-      { href: "/admin/review", label: "커밋 리뷰", icon: GitCommit },
+      { href: "/admin/standup", label: "스탠드업", icon: "MessageSquare" },
+      { href: "/admin/wrap-up", label: "랩업", icon: "CheckSquare" },
+      { href: "/admin/review", label: "커밋 리뷰", icon: "GitCommit" },
     ],
   },
   {
@@ -64,9 +64,9 @@ export const MENU_GROUPS: MenuGroup[] = [
     title: "설정",
     roles: ["ADMIN"],
     items: [
-      { href: "/admin/projects", label: "프로젝트 설정", icon: FolderGit2 },
-      { href: "/admin/members", label: "팀원 관리", icon: UserCog },
-      { href: "/admin/users", label: "사용자 관리", icon: Shield },
+      { href: "/admin/projects", label: "프로젝트 설정", icon: "FolderGit2" },
+      { href: "/admin/members", label: "팀원 관리", icon: "UserCog" },
+      { href: "/admin/users", label: "사용자 관리", icon: "Shield" },
     ],
   },
 ];
@@ -75,7 +75,7 @@ export const MENU_GROUPS: MenuGroup[] = [
 export const EXTERNAL_LINK: MenuItem = {
   href: "/",
   label: "사이트 보기",
-  icon: ExternalLink,
+  icon: "ExternalLink",
   external: true,
 };
 

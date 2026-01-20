@@ -72,16 +72,13 @@ export function NavMain({ groups }: NavMainProps) {
           <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
           <SidebarMenu>
             {group.items.map((item) => {
-              const isActive = item.items?.some(
-                (subItem) => pathname === subItem.url
-              )
               const IconComponent = ICON_MAP[item.icon]
 
               return (
                 <Collapsible
                   key={item.title}
                   asChild
-                  defaultOpen={isActive}
+                  defaultOpen={true}
                   className="group/collapsible"
                 >
                   <SidebarMenuItem>

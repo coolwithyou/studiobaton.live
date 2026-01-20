@@ -1,4 +1,3 @@
-import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
 import { getServerSession } from "@/lib/auth-helpers"
 
@@ -17,16 +16,15 @@ export default async function ProtectedLayout({
     redirect("/admin/login")
   }
 
-  const cookieStore = await cookies()
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
-
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={true} open={true}>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="bg-muted/40">
         <SiteHeader />
         <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
-          {children}
+          <div className="@container/main flex flex-1 flex-col rounded-xl border bg-card shadow-sm">
+            {children}
+          </div>
         </main>
       </SidebarInset>
     </SidebarProvider>

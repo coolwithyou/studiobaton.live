@@ -1,6 +1,24 @@
 "use client"
 
-import { ChevronRight } from "lucide-react"
+import {
+  ChevronRight,
+  Home,
+  BarChart3,
+  PenSquare,
+  Wand2,
+  Menu,
+  MessageSquare,
+  CheckSquare,
+  GitCommit,
+  FolderGit2,
+  UserCog,
+  Shield,
+  ExternalLink,
+  Settings,
+  HelpCircle,
+  FileText,
+  type LucideIcon,
+} from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -19,7 +37,26 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
-import type { NavGroup } from "./sidebar-config"
+import type { NavGroup, IconName } from "./sidebar-config"
+
+// 아이콘 이름 → 컴포넌트 매핑
+const ICON_MAP: Record<IconName, LucideIcon> = {
+  Home,
+  BarChart3,
+  PenSquare,
+  Wand2,
+  Menu,
+  MessageSquare,
+  CheckSquare,
+  GitCommit,
+  FolderGit2,
+  UserCog,
+  Shield,
+  ExternalLink,
+  Settings,
+  HelpCircle,
+  FileText,
+}
 
 interface NavMainProps {
   groups: NavGroup[]
@@ -38,6 +75,7 @@ export function NavMain({ groups }: NavMainProps) {
               const isActive = item.items?.some(
                 (subItem) => pathname === subItem.url
               )
+              const IconComponent = ICON_MAP[item.icon]
 
               return (
                 <Collapsible
@@ -49,7 +87,7 @@ export function NavMain({ groups }: NavMainProps) {
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton tooltip={item.title}>
-                        {item.icon && <item.icon />}
+                        {IconComponent && <IconComponent />}
                         <span>{item.title}</span>
                         <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                       </SidebarMenuButton>

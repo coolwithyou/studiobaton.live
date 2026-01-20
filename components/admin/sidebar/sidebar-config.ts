@@ -1,27 +1,27 @@
 import type { UserRole } from "@/app/generated/prisma"
-import type { LucideIcon } from "lucide-react"
-import {
-  Home,
-  BarChart3,
-  PenSquare,
-  Wand2,
-  Menu,
-  MessageSquare,
-  CheckSquare,
-  GitCommit,
-  FolderGit2,
-  UserCog,
-  Shield,
-  ExternalLink,
-  Settings,
-  HelpCircle,
-  FileText,
-} from "lucide-react"
+
+// 아이콘 이름 타입 정의 (Server → Client 직렬화를 위해 문자열 사용)
+export type IconName =
+  | "Home"
+  | "BarChart3"
+  | "PenSquare"
+  | "Wand2"
+  | "Menu"
+  | "MessageSquare"
+  | "CheckSquare"
+  | "GitCommit"
+  | "FolderGit2"
+  | "UserCog"
+  | "Shield"
+  | "ExternalLink"
+  | "Settings"
+  | "HelpCircle"
+  | "FileText"
 
 export interface NavItem {
   title: string
   url: string
-  icon: LucideIcon
+  icon: IconName
   isActive?: boolean
   external?: boolean
   items?: {
@@ -47,7 +47,7 @@ export const NAV_MAIN: NavGroup[] = [
       {
         title: "대시보드",
         url: "#",
-        icon: Home,
+        icon: "Home",
         items: [
           { title: "홈", url: "/admin" },
           { title: "통계", url: "/admin/stats" },
@@ -63,11 +63,11 @@ export const NAV_MAIN: NavGroup[] = [
       {
         title: "콘텐츠",
         url: "#",
-        icon: FileText,
+        icon: "FileText",
         items: [
-          { title: "포스트 작성", url: "/admin/content/posts/new" },
-          { title: "수동 생성", url: "/admin/content/generate" },
-          { title: "사이드 메뉴", url: "/admin/content/sidemenu" },
+          { title: "커밋 수집", url: "/admin/generate" },
+          { title: "포스트 작성", url: "/admin/posts/new" },
+          { title: "사이드 메뉴", url: "/admin/sidemenu" },
         ],
       },
     ],
@@ -80,11 +80,11 @@ export const NAV_MAIN: NavGroup[] = [
       {
         title: "팀 활동",
         url: "#",
-        icon: MessageSquare,
+        icon: "MessageSquare",
         items: [
-          { title: "스탠드업", url: "/admin/team/standup" },
-          { title: "랩업", url: "/admin/team/wrap-up" },
-          { title: "커밋 리뷰", url: "/admin/team/review" },
+          { title: "스탠드업", url: "/admin/standup" },
+          { title: "랩업", url: "/admin/wrap-up" },
+          { title: "커밋 리뷰", url: "/admin/review" },
         ],
       },
     ],
@@ -95,23 +95,23 @@ export const NAV_MAIN: NavGroup[] = [
 export const NAV_SECONDARY: NavItem[] = [
   {
     title: "프로젝트 설정",
-    url: "/admin/settings/projects",
-    icon: FolderGit2,
+    url: "/admin/projects",
+    icon: "FolderGit2",
   },
   {
     title: "팀원 관리",
-    url: "/admin/settings/members",
-    icon: UserCog,
+    url: "/admin/members",
+    icon: "UserCog",
   },
   {
     title: "사용자 관리",
-    url: "/admin/settings/users",
-    icon: Shield,
+    url: "/admin/users",
+    icon: "Shield",
   },
   {
     title: "사이트 보기",
     url: "/",
-    icon: ExternalLink,
+    icon: "ExternalLink",
     external: true,
   },
 ]

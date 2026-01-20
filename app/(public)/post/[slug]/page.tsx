@@ -118,6 +118,14 @@ export default async function PostPage({ params }: PageProps) {
     }))
   );
 
+  // 커밋별 아바타 조회를 위한 매핑 (author → Member.avatarUrl)
+  const authorAvatarMap = new Map<string, string | null>();
+  for (const author of authors) {
+    for (const originalAuthor of author.originalAuthors) {
+      authorAvatarMap.set(originalAuthor, author.avatar);
+    }
+  }
+
   // 레포지토리별 통계 (마스킹된 데이터 기준)
   const repoStats = maskedPost.commits.reduce((acc, commit) => {
     if (!acc[commit.repository]) {
@@ -231,7 +239,7 @@ export default async function PostPage({ params }: PageProps) {
                   >
                     <div className="flex items-start gap-3">
                       <Avatar className="w-6 h-6 mt-0.5">
-                        <AvatarImage src={commit.authorAvatar || undefined} />
+                        <AvatarImage src={authorAvatarMap.get(commit.author) || commit.authorAvatar || undefined} />
                         <AvatarFallback className="text-xs">
                           {commit.author.slice(0, 1).toUpperCase()}
                         </AvatarFallback>

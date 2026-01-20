@@ -1,10 +1,12 @@
 /**
  * 과거 커밋 수집 - 2022년 이후 모든 커밋을 수집하기 위한 함수들
  * 월 단위로 분할 수집하여 GitHub API rate limit을 관리합니다.
+ * 수집 로그를 통해 이미 수집된 기간은 건너뜁니다.
  */
 
 import { Octokit } from "@octokit/rest";
 import { CommitData, CommitFileData } from "./github";
+import prisma from "@/lib/prisma";
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
@@ -303,6 +305,22 @@ export async function collectHistoricalCommits(
     const monthRanges = generateMonthRanges(effectiveStartDate, endDate);
 
     for (const range of monthRanges) {
+      // 이미 수집된 기간인지 확인
+      const alreadyCollected = await isMonthCollected(repo.name, range.label);
+      if (alreadyCollected) {
+        onProgress?.({
+          phase: "commits",
+          currentRepo: repo.name,
+          currentMonth: range.label,
+          processedRepos: repoIdx,
+          totalRepos: repos.length,
+          processedCommits: allCommits.length,
+          totalCommits: allCommits.length,
+          message: `${repo.name} (${range.label}) 이미 수집됨 - 건너뜀`,
+        });
+        continue;
+      }
+
       onProgress?.({
         phase: "commits",
         currentRepo: repo.name,
@@ -324,9 +342,15 @@ export async function collectHistoricalCommits(
         newCommits.forEach((c) => existingShas.add(c.sha));
 
         allCommits.push(...newCommits);
+
+        // 수집 성공 기록
+        await recordCollectionResult(repo.name, range.label, "completed", newCommits.length);
       } catch (error) {
         const errMsg = `${repo.name}/${range.label}: ${error instanceof Error ? error.message : String(error)}`;
         errors.push(errMsg);
+
+        // 수집 실패 기록
+        await recordCollectionResult(repo.name, range.label, "error", 0, errMsg);
       }
 
       // rate limit 방지를 위한 짧은 대기
@@ -460,6 +484,100 @@ export function estimateCollectionTime(
     minutes: baseMinutes,
     description: `약 ${baseMinutes}분 ~ ${baseMinutes * 2}분 소요 예상 (rate limit 상황에 따라 변동)`,
   };
+}
+
+/**
+ * 특정 레포+월이 이미 수집되었는지 확인
+ */
+async function isMonthCollected(repository: string, monthKey: string): Promise<boolean> {
+  try {
+    const log = await prisma.commitCollectionLog.findUnique({
+      where: {
+        repository_monthKey: { repository, monthKey },
+      },
+    });
+    return log?.status === "completed";
+  } catch (error) {
+    console.error(`Error checking collection log for ${repository}/${monthKey}:`, error);
+    return false;
+  }
+}
+
+/**
+ * 수집 결과 기록
+ */
+async function recordCollectionResult(
+  repository: string,
+  monthKey: string,
+  status: "completed" | "partial" | "error",
+  commitCount: number,
+  errorMessage?: string
+): Promise<void> {
+  try {
+    await prisma.commitCollectionLog.upsert({
+      where: {
+        repository_monthKey: { repository, monthKey },
+      },
+      update: {
+        status,
+        commitCount,
+        errorMessage,
+        collectedAt: new Date(),
+      },
+      create: {
+        repository,
+        monthKey,
+        status,
+        commitCount,
+        errorMessage,
+      },
+    });
+  } catch (error) {
+    console.error(`Error recording collection log for ${repository}/${monthKey}:`, error);
+  }
+}
+
+/**
+ * 특정 레포의 수집 로그 조회
+ */
+export async function getCollectionLogs(repository?: string): Promise<{
+  repository: string;
+  monthKey: string;
+  status: string;
+  commitCount: number;
+  collectedAt: Date;
+}[]> {
+  try {
+    const logs = await prisma.commitCollectionLog.findMany({
+      where: repository ? { repository } : undefined,
+      orderBy: [{ repository: "asc" }, { monthKey: "asc" }],
+    });
+    return logs.map((log) => ({
+      repository: log.repository,
+      monthKey: log.monthKey,
+      status: log.status,
+      commitCount: log.commitCount,
+      collectedAt: log.collectedAt,
+    }));
+  } catch (error) {
+    console.error("Error fetching collection logs:", error);
+    return [];
+  }
+}
+
+/**
+ * 수집 로그 초기화 (재수집 필요시)
+ */
+export async function clearCollectionLogs(repository?: string): Promise<number> {
+  try {
+    const result = await prisma.commitCollectionLog.deleteMany({
+      where: repository ? { repository } : undefined,
+    });
+    return result.count;
+  } catch (error) {
+    console.error("Error clearing collection logs:", error);
+    return 0;
+  }
 }
 
 function sleep(ms: number): Promise<void> {

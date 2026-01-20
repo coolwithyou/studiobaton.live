@@ -22,10 +22,12 @@ export const metadata: Metadata = {
   },
 };
 
+// 멤버 표시 순서 고정
+const MEMBER_ORDER = ["한송욱", "이상희", "추지혜"];
+
 async function MemberGrid() {
   const members = await prisma.member.findMany({
     where: { isActive: true },
-    orderBy: { displayOrder: "asc" },
     select: {
       id: true,
       name: true,
@@ -33,6 +35,16 @@ async function MemberGrid() {
       avatarUrl: true,
       profileImageUrl: true,
     },
+  });
+
+  // 지정된 순서대로 정렬
+  const sortedMembers = members.sort((a, b) => {
+    const orderA = MEMBER_ORDER.indexOf(a.name);
+    const orderB = MEMBER_ORDER.indexOf(b.name);
+    // 목록에 없는 멤버는 맨 뒤로
+    if (orderA === -1) return 1;
+    if (orderB === -1) return -1;
+    return orderA - orderB;
   });
 
   if (members.length === 0) {
@@ -45,7 +57,7 @@ async function MemberGrid() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {members.map((member) => (
+      {sortedMembers.map((member) => (
         <MemberCard key={member.id} member={member} />
       ))}
     </div>

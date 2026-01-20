@@ -13,6 +13,7 @@ import {
   collectHistoricalCommits,
   getRateLimitStatus,
   CollectionProgress,
+  clearCollectionLogs,
 } from "@/lib/github-historical";
 import { parseISO } from "date-fns";
 
@@ -368,5 +369,37 @@ export async function GET() {
   } catch (error) {
     console.error("Error fetching commit stats:", error);
     return Response.json({ error: "통계 조회 중 오류 발생" }, { status: 500 });
+  }
+}
+
+/**
+ * 수집 로그 초기화 (재수집을 위해)
+ */
+export async function DELETE() {
+  const session = await getServerSession();
+
+  if (!session?.user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // 관리자 권한 확인
+  const admin = await prisma.admin.findUnique({
+    where: { email: session.user.email! },
+  });
+
+  if (!admin || admin.role !== "ADMIN") {
+    return Response.json({ error: "관리자 권한이 필요합니다." }, { status: 403 });
+  }
+
+  try {
+    const deletedCount = await clearCollectionLogs();
+    return Response.json({
+      success: true,
+      message: `${deletedCount}개의 수집 로그가 삭제되었습니다.`,
+      deletedCount,
+    });
+  } catch (error) {
+    console.error("Error clearing collection logs:", error);
+    return Response.json({ error: "로그 삭제 중 오류 발생" }, { status: 500 });
   }
 }

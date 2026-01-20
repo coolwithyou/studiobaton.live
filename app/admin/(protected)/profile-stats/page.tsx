@@ -26,6 +26,7 @@ import {
   Users,
   ChevronDown,
   ChevronUp,
+  Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -200,6 +201,29 @@ export default function ProfileStatsPage() {
     }
   };
 
+  const handleClearLogs = async () => {
+    if (!confirm("수집 로그를 초기화하면 다음 수집 시 모든 레포지토리+월 조합을 다시 수집합니다.\n진행하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/admin/profile-commits/collect", {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "로그 삭제 실패");
+      }
+
+      toast.success(data.message);
+    } catch (error) {
+      console.error("Clear logs error:", error);
+      toast.error("수집 로그 초기화 중 오류가 발생했습니다.");
+    }
+  };
+
   const handleAggregate = async () => {
     setAggregating(true);
 
@@ -340,7 +364,7 @@ export default function ProfileStatsPage() {
             )}
 
             {/* 버튼 */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {collecting ? (
                 <Button variant="destructive" onClick={handleCancelCollect}>
                   <AlertCircle className="size-4 mr-2" />
@@ -355,6 +379,10 @@ export default function ProfileStatsPage() {
               <Button variant="outline" onClick={fetchStatus} disabled={collecting}>
                 <RefreshCw className="size-4 mr-2" />
                 상태 새로고침
+              </Button>
+              <Button variant="ghost" onClick={handleClearLogs} disabled={collecting} className="text-muted-foreground">
+                <Trash2 className="size-4 mr-2" />
+                수집 로그 초기화
               </Button>
             </div>
 

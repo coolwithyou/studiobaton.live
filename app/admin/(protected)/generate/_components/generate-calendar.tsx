@@ -15,7 +15,7 @@ import {
   endOfWeek,
 } from "date-fns";
 import { formatKST } from "@/lib/date-utils";
-import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Loader2, FileEdit, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +24,7 @@ interface CommitStat {
   commitCount: number;
   hasPost: boolean;
   postStatus: string | null;
+  versionCount: number;
 }
 
 interface Holiday {
@@ -267,8 +268,17 @@ export function GenerateCalendar({
               <span className="text-xs">{formatKST(day, "d")}</span>
               {stat && isCurrentMonth && (
                 <div className="flex items-center gap-0.5 mt-0.5">
-                  {stat.hasPost && (
+                  {/* 발행됨 */}
+                  {stat.postStatus === "PUBLISHED" && (
                     <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                  )}
+                  {/* 버전 있음 (DRAFT) */}
+                  {stat.hasPost && stat.versionCount > 0 && stat.postStatus === "DRAFT" && (
+                    <FileEdit className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  )}
+                  {/* 커밋 수집됨 (버전 없음) */}
+                  {stat.hasPost && stat.versionCount === 0 && (
+                    <Download className="h-3 w-3 text-yellow-600 dark:text-yellow-400" />
                   )}
                   {stat.commitCount > 0 && (
                     <span className="text-[10px] text-muted-foreground">

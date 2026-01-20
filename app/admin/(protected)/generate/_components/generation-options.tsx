@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatKST } from "@/lib/date-utils";
-import { Calendar, CalendarRange, Loader2 } from "lucide-react";
+import { Calendar, CalendarRange, Loader2, Download, FileText } from "lucide-react";
 
 interface GenerationOptionsProps {
   selectionMode: "single" | "range";
@@ -19,8 +19,11 @@ interface GenerationOptionsProps {
   onMinCommitCountChange: (value: number) => void;
   forceRegenerate: boolean;
   onForceRegenerateChange: (value: boolean) => void;
-  onGenerate: () => void;
+  onCollectCommits: () => void;
+  onGeneratePost: () => void;
+  isCollecting: boolean;
   isGenerating: boolean;
+  canGeneratePost: boolean;
 }
 
 export function GenerationOptions({
@@ -35,8 +38,11 @@ export function GenerationOptions({
   onMinCommitCountChange,
   forceRegenerate,
   onForceRegenerateChange,
-  onGenerate,
+  onCollectCommits,
+  onGeneratePost,
+  isCollecting,
   isGenerating,
+  canGeneratePost,
 }: GenerationOptionsProps) {
   const hasSelection =
     selectedDates.length > 0 || (rangeStart !== null && rangeEnd !== null);
@@ -140,21 +146,49 @@ export function GenerationOptions({
         </Label>
       </div>
 
-      {/* 생성 버튼 */}
-      <Button
-        onClick={onGenerate}
-        disabled={!hasSelection || isGenerating}
-        className="w-full"
-      >
-        {isGenerating ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            생성 중...
-          </>
-        ) : (
-          "글 생성하기"
+      {/* 버튼들 */}
+      <div className="space-y-2">
+        <Button
+          onClick={onCollectCommits}
+          disabled={!hasSelection || isCollecting || isGenerating}
+          className="w-full"
+        >
+          {isCollecting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              수집 중...
+            </>
+          ) : (
+            <>
+              <Download className="mr-2 h-4 w-4" />
+              커밋 수집하기
+            </>
+          )}
+        </Button>
+        <Button
+          onClick={onGeneratePost}
+          disabled={!canGeneratePost || isCollecting || isGenerating}
+          variant="secondary"
+          className="w-full"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              생성 중...
+            </>
+          ) : (
+            <>
+              <FileText className="mr-2 h-4 w-4" />
+              글 생성하기
+            </>
+          )}
+        </Button>
+        {!canGeneratePost && hasSelection && (
+          <p className="text-xs text-muted-foreground text-center">
+            커밋을 먼저 수집해야 글을 생성할 수 있습니다.
+          </p>
         )}
-      </Button>
+      </div>
     </div>
   );
 }

@@ -17,13 +17,16 @@ interface ErrorDetails {
 
 interface SkippedDay {
   date: string;
-  reason: "holiday" | "low_commits" | "already_exists" | "error";
+  reason: "holiday" | "low_commits" | "already_exists" | "no_commits" | "error";
 }
 
 interface ProcessedDay {
   date: string;
   postId: string;
-  commitsCollected: number;
+  commitsCollected?: number;
+  newCommitsCount?: number;
+  totalCommitsCount?: number;
+  versionId?: string;
 }
 
 interface GenerationResult {
@@ -33,6 +36,8 @@ interface GenerationResult {
   skippedDays?: SkippedDay[];
   results?: ProcessedDay[];
   postId?: string;
+  versionId?: string;
+  tone?: string;
   commitsCollected?: number;
   versionsGenerated?: number;
   error?: string;
@@ -55,6 +60,7 @@ const reasonLabels: Record<string, string> = {
   holiday: "공휴일",
   low_commits: "커밋 부족",
   already_exists: "이미 존재",
+  no_commits: "커밋 없음",
   error: "오류 발생",
 };
 
@@ -186,7 +192,7 @@ export function GenerationProgress({
                       >
                         <span>{item.date}</span>
                         <span className="text-muted-foreground">
-                          {item.commitsCollected}개 커밋
+                          {item.totalCommitsCount ?? item.commitsCollected ?? 0}개 커밋
                         </span>
                       </Link>
                     ))}

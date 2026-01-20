@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { formatKST } from "@/lib/date-utils";
+import { Loader2, Plus, RefreshCw } from "lucide-react";
 
 interface PostVersion {
   id: string;
@@ -84,6 +85,7 @@ export default function PostEditPage({
     summary: string;
     slug: string;
   } | null>(null);
+  const [generatingTone, setGeneratingTone] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPost();
@@ -248,6 +250,47 @@ export default function PostEditPage({
     }
   };
 
+  const handleGenerateVersion = async (
+    tone: "PROFESSIONAL" | "CASUAL" | "TECHNICAL",
+    forceRegenerate: boolean = false
+  ) => {
+    setGeneratingTone(tone);
+    try {
+      const res = await fetch(`/api/admin/posts/${id}/versions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tone, forceRegenerate }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        alert(data.error || "버전 생성 중 오류가 발생했습니다.");
+        return;
+      }
+
+      // 새로 생성된 버전으로 데이터 새로고침
+      await fetchPost();
+
+      // 새로 생성된 버전 선택
+      if (data.versionId) {
+        setSelectedVersionId(data.versionId);
+      }
+    } catch (error) {
+      console.error("Error generating version:", error);
+      alert("버전 생성 중 오류가 발생했습니다.");
+    } finally {
+      setGeneratingTone(null);
+    }
+  };
+
+  const handleRegenerateVersion = async (tone: "PROFESSIONAL" | "CASUAL" | "TECHNICAL") => {
+    if (!confirm(`${TONE_LABELS[tone]} 버전을 재생성하시겠습니까?\n\n기존 내용이 삭제되고 새로운 내용으로 대체됩니다.`)) {
+      return;
+    }
+    await handleGenerateVersion(tone, true);
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -369,7 +412,7 @@ export default function PostEditPage({
                 const version = post.versions.find((ver) => ver.id === v);
                 if (version) handleVersionSelect(version);
               }}
-              className="mb-6"
+              className="mb-4"
             >
               <TabsList>
                 {post.versions.map((version) => (
@@ -379,6 +422,46 @@ export default function PostEditPage({
                 ))}
               </TabsList>
             </Tabs>
+          )}
+
+          {/* 버전 관리 버튼 */}
+          {!isPublished && post.commits.length > 0 && (
+            <div className="flex items-center gap-2 mb-6 flex-wrap">
+              <span className="text-sm text-muted-foreground">버전 관리:</span>
+              {(["PROFESSIONAL", "CASUAL", "TECHNICAL"] as const).map((tone) => {
+                const hasVersion = post.versions.some((v) => v.tone === tone);
+                return (
+                  <Button
+                    key={tone}
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      hasVersion
+                        ? handleRegenerateVersion(tone)
+                        : handleGenerateVersion(tone)
+                    }
+                    disabled={generatingTone !== null}
+                  >
+                    {generatingTone === tone ? (
+                      <>
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        생성 중...
+                      </>
+                    ) : hasVersion ? (
+                      <>
+                        <RefreshCw className="mr-1 h-3 w-3" />
+                        {TONE_LABELS[tone]} 재생성
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="mr-1 h-3 w-3" />
+                        {TONE_LABELS[tone]} 생성
+                      </>
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
           )}
 
           {/* 편집 폼 */}

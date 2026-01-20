@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
       commitCountByDate.set(dateKey, currentCount + stat._count.id);
     }
 
-    // 해당 기간의 Post 조회
+    // 해당 기간의 Post 조회 (versions 카운트 포함)
     const posts = await prisma.post.findMany({
       where: {
         targetDate: {
@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
         _count: {
           select: {
             commits: true,
+            versions: true,
           },
         },
       },
@@ -80,13 +81,14 @@ export async function GET(request: NextRequest) {
     // Post 정보를 날짜별 맵으로 변환
     const postByDate = new Map<
       string,
-      { status: string; commitCount: number }
+      { status: string; commitCount: number; versionCount: number }
     >();
     for (const post of posts) {
       const dateKey = formatKST(post.targetDate, "yyyy-MM-dd");
       postByDate.set(dateKey, {
         status: post.status,
         commitCount: post._count.commits,
+        versionCount: post._count.versions,
       });
     }
 
@@ -100,6 +102,7 @@ export async function GET(request: NextRequest) {
         commitCount: postInfo?.commitCount || commitCountByDate.get(dateKey) || 0,
         hasPost: !!postInfo,
         postStatus: postInfo?.status || null,
+        versionCount: postInfo?.versionCount || 0,
       };
     });
 

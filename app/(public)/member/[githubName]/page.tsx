@@ -9,6 +9,7 @@ import { getServerSession } from "@/lib/auth-helpers";
 import { MemberProfileHeader } from "@/components/member/member-profile-header";
 import { MemberCommitList } from "@/components/member/member-commit-list";
 import { MemberActivitySection } from "@/components/member/member-activity-section";
+import { EditableBio } from "@/components/member/editable-bio";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -64,6 +65,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
       email: true,
       avatarUrl: true,
       profileImageUrl: true,
+      bio: true,
     },
   });
 
@@ -129,6 +131,18 @@ async function MemberProfile({ githubName }: { githubName: string }) {
         </Link>
 
         <MemberProfileHeader member={member} stats={stats} canEdit={canEdit} />
+
+        {/* 자기소개 섹션 */}
+        {(member.bio || canEdit) && (
+          <section className="mt-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">소개</h3>
+            <EditableBio
+              memberId={member.id}
+              currentBio={member.bio}
+              canEdit={canEdit}
+            />
+          </section>
+        )}
 
         <Separator className="my-8" />
 

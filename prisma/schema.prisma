@@ -173,6 +173,7 @@ model Member {
   email           String   @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
   avatarUrl       String?  // 1:1 아바타 (포스트, 헤더, 멤버 카드)
   profileImageUrl String?  // 3:4 프로필 이미지 (프로필 페이지)
+  bio             String?  @db.Text // 자기소개 (줄바꿈 지원)
   isActive        Boolean  @default(true) // 활성화 여부
   displayOrder    Int      @default(0) // 탭 표시 순서
 

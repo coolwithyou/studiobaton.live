@@ -10,6 +10,7 @@ import { GenerateCalendar } from "./_components/generate-calendar";
 import { GenerationOptions } from "./_components/generation-options";
 import { GenerationProgress } from "./_components/generation-progress";
 import { ErrorDetailModal, ErrorDetails } from "./_components/error-detail-modal";
+import { DEFAULT_MODEL, AIModel } from "@/lib/ai";
 
 interface CollectResult {
   success: boolean;
@@ -65,6 +66,7 @@ export default function GeneratePage() {
   const [excludeHolidays, setExcludeHolidays] = useState(true);
   const [minCommitCount, setMinCommitCount] = useState(5);
   const [forceRegenerate, setForceRegenerate] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<AIModel>(DEFAULT_MODEL);
 
   // 수집/생성 상태
   const [isCollecting, setIsCollecting] = useState(false);
@@ -232,7 +234,7 @@ export default function GeneratePage() {
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tone: "PROFESSIONAL" }),
+            body: JSON.stringify({ tone: "PROFESSIONAL", model: selectedModel }),
           }
         );
 
@@ -256,6 +258,7 @@ export default function GeneratePage() {
           body: JSON.stringify({
             postIds,
             tone: "PROFESSIONAL",
+            model: selectedModel,
           }),
         });
 
@@ -380,6 +383,8 @@ export default function GeneratePage() {
             onMinCommitCountChange={setMinCommitCount}
             forceRegenerate={forceRegenerate}
             onForceRegenerateChange={setForceRegenerate}
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
             onCollectCommits={handleCollectCommits}
             onGeneratePost={handleGeneratePost}
             isCollecting={isCollecting}

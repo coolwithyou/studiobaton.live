@@ -1,5 +1,5 @@
 import { collectDailyCommits } from "./github";
-import { generateAllVersions, generatePostVersion, AIError, AIErrorDetails } from "./ai";
+import { generateAllVersions, generatePostVersion, AIError, AIErrorDetails, AIModel, DEFAULT_MODEL } from "./ai";
 import prisma from "./prisma";
 import { VersionTone } from "@/app/generated/prisma";
 import { getKSTDayRange, startOfDayKST } from "@/lib/date-utils";
@@ -152,7 +152,8 @@ export interface GenerateVersionResult {
 export async function generateVersionForPost(
   postId: string,
   tone: VersionTone = "PROFESSIONAL",
-  forceRegenerate: boolean = false
+  forceRegenerate: boolean = false,
+  model: AIModel = DEFAULT_MODEL
 ): Promise<GenerateVersionResult> {
   // 1. Post와 커밋 조회
   const post = await prisma.post.findUnique({
@@ -198,7 +199,7 @@ export async function generateVersionForPost(
 
   let generatedPost;
   try {
-    generatedPost = await generatePostVersion(commitSummaries, post.targetDate, tone);
+    generatedPost = await generatePostVersion(commitSummaries, post.targetDate, tone, model);
   } catch (error) {
     if (error instanceof AIError) {
       return {

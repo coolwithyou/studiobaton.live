@@ -4,8 +4,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatKST } from "@/lib/date-utils";
 import { Calendar, CalendarRange, Loader2, Download, FileText } from "lucide-react";
+import { AVAILABLE_MODELS, AIModel } from "@/lib/ai";
 
 interface GenerationOptionsProps {
   selectionMode: "single" | "range";
@@ -19,6 +27,8 @@ interface GenerationOptionsProps {
   onMinCommitCountChange: (value: number) => void;
   forceRegenerate: boolean;
   onForceRegenerateChange: (value: boolean) => void;
+  selectedModel: AIModel;
+  onModelChange: (model: AIModel) => void;
   onCollectCommits: () => void;
   onGeneratePost: () => void;
   isCollecting: boolean;
@@ -38,6 +48,8 @@ export function GenerationOptions({
   onMinCommitCountChange,
   forceRegenerate,
   onForceRegenerateChange,
+  selectedModel,
+  onModelChange,
   onCollectCommits,
   onGeneratePost,
   isCollecting,
@@ -144,6 +156,26 @@ export function GenerationOptions({
         <Label htmlFor="forceRegenerate" className="text-sm cursor-pointer">
           기존 Post 덮어쓰기
         </Label>
+      </div>
+
+      {/* AI 모델 선택 */}
+      <div className="space-y-2">
+        <Label className="text-sm text-muted-foreground">AI 모델</Label>
+        <Select value={selectedModel} onValueChange={(value) => onModelChange(value as AIModel)}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(AVAILABLE_MODELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          Opus는 더 높은 품질, Sonnet은 빠른 속도와 가성비
+        </p>
       </div>
 
       {/* 버튼들 */}

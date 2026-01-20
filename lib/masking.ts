@@ -164,14 +164,14 @@ export function maskCommitUrl(
   return isAuthenticated ? url : null;
 }
 
-// 개발자명 마스킹
+// 개발자명 마스킹 (현재 비활성화 - 개발자명은 항상 공개)
 export function maskAuthorName(
   name: string,
-  authorIndex: number,
-  isAuthenticated: boolean
+  _authorIndex: number,
+  _isAuthenticated: boolean
 ): string {
-  if (isAuthenticated) return name;
-  return `개발자 ${indexToAlpha(authorIndex)}`; // A, B, C... AA, AB...
+  // 개발자명은 마스킹하지 않고 항상 공개
+  return name;
 }
 
 // 글 본문 마스킹 (repositoryName, displayName → maskName 또는 Repository A 치환)
@@ -338,7 +338,7 @@ export function applyPostMasking(
         authorIndexMap.get(commit.author) || 0,
         isAuthenticated
       ),
-      authorAvatar: isAuthenticated ? commit.authorAvatar : null,
+      authorAvatar: commit.authorAvatar, // 아바타는 항상 공개
       url: maskCommitUrl(commit.url, isAuthenticated),
     })),
   };

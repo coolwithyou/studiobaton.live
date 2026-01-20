@@ -153,10 +153,10 @@ describe("maskAuthorName", () => {
     expect(maskAuthorName("John Doe", 0, true)).toBe("John Doe");
   });
 
-  it("비인증 사용자에게는 '개발자 X' 형식을 반환한다", () => {
-    expect(maskAuthorName("John Doe", 0, false)).toBe("개발자 A");
-    expect(maskAuthorName("Jane Smith", 1, false)).toBe("개발자 B");
-    expect(maskAuthorName("Bob Johnson", 2, false)).toBe("개발자 C");
+  it("비인증 사용자에게도 원본 이름을 반환한다 (마스킹 비활성화)", () => {
+    expect(maskAuthorName("John Doe", 0, false)).toBe("John Doe");
+    expect(maskAuthorName("Jane Smith", 1, false)).toBe("Jane Smith");
+    expect(maskAuthorName("Bob Johnson", 2, false)).toBe("Bob Johnson");
   });
 });
 
@@ -261,21 +261,21 @@ describe("applyPostMasking", () => {
       expect(result.summary).toBe("프로젝트 A 업데이트");
     });
 
-    it("커밋 정보를 마스킹한다", () => {
+    it("커밋 정보를 마스킹한다 (개발자명/아바타 제외)", () => {
       const result = applyPostMasking(mockPost, mappings, false);
 
       // 첫 번째 커밋
       expect(result.commits[0].repository).toBe("프로젝트 A");
       expect(result.commits[0].message).toBe("기능 추가");
-      expect(result.commits[0].author).toBe("개발자 A");
-      expect(result.commits[0].authorAvatar).toBeNull();
+      expect(result.commits[0].author).toBe("John Doe"); // 개발자명은 마스킹 안함
+      expect(result.commits[0].authorAvatar).toBe("https://example.com/avatar.jpg"); // 아바타도 마스킹 안함
       expect(result.commits[0].url).toBeNull();
 
       // 두 번째 커밋
       expect(result.commits[1].repository).toBe("Repository B");
       expect(result.commits[1].message).toBe("버그 수정");
-      expect(result.commits[1].author).toBe("개발자 B");
-      expect(result.commits[1].authorAvatar).toBeNull();
+      expect(result.commits[1].author).toBe("Jane Smith"); // 개발자명은 마스킹 안함
+      expect(result.commits[1].authorAvatar).toBe("https://example.com/avatar2.jpg"); // 아바타도 마스킹 안함
       expect(result.commits[1].url).toBeNull();
     });
 

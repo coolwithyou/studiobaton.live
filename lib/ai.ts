@@ -7,6 +7,47 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
+// ==========================================
+// AI 모델 설정
+// ==========================================
+
+/**
+ * 사용 가능한 AI 모델 목록
+ * 엔지니어링 블로그 품질을 위해 상위 모델만 제공 (Haiku 제외)
+ */
+export const AVAILABLE_MODELS = {
+  "claude-sonnet-4-5-20250929": "Claude Sonnet 4.5 (기본, 속도+가성비)",
+  "claude-opus-4-5-20251101": "Claude Opus 4.5 (최고 품질)",
+} as const;
+
+export type AIModel = keyof typeof AVAILABLE_MODELS;
+
+export const DEFAULT_MODEL: AIModel = "claude-sonnet-4-5-20250929";
+
+/**
+ * 커밋 수에 따른 동적 글 길이 계산
+ * 커밋이 많을수록 더 상세한 글 생성
+ */
+function calculateContentLength(commitCount: number): {
+  minLength: number;
+  maxLength: number;
+  maxTokens: number;
+} {
+  if (commitCount <= 5) {
+    // 1-5개 커밋: 간결한 요약
+    return { minLength: 150, maxLength: 300, maxTokens: 512 };
+  } else if (commitCount <= 15) {
+    // 6-15개 커밋: 표준 길이
+    return { minLength: 300, maxLength: 500, maxTokens: 1024 };
+  } else if (commitCount <= 30) {
+    // 16-30개 커밋: 상세 설명
+    return { minLength: 500, maxLength: 800, maxTokens: 1536 };
+  } else {
+    // 31개+ 커밋: 풍부한 내용
+    return { minLength: 800, maxLength: 1200, maxTokens: 2048 };
+  }
+}
+
 /**
  * AI API 에러 상세 정보
  */
@@ -213,7 +254,8 @@ const TONE_PROMPTS: Record<VersionTone, string> = {
 export async function generatePostVersion(
   commits: CommitSummary[],
   targetDate: Date,
-  tone: VersionTone
+  tone: VersionTone,
+  model: AIModel = DEFAULT_MODEL
 ): Promise<GeneratedPost> {
   const dateStr = formatKST(targetDate, "yyyy년 M월 d일 (EEEE)");
 
@@ -245,6 +287,9 @@ export async function generatePostVersion(
     )
     .join("\n");
 
+  // 커밋 수에 따른 동적 글 길이 계산
+  const { minLength, maxLength, maxTokens } = calculateContentLength(commits.length);
+
   const prompt = `${STYLE_GUIDE}
 
 ${dateStr}의 개발 활동을 블로그 글로 작성해주세요.
@@ -260,7 +305,7 @@ ${TONE_PROMPTS[tone]}
 
 ## 작성 가이드:
 1. 제목은 개발자가 클릭하고 싶어지는 흥미로운 제목으로 (뻔한 "오늘의 개발" 같은 건 피하기)
-2. 본문은 300-500자 내외, 읽기 편하게
+2. 본문은 ${minLength}-${maxLength}자 내외, 읽기 편하게
 3. Markdown 형식 사용:
    - 내용이 길거나 섹션 구분이 필요하면 ## 헤딩 사용 가능
    - 핵심 내용은 **굵게** 강조, 기술 용어는 \`인라인 코드\`로 표시
@@ -297,8 +342,8 @@ ${TONE_PROMPTS[tone]}
 
   try {
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 1024,
+      model,
+      max_tokens: maxTokens,
       messages: [{ role: "user", content: prompt }],
     });
 

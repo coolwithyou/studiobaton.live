@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-helpers";
 import { generateVersionForPost } from "@/lib/generate";
 import { VersionTone } from "@/app/generated/prisma";
+import { AVAILABLE_MODELS, DEFAULT_MODEL, AIModel } from "@/lib/ai";
 
 const VALID_TONES: VersionTone[] = ["PROFESSIONAL", "CASUAL", "TECHNICAL"];
 
@@ -18,7 +19,7 @@ export async function POST(
 
     const { id: postId } = await params;
     const body = await request.json();
-    const { tone = "PROFESSIONAL", forceRegenerate = false } = body;
+    const { tone = "PROFESSIONAL", forceRegenerate = false, model = DEFAULT_MODEL } = body;
 
     if (!VALID_TONES.includes(tone)) {
       return NextResponse.json(
@@ -27,7 +28,15 @@ export async function POST(
       );
     }
 
-    const result = await generateVersionForPost(postId, tone as VersionTone, forceRegenerate);
+    // 모델 유효성 검사
+    if (model && !(model in AVAILABLE_MODELS)) {
+      return NextResponse.json(
+        { error: `유효하지 않은 모델입니다. 허용 값: ${Object.keys(AVAILABLE_MODELS).join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const result = await generateVersionForPost(postId, tone as VersionTone, forceRegenerate, model as AIModel);
 
     if (!result.success) {
       return NextResponse.json(result, { status: result.errorDetails ? 500 : 400 });

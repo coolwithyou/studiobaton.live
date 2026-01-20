@@ -64,17 +64,25 @@ export function generateMonthRanges(
   return ranges;
 }
 
+interface RepoInfo {
+  name: string;
+  createdAt: Date;
+}
+
 /**
- * 레포지토리 목록 조회
+ * 레포지토리 목록 조회 (생성일 포함)
  */
-async function getOrgRepos(): Promise<string[]> {
+async function getOrgRepos(): Promise<RepoInfo[]> {
   try {
     const repos = await octokit.paginate(octokit.repos.listForOrg, {
       org: ORG_NAME,
       type: "all",
       per_page: 100,
     });
-    return repos.map((repo) => repo.name);
+    return repos.map((repo) => ({
+      name: repo.name,
+      createdAt: new Date(repo.created_at || "2020-01-01"),
+    }));
   } catch (error) {
     console.error("Error fetching org repos:", error);
     return [];
@@ -261,36 +269,53 @@ export async function collectHistoricalCommits(
     return { commits: [], totalProcessed: 0, errors };
   }
 
-  // 2. 월 단위 범위 생성
-  const monthRanges = generateMonthRanges(startDate, endDate);
-
   onProgress?.({
     phase: "commits",
     processedRepos: 0,
     totalRepos: repos.length,
     processedCommits: 0,
     totalCommits: 0,
-    message: `${repos.length}개 레포지토리, ${monthRanges.length}개월 기간을 수집합니다.`,
+    message: `${repos.length}개 레포지토리를 수집합니다. (레포별 생성일 기준)`,
   });
 
-  // 3. 각 레포지토리별로 월 단위 수집
+  // 2. 각 레포지토리별로 월 단위 수집 (레포 생성일부터)
   for (let repoIdx = 0; repoIdx < repos.length; repoIdx++) {
     const repo = repos[repoIdx];
+
+    // 레포 생성일과 요청 시작일 중 더 늦은 날짜부터 수집
+    const effectiveStartDate = repo.createdAt > startDate ? repo.createdAt : startDate;
+
+    // 레포 생성일이 종료일 이후면 스킵
+    if (effectiveStartDate > endDate) {
+      onProgress?.({
+        phase: "commits",
+        currentRepo: repo.name,
+        processedRepos: repoIdx + 1,
+        totalRepos: repos.length,
+        processedCommits: allCommits.length,
+        totalCommits: allCommits.length,
+        message: `${repo.name} 스킵 (생성일: ${repo.createdAt.toISOString().slice(0, 10)})`,
+      });
+      continue;
+    }
+
+    // 해당 레포에 대한 월 범위 생성
+    const monthRanges = generateMonthRanges(effectiveStartDate, endDate);
 
     for (const range of monthRanges) {
       onProgress?.({
         phase: "commits",
-        currentRepo: repo,
+        currentRepo: repo.name,
         currentMonth: range.label,
         processedRepos: repoIdx,
         totalRepos: repos.length,
         processedCommits: allCommits.length,
         totalCommits: allCommits.length,
-        message: `${repo} (${range.label}) 커밋 수집 중...`,
+        message: `${repo.name} (${range.label}) 커밋 수집 중... (생성일: ${repo.createdAt.toISOString().slice(0, 10)})`,
       });
 
       try {
-        const commits = await getRepoCommitsForPeriod(repo, range.start, range.end);
+        const commits = await getRepoCommitsForPeriod(repo.name, range.start, range.end);
 
         // 중복 제거 (이미 수집된 SHA 제외)
         const newCommits = commits.filter((c) => !existingShas.has(c.sha));
@@ -300,7 +325,7 @@ export async function collectHistoricalCommits(
 
         allCommits.push(...newCommits);
       } catch (error) {
-        const errMsg = `${repo}/${range.label}: ${error instanceof Error ? error.message : String(error)}`;
+        const errMsg = `${repo.name}/${range.label}: ${error instanceof Error ? error.message : String(error)}`;
         errors.push(errMsg);
       }
 

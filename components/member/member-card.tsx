@@ -18,14 +18,14 @@ export function MemberCard({ member }: MemberCardProps) {
 
   return (
     <Link href={`/member/${member.githubName}`}>
-      <Card className="group relative aspect-[3/4] overflow-hidden p-0 border hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer">
+      <Card className="group relative aspect-[2/3] overflow-hidden p-0 border hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer">
         {/* 배경 이미지 또는 폴백 */}
         {displayImage ? (
           <Image
             src={displayImage}
             alt={member.name}
             fill
-            className="object-cover"
+            className="object-cover object-top"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
@@ -36,8 +36,8 @@ export function MemberCard({ member }: MemberCardProps) {
           </div>
         )}
 
-        {/* 하단 그라데이션 오버레이 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 via-30% to-transparent" />
+        {/* 하단 그라데이션 오버레이 (카드 하단 40%만 차지) */}
+        <div className="absolute bottom-0 left-0 right-0 h-2/5 bg-gradient-to-t from-background via-background/60 via-50% to-transparent" />
 
         {/* 텍스트 컨텐츠 (하단 고정) */}
         <div className="absolute bottom-0 left-0 right-0 p-4 space-y-1">

@@ -16,6 +16,8 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { StandupForm } from "./_components/standup-form";
 import { TaskList } from "./_components/task-list";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { PageContainer } from "@/components/admin/ui/page-container";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 interface Member {
   id: string;
@@ -149,13 +151,11 @@ export default function StandupPage() {
   const completedCount = tasks.filter((t) => t.isCompleted).length;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">스탠드업</h1>
-        <p className="text-muted-foreground">
-          오늘의 업무 진행 계획을 공유하고 할일을 등록하세요.
-        </p>
-      </div>
+    <PageContainer maxWidth="xl">
+      <PageHeader
+        title="스탠드업"
+        description="오늘의 업무 진행 계획을 공유하고 할일을 등록하세요."
+      />
 
       {/* 날짜 선택 */}
       <div className="flex items-center gap-4 mb-6">
@@ -246,6 +246,6 @@ export default function StandupPage() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

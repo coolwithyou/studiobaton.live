@@ -31,6 +31,8 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { PageContainer } from "@/components/admin/ui/page-container";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 interface RepositoryStats {
   name: string;
@@ -266,13 +268,11 @@ export default function ProfileStatsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">프로필 통계 관리</h1>
-        <p className="text-muted-foreground mt-1">
-          멤버 프로필 페이지에 표시할 개발 활동 통계를 관리합니다.
-        </p>
-      </div>
+    <PageContainer maxWidth="xl">
+      <PageHeader
+        title="프로필 통계 관리"
+        description="멤버 프로필 페이지에 표시할 개발 활동 통계를 관리합니다."
+      />
 
       <div className="space-y-6">
         {/* 커밋 수집 섹션 */}
@@ -557,6 +557,6 @@ export default function ProfileStatsPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </PageContainer>
   );
 }

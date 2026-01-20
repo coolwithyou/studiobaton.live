@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { formatKST } from "@/lib/date-utils";
 import { Loader2, Plus, RefreshCw } from "lucide-react";
+import { PageContainer } from "@/components/admin/ui/page-container";
 import {
   Select,
   SelectContent,
@@ -342,25 +343,27 @@ export default function PostEditPage({
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <PageContainer>
         <Skeleton className="h-8 w-64 mb-4" />
         <Skeleton className="h-4 w-32 mb-8" />
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8">
           <Skeleton className="h-[200px] w-full" />
           <Skeleton className="h-[400px] w-full" />
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (!post) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <p>포스트를 찾을 수 없습니다.</p>
-        <Button onClick={() => router.push("/admin")} className="mt-4">
-          돌아가기
-        </Button>
-      </div>
+      <PageContainer>
+        <div className="text-center py-8">
+          <p>포스트를 찾을 수 없습니다.</p>
+          <Button onClick={() => router.push("/admin")} className="mt-4">
+            돌아가기
+          </Button>
+        </div>
+      </PageContainer>
     );
   }
 
@@ -375,7 +378,7 @@ export default function PostEditPage({
   const usedRepositories = [...new Set(post.commits.map((c) => c.repository))];
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <PageContainer>
       {/* 헤더 */}
       <div className="flex items-start justify-between mb-6">
         <div>
@@ -703,6 +706,6 @@ export default function PostEditPage({
           </div>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }

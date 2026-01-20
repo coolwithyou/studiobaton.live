@@ -1,127 +1,113 @@
-"use client";
+"use client"
 
-import { useState, useEffect, useCallback } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { MemberForm } from "./_components/member-form";
-import { MemberList } from "./_components/member-list";
-import { Link2, Loader2 } from "lucide-react";
-import { toast } from "sonner";
+import { useState, useEffect, useCallback } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
+import { MemberForm } from "./_components/member-form"
+import { MemberList } from "./_components/member-list"
+import { Link2, Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { PageContainer } from "@/components/admin/ui/page-container"
+import { PageHeader } from "@/components/admin/ui/page-header"
 
 export interface Member {
-  id: string;
-  name: string;
-  githubName: string;
-  email: string;
-  avatarUrl: string | null;
-  isActive: boolean;
-  displayOrder: number;
-  isLinked?: boolean;
-  linkedAdminEmail?: string | null;
+  id: string
+  name: string
+  githubName: string
+  email: string
+  avatarUrl: string | null
+  isActive: boolean
+  displayOrder: number
+  isLinked?: boolean
+  linkedAdminEmail?: string | null
 }
 
 export default function MembersPage() {
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [matching, setMatching] = useState(false);
+  const [members, setMembers] = useState<Member[]>([])
+  const [loading, setLoading] = useState(true)
+  const [matching, setMatching] = useState(false)
 
   const handleMatch = async () => {
-    setMatching(true);
+    setMatching(true)
     try {
       const response = await fetch("/api/admin/members/match", {
         method: "POST",
-      });
-      const data = await response.json();
+      })
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || "매칭에 실패했습니다.");
+        throw new Error(data.error || "매칭에 실패했습니다.")
       }
 
       if (data.matched > 0) {
-        toast.success(data.message);
-        fetchMembers(); // 목록 새로고침
+        toast.success(data.message)
+        fetchMembers()
       } else {
-        toast.info("매칭할 계정이 없습니다.");
+        toast.info("매칭할 계정이 없습니다.")
       }
     } catch (error) {
-      console.error("Failed to match:", error);
-      toast.error("매칭 중 오류가 발생했습니다.");
+      console.error("Failed to match:", error)
+      toast.error("매칭 중 오류가 발생했습니다.")
     } finally {
-      setMatching(false);
+      setMatching(false)
     }
-  };
+  }
 
   const fetchMembers = useCallback(async () => {
     try {
-      // 관리자 페이지에서는 비활성 팀원도 조회
-      const response = await fetch("/api/admin/members?includeInactive=true");
-      const data = await response.json();
-      setMembers(data.members || []);
+      const response = await fetch("/api/admin/members?includeInactive=true")
+      const data = await response.json()
+      setMembers(data.members || [])
     } catch (error) {
-      console.error("Failed to fetch members:", error);
+      console.error("Failed to fetch members:", error)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    fetchMembers();
-  }, [fetchMembers]);
+    fetchMembers()
+  }, [fetchMembers])
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">팀원 관리</h1>
-          <p className="text-muted-foreground mt-1">
-            커밋 리뷰에 사용할 팀원 정보를 관리합니다.
-          </p>
-        </div>
+    <PageContainer maxWidth="xl">
+      <PageHeader
+        title="팀원 관리"
+        description="커밋 리뷰에 사용할 팀원 정보를 관리합니다."
+      >
         <Button
           variant="outline"
           size="sm"
           onClick={handleMatch}
           disabled={matching}
-          className="gap-2"
         >
           {matching ? (
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
-            <Link2 className="size-4" />
+            <Link2 className="mr-2 h-4 w-4" />
           )}
           사용자 매칭
         </Button>
-      </div>
+      </PageHeader>
 
       {loading ? (
-        <div className="text-center py-8 text-muted-foreground">
-          로딩 중...
-        </div>
+        <div className="text-center py-8 text-muted-foreground">로딩 중...</div>
       ) : (
         <Tabs defaultValue="list" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="list">
-              팀원 목록 ({members.length})
-            </TabsTrigger>
-            <TabsTrigger value="add">
-              팀원 추가
-            </TabsTrigger>
+            <TabsTrigger value="list">팀원 목록 ({members.length})</TabsTrigger>
+            <TabsTrigger value="add">팀원 추가</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list">
-            <MemberList
-              members={members}
-              onMemberChange={fetchMembers}
-            />
+            <MemberList members={members} onMemberChange={fetchMembers} />
           </TabsContent>
 
           <TabsContent value="add">
-            <MemberForm
-              onMemberChange={fetchMembers}
-            />
+            <MemberForm onMemberChange={fetchMembers} />
           </TabsContent>
         </Tabs>
       )}
-    </div>
-  );
+    </PageContainer>
+  )
 }

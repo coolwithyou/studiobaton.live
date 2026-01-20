@@ -20,6 +20,8 @@ import { CommitDiagnoseDialog } from "./_components/commit-diagnose-dialog";
 import { CommitRepositoryGroup } from "../review/_components/commit-repository-group";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { toast } from "sonner";
+import { PageContainer } from "@/components/admin/ui/page-container";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 interface Member {
   id: string;
@@ -258,15 +260,11 @@ export default function WrapUpPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-bold">랩업</h1>
-        </div>
-        <p className="text-muted-foreground">
-          오늘 하루도 고생 많으셨습니다!
-        </p>
-      </div>
+    <PageContainer maxWidth="2xl">
+      <PageHeader
+        title="랩업"
+        description="오늘 하루도 고생 많으셨습니다!"
+      />
 
       {/* 날짜 선택 */}
       <div className="flex items-center gap-4 mb-6">
@@ -431,6 +429,6 @@ export default function WrapUpPage() {
           )}
         </TabsContent>
       </Tabs>
-    </div>
+    </PageContainer>
   );
 }

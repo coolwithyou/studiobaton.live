@@ -1,116 +1,179 @@
-import { Suspense } from "react";
-import Link from "next/link";
-import prisma from "@/lib/prisma";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { formatKST } from "@/lib/date-utils";
+import { Suspense } from "react"
+import prisma from "@/lib/prisma"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 
-// 동적 렌더링 강제
-export const dynamic = "force-dynamic";
+import { PageContainer } from "@/components/admin/ui/page-container"
+import { PageHeader } from "@/components/admin/ui/page-header"
+import { SectionCards } from "@/components/admin/dashboard/section-cards"
+import { ChartAreaInteractive } from "@/components/admin/dashboard/chart-area-interactive"
+import {
+  RecentPostsTable,
+  type PostData,
+} from "@/components/admin/dashboard/recent-posts-table"
 
-async function PostList() {
-  const posts = await prisma.post.findMany({
-    orderBy: {
-      targetDate: "desc",
-    },
-    take: 50,
-    include: {
-      versions: {
-        select: {
-          id: true,
-          title: true,
-        },
-      },
-      _count: {
-        select: {
-          commits: true,
-        },
-      },
-    },
-  });
+export const dynamic = "force-dynamic"
 
-  if (posts.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p>아직 포스트가 없습니다.</p>
-        <p className="text-sm mt-2">
-          Vercel Cron이 매일 자정에 커밋을 수집합니다.
-        </p>
-      </div>
-    );
-  }
-
+function CardsSkeleton() {
   return (
-    <div className="divide-y">
-      {posts.map((post) => (
-        <Link
-          key={post.id}
-          href={`/admin/post/${post.id}`}
-          className="block py-4 hover:bg-muted/50 transition-colors px-4 -mx-4"
-        >
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <time className="text-sm text-muted-foreground">
-                  {formatKST(post.targetDate, "yyyy년 M월 d일 (EEE)")}
-                </time>
-                <Badge
-                  variant={post.status === "PUBLISHED" ? "default" : "secondary"}
-                >
-                  {post.status === "PUBLISHED"
-                    ? "발행됨"
-                    : post.status === "DRAFT"
-                    ? "대기중"
-                    : "보관됨"}
-                </Badge>
-              </div>
-              <h3 className="font-medium truncate">
-                {post.title || post.versions[0]?.title || "제목 없음"}
-              </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {post._count.commits}개의 커밋 · {post.versions.length}개 버전
-              </p>
-            </div>
-            <Button variant="ghost" size="sm">
-              {post.status === "PUBLISHED" ? "보기" : "편집"}
-            </Button>
-          </div>
-        </Link>
+    <div className="grid gap-4 @xs/main:grid-cols-2 @lg/main:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i}>
+          <CardHeader className="pb-2">
+            <Skeleton className="h-4 w-24" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-8 w-16 mb-2" />
+            <Skeleton className="h-3 w-32" />
+          </CardContent>
+        </Card>
       ))}
     </div>
-  );
+  )
 }
 
-function PostListSkeleton() {
+function ChartSkeleton() {
   return (
-    <div className="space-y-4">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="py-4">
-          <Skeleton className="h-4 w-32 mb-2" />
-          <Skeleton className="h-5 w-64 mb-1" />
-          <Skeleton className="h-4 w-40" />
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-4 w-48" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-[250px] w-full" />
+      </CardContent>
+    </Card>
+  )
+}
+
+function TableSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-4 w-40" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
+          ))}
         </div>
-      ))}
-    </div>
-  );
+      </CardContent>
+    </Card>
+  )
+}
+
+async function ChartData() {
+  const ninetyDaysAgo = new Date()
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+
+  const [posts, commitLogs] = await Promise.all([
+    prisma.post.groupBy({
+      by: ["targetDate"],
+      _count: { id: true },
+      where: {
+        targetDate: { gte: ninetyDaysAgo },
+      },
+      orderBy: { targetDate: "asc" },
+    }),
+    prisma.commitLog.groupBy({
+      by: ["committedAt"],
+      _count: { id: true },
+      where: {
+        committedAt: { gte: ninetyDaysAgo },
+      },
+      orderBy: { committedAt: "asc" },
+    }),
+  ])
+
+  const dateMap = new Map<string, { posts: number; commits: number }>()
+
+  for (const p of posts) {
+    const dateStr = p.targetDate.toISOString().split("T")[0]
+    const existing = dateMap.get(dateStr) || { posts: 0, commits: 0 }
+    dateMap.set(dateStr, { ...existing, posts: p._count.id })
+  }
+
+  for (const c of commitLogs) {
+    const dateStr = c.committedAt.toISOString().split("T")[0]
+    const existing = dateMap.get(dateStr) || { posts: 0, commits: 0 }
+    dateMap.set(dateStr, { ...existing, commits: c._count.id })
+  }
+
+  const chartData = Array.from(dateMap.entries())
+    .map(([date, counts]) => ({
+      date,
+      posts: counts.posts,
+      commits: counts.commits,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+
+  return <ChartAreaInteractive data={chartData} />
+}
+
+async function RecentPosts() {
+  const posts = await prisma.post.findMany({
+    orderBy: { targetDate: "desc" },
+    take: 20,
+    include: {
+      versions: {
+        select: { title: true },
+        take: 1,
+      },
+      _count: {
+        select: { commits: true },
+      },
+    },
+  })
+
+  const tableData: PostData[] = posts.map((post) => ({
+    id: post.id,
+    title: post.title || post.versions[0]?.title || "제목 없음",
+    status: post.status as "PUBLISHED" | "DRAFT" | "ARCHIVED",
+    targetDate: post.targetDate.toISOString(),
+    commitCount: post._count.commits,
+    versionCount: post.versions.length,
+  }))
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>최근 포스트</CardTitle>
+        <CardDescription>최근 작성된 포스트 목록입니다.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <RecentPostsTable data={tableData} />
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function AdminDashboard() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold">포스트 관리</h1>
-          <p className="text-muted-foreground mt-1">
-            AI가 생성한 글을 검토하고 발행하세요
-          </p>
-        </div>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="대시보드"
+        description="콘텐츠 현황을 한눈에 확인하세요"
+      />
 
-      <Suspense fallback={<PostListSkeleton />}>
-        <PostList />
+      <Suspense fallback={<CardsSkeleton />}>
+        <SectionCards />
       </Suspense>
-    </div>
-  );
+
+      <Suspense fallback={<ChartSkeleton />}>
+        <ChartData />
+      </Suspense>
+
+      <Suspense fallback={<TableSkeleton />}>
+        <RecentPosts />
+      </Suspense>
+    </PageContainer>
+  )
 }

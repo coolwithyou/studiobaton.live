@@ -6,6 +6,8 @@ import { DatePickerSection } from "./_components/date-picker-section";
 import { MemberTabs } from "./_components/member-tabs";
 import { CommitRepositoryGroup } from "./_components/commit-repository-group";
 import { Loader2 } from "lucide-react";
+import { PageContainer } from "@/components/admin/ui/page-container";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 interface Member {
   id: string;
@@ -146,13 +148,11 @@ export default function ReviewPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">커밋 리뷰</h1>
-        <p className="text-muted-foreground mt-1">
-          팀원별 일일 커밋 내역을 확인합니다.
-        </p>
-      </div>
+    <PageContainer maxWidth="2xl">
+      <PageHeader
+        title="커밋 리뷰"
+        description="팀원별 일일 커밋 내역을 확인합니다."
+      />
 
       <DatePickerSection
         selectedDate={selectedDate}
@@ -201,6 +201,6 @@ export default function ReviewPage() {
           )}
         </MemberTabs>
       </div>
-    </div>
+    </PageContainer>
   );
 }

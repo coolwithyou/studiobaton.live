@@ -7,6 +7,8 @@ import { SectionList } from "./_components/section-list";
 import { SectionForm } from "./_components/section-form";
 import { ItemForm } from "./_components/item-form";
 import type { LinkType } from "@/app/generated/prisma";
+import { PageContainer } from "@/components/admin/ui/page-container";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 interface Item {
   id: string;
@@ -169,14 +171,11 @@ export default function SidemenuPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">사이드 메뉴 관리</h1>
-          <p className="text-muted-foreground mt-1">
-            공개 페이지에 표시되는 사이드 메뉴를 관리합니다.
-          </p>
-        </div>
+    <PageContainer maxWidth="xl">
+      <PageHeader
+        title="사이드 메뉴 관리"
+        description="공개 페이지에 표시되는 사이드 메뉴를 관리합니다."
+      >
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={fetchData} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
@@ -187,7 +186,7 @@ export default function SidemenuPage() {
             섹션 추가
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">
@@ -226,6 +225,6 @@ export default function SidemenuPage() {
         categories={categories}
         onSave={fetchData}
       />
-    </div>
+    </PageContainer>
   );
 }

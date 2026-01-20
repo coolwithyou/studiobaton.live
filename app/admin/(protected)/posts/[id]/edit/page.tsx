@@ -2,6 +2,8 @@ import { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { ManualPostForm } from "../../_components/manual-post-form";
 import prisma from "@/lib/prisma";
+import { PageContainer } from "@/components/admin/ui/page-container";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 export const metadata: Metadata = {
   title: "포스트 수정 | Admin",
@@ -64,15 +66,13 @@ export default async function EditPostPage({ params }: Props) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold">포스트 수정</h1>
-        <p className="text-muted-foreground mt-1">
-          마크다운 포스트를 수정합니다.
-        </p>
-      </div>
+    <PageContainer maxWidth="xl">
+      <PageHeader
+        title="포스트 수정"
+        description="마크다운 포스트를 수정합니다."
+      />
 
       <ManualPostForm post={post} categories={categories} />
-    </div>
+    </PageContainer>
   );
 }

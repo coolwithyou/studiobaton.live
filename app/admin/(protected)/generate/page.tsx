@@ -3,14 +3,13 @@
 import { useState, useCallback } from "react";
 import { eachDayOfInterval } from "date-fns";
 import { formatKST } from "@/lib/date-utils";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { GenerateCalendar } from "./_components/generate-calendar";
 import { GenerationOptions } from "./_components/generation-options";
 import { GenerationProgress } from "./_components/generation-progress";
 import { ErrorDetailModal, ErrorDetails } from "./_components/error-detail-modal";
 import { DEFAULT_MODEL, AIModel } from "@/lib/ai-models";
+import { PageContainer } from "@/components/admin/ui/page-container";
+import { PageHeader } from "@/components/admin/ui/page-header";
 
 interface CollectResult {
   success: boolean;
@@ -341,20 +340,11 @@ export default function GeneratePage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      {/* 헤더 */}
-      <div className="mb-8">
-        <Link href="/admin">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            목록으로
-          </Button>
-        </Link>
-        <h1 className="text-2xl font-bold">커밋 수집</h1>
-        <p className="text-muted-foreground mt-1">
-          날짜를 선택하여 커밋을 수집하고 글을 생성합니다
-        </p>
-      </div>
+    <PageContainer maxWidth="2xl">
+      <PageHeader
+        title="커밋 수집"
+        description="날짜를 선택하여 커밋을 수집하고 글을 생성합니다."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 왼쪽: 캘린더 (2/3 너비) */}
@@ -420,6 +410,6 @@ export default function GeneratePage() {
         error={errorModalData?.error}
         errorDetails={errorModalData?.errorDetails}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -179,9 +179,11 @@ model Member {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  standups       Standup[]
-  commitSummaries CommitSummary[]
-  linkedAdmin    Admin?    // Admin 연결 (역관계)
+  standups         Standup[]
+  commitSummaries  CommitSummary[]
+  linkedAdmin      Admin?    // Admin 연결 (역관계)
+  dailyActivities  MemberDailyActivity[]
+  profileStats     MemberProfileStats?
 
   @@index([isActive])
   @@index([displayOrder])
@@ -293,4 +295,70 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// 멤버별 일일 활동 집계 (프로필 통계용 캐싱 테이블)
+model MemberDailyActivity {
+  id       String   @id @default(cuid())
+  memberId String
+  member   Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  date     DateTime @db.Date
+
+  // 일일 커밋 통계
+  commitCount  Int @default(0)
+  additions    Int @default(0)
+  deletions    Int @default(0)
+  filesChanged Int @default(0)
+
+  // 저장소별 커밋 분포 { "repo1": 5, "repo2": 3 }
+  repoBreakdown Json?
+
+  // 시간대별 커밋 분포 (24시간, 0-23시)
+  hourlyDistribution Int[] @default([])
+
+  // 커밋 유형별 카운트 (메시지에서 파싱)
+  featCount     Int @default(0)
+  fixCount      Int @default(0)
+  refactorCount Int @default(0)
+  otherCount    Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([memberId, date])
+  @@index([memberId])
+  @@index([date])
+}
+
+// 멤버 프로필 통계 (집계 캐시)
+model MemberProfileStats {
+  id       String @id @default(cuid())
+  memberId String @unique
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // 전체 커밋 통계
+  totalCommits   Int @default(0)
+  totalAdditions Int @default(0)
+  totalDeletions Int @default(0)
+
+  // 활동 기간
+  firstCommitAt DateTime?
+  lastCommitAt  DateTime?
+
+  // 스트릭 정보
+  currentStreak Int @default(0) // 현재 연속 커밋 일수
+  longestStreak Int @default(0) // 최장 연속 커밋 일수
+
+  // 활동 패턴
+  peakHour   Int? // 가장 활발한 시간 (0-23)
+  activeDays Int  @default(0) // 총 활동 일수
+
+  // 획득 배지 ["first_commit", "streak_7", "commits_100", ...]
+  badges Json?
+
+  // 마지막 집계 시점
+  lastAggregatedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

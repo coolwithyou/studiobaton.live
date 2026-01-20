@@ -154,6 +154,24 @@ export function MarkdownEditor({
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
+              // p 태그 안에 figure가 중첩되지 않도록 처리
+              // 이미지만 포함된 단락은 Fragment로 렌더링
+              p: ({ children, ...props }) => {
+                // children이 단일 img 요소인지 확인
+                const childArray = Array.isArray(children) ? children : [children];
+                const hasOnlyImage = childArray.length === 1 &&
+                  typeof childArray[0] === 'object' &&
+                  childArray[0] !== null &&
+                  'type' in childArray[0] &&
+                  (childArray[0].type === 'img' ||
+                   (typeof childArray[0].type === 'function' && childArray[0].type.name === 'img'));
+
+                // 이미지만 있는 경우 p 태그 없이 렌더링
+                if (hasOnlyImage) {
+                  return <>{children}</>;
+                }
+                return <p {...props}>{children}</p>;
+              },
               img: ({ src, alt }) => {
                 const srcStr = typeof src === "string" ? src : "";
                 const isGif = srcStr.includes("giphy.com") || srcStr.endsWith(".gif");

@@ -1,0 +1,431 @@
+"use client";
+
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Play,
+  Loader2,
+  RefreshCw,
+  Database,
+  Calendar,
+  Activity,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+
+interface CollectStatus {
+  totalCommits: number;
+  profileOnlyCommits: number;
+  oldestCommit: string | null;
+  latestCommit: string | null;
+  rateLimit: {
+    remaining: number;
+    limit: number;
+    reset: string;
+  };
+}
+
+interface AggregateStatus {
+  members: Array<{
+    id: string;
+    name: string;
+    email: string;
+    hasStats: boolean;
+    stats: {
+      totalCommits: number;
+      activeDays: number;
+      currentStreak: number;
+      longestStreak: number;
+      lastAggregatedAt: string | null;
+    } | null;
+  }>;
+  totalDailyActivities: number;
+  lastAggregatedAt: string | null;
+}
+
+interface ProgressEvent {
+  type: "progress" | "complete" | "error" | "rate_limit";
+  data: {
+    phase?: string;
+    currentRepo?: string;
+    currentMonth?: string;
+    processedRepos?: number;
+    totalRepos?: number;
+    processedCommits?: number;
+    totalCommits?: number;
+    savedCommits?: number;
+    message?: string;
+    error?: string;
+    rateLimit?: {
+      remaining: number;
+      limit: number;
+      reset: string;
+    };
+  };
+}
+
+export default function ProfileStatsPage() {
+  const [collectStatus, setCollectStatus] = useState<CollectStatus | null>(null);
+  const [aggregateStatus, setAggregateStatus] = useState<AggregateStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [collecting, setCollecting] = useState(false);
+  const [aggregating, setAggregating] = useState(false);
+  const [progress, setProgress] = useState<ProgressEvent["data"] | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const fetchStatus = useCallback(async () => {
+    try {
+      const [collectRes, aggregateRes] = await Promise.all([
+        fetch("/api/admin/profile-commits/collect"),
+        fetch("/api/admin/profile-commits/aggregate"),
+      ]);
+
+      if (collectRes.ok) {
+        setCollectStatus(await collectRes.json());
+      }
+      if (aggregateRes.ok) {
+        setAggregateStatus(await aggregateRes.json());
+      }
+    } catch (error) {
+      console.error("Failed to fetch status:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStatus();
+  }, [fetchStatus]);
+
+  const handleCollect = async () => {
+    setCollecting(true);
+    setProgress(null);
+
+    abortControllerRef.current = new AbortController();
+
+    try {
+      const response = await fetch("/api/admin/profile-commits/collect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDate: "2022-01-01",
+          includeDetails: false,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.body) {
+        throw new Error("Response body is null");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const event: ProgressEvent = JSON.parse(line.slice(6));
+              setProgress(event.data);
+
+              if (event.type === "complete") {
+                toast.success(event.data.message || "수집 완료");
+                fetchStatus();
+              } else if (event.type === "error") {
+                toast.error(event.data.error || "수집 중 오류 발생");
+              }
+            } catch {
+              // JSON parse error, skip
+            }
+          }
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        toast.info("수집이 취소되었습니다.");
+      } else {
+        console.error("Collection error:", error);
+        toast.error("수집 중 오류가 발생했습니다.");
+      }
+    } finally {
+      setCollecting(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  const handleCancelCollect = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+  };
+
+  const handleAggregate = async () => {
+    setAggregating(true);
+
+    try {
+      const response = await fetch("/api/admin/profile-commits/aggregate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "full" }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "집계 실패");
+      }
+
+      toast.success(`${data.successCount}명의 통계가 집계되었습니다.`);
+      fetchStatus();
+    } catch (error) {
+      console.error("Aggregate error:", error);
+      toast.error("집계 중 오류가 발생했습니다.");
+    } finally {
+      setAggregating(false);
+    }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "-";
+    return format(new Date(dateStr), "yyyy.MM.dd HH:mm", { locale: ko });
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">프로필 통계 관리</h1>
+        <p className="text-muted-foreground mt-1">
+          멤버 프로필 페이지에 표시할 개발 활동 통계를 관리합니다.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        {/* 커밋 수집 섹션 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="size-5" />
+              커밋 데이터 수집
+            </CardTitle>
+            <CardDescription>
+              2022년 이후 studiobaton 조직의 모든 커밋을 수집합니다.
+              초기 수집은 약 30분~1시간 소요될 수 있습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 현재 상태 */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold">
+                  {collectStatus?.totalCommits?.toLocaleString() || 0}
+                </div>
+                <div className="text-xs text-muted-foreground">전체 커밋</div>
+              </div>
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-2xl font-bold">
+                  {collectStatus?.profileOnlyCommits?.toLocaleString() || 0}
+                </div>
+                <div className="text-xs text-muted-foreground">프로필 전용</div>
+              </div>
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-sm font-medium">
+                  {collectStatus?.oldestCommit
+                    ? format(new Date(collectStatus.oldestCommit), "yy.MM.dd")
+                    : "-"}
+                </div>
+                <div className="text-xs text-muted-foreground">최초 커밋</div>
+              </div>
+              <div className="text-center p-3 bg-muted/50 rounded-lg">
+                <div className="text-sm font-medium">
+                  {collectStatus?.latestCommit
+                    ? format(new Date(collectStatus.latestCommit), "yy.MM.dd")
+                    : "-"}
+                </div>
+                <div className="text-xs text-muted-foreground">최근 커밋</div>
+              </div>
+            </div>
+
+            {/* Rate Limit */}
+            {collectStatus?.rateLimit && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Activity className="size-4" />
+                GitHub API: {collectStatus.rateLimit.remaining} / {collectStatus.rateLimit.limit} 남음
+                {collectStatus.rateLimit.remaining < 100 && (
+                  <Badge variant="destructive" className="ml-2">
+                    Rate Limit 주의
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* 진행 상황 */}
+            {collecting && progress && (
+              <div className="space-y-2 p-4 bg-muted/30 rounded-lg">
+                <div className="text-sm font-medium">{progress.message}</div>
+                {progress.totalRepos && progress.totalRepos > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>레포지토리 진행률</span>
+                      <span>
+                        {progress.processedRepos || 0} / {progress.totalRepos}
+                      </span>
+                    </div>
+                    <Progress
+                      value={((progress.processedRepos || 0) / progress.totalRepos) * 100}
+                    />
+                  </div>
+                )}
+                {progress.currentRepo && (
+                  <div className="text-xs text-muted-foreground">
+                    현재: {progress.currentRepo} ({progress.currentMonth})
+                  </div>
+                )}
+                {progress.savedCommits !== undefined && (
+                  <div className="text-xs text-muted-foreground">
+                    저장된 커밋: {progress.savedCommits?.toLocaleString()}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 버튼 */}
+            <div className="flex gap-2">
+              {collecting ? (
+                <Button variant="destructive" onClick={handleCancelCollect}>
+                  <AlertCircle className="size-4 mr-2" />
+                  수집 중단
+                </Button>
+              ) : (
+                <Button onClick={handleCollect}>
+                  <Play className="size-4 mr-2" />
+                  초기 수집 시작
+                </Button>
+              )}
+              <Button variant="outline" onClick={fetchStatus} disabled={collecting}>
+                <RefreshCw className="size-4 mr-2" />
+                상태 새로고침
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 통계 집계 섹션 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="size-5" />
+              통계 집계
+            </CardTitle>
+            <CardDescription>
+              수집된 커밋 데이터를 멤버별로 집계하여 일일 활동 및 프로필 통계를 생성합니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 집계 상태 */}
+            <div className="flex items-center gap-4 text-sm">
+              <span className="text-muted-foreground">
+                일일 활동 레코드: {aggregateStatus?.totalDailyActivities?.toLocaleString() || 0}개
+              </span>
+              {aggregateStatus?.lastAggregatedAt && (
+                <span className="text-muted-foreground">
+                  마지막 집계: {formatDate(aggregateStatus.lastAggregatedAt)}
+                </span>
+              )}
+            </div>
+
+            {/* 멤버별 상태 테이블 */}
+            {aggregateStatus?.members && aggregateStatus.members.length > 0 && (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>멤버</TableHead>
+                      <TableHead className="text-center">커밋</TableHead>
+                      <TableHead className="text-center">활동일</TableHead>
+                      <TableHead className="text-center">스트릭</TableHead>
+                      <TableHead className="text-center">상태</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {aggregateStatus.members.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{member.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {member.email}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {member.stats?.totalCommits?.toLocaleString() || "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {member.stats?.activeDays || "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {member.stats
+                            ? `${member.stats.currentStreak} / ${member.stats.longestStreak}`
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {member.hasStats ? (
+                            <CheckCircle2 className="size-4 text-green-500 mx-auto" />
+                          ) : (
+                            <AlertCircle className="size-4 text-orange-500 mx-auto" />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+
+            {/* 버튼 */}
+            <div className="flex gap-2">
+              <Button onClick={handleAggregate} disabled={aggregating}>
+                {aggregating ? (
+                  <Loader2 className="size-4 mr-2 animate-spin" />
+                ) : (
+                  <RefreshCw className="size-4 mr-2" />
+                )}
+                전체 재집계
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

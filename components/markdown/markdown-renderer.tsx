@@ -69,6 +69,41 @@ function rehypeShiki() {
   };
 }
 
+// 이미지를 p 태그에서 분리하는 플러그인
+// 마크다운의 ![alt](url) 형식 이미지가 <p><img /></p>로 변환되는데,
+// 커스텀 img 컴포넌트에서 <figure>를 반환하면 <p><figure>...</figure></p>가 되어
+// 잘못된 HTML 중첩이 발생함. 이를 방지하기 위해 단독 이미지를 p에서 분리함.
+function rehypeUnwrapImages() {
+  return (tree: Root) => {
+    visit(tree, "element", (node: Element, index, parent: Parents | undefined) => {
+      if (
+        node.tagName === "p" &&
+        parent &&
+        typeof index === "number" &&
+        "children" in parent
+      ) {
+        // p 태그의 자식 중 의미있는 노드만 필터링 (공백 텍스트 제외)
+        const meaningfulChildren = node.children.filter((child) => {
+          if (child.type === "text" && (child as Text).value.trim() === "") {
+            return false;
+          }
+          return true;
+        });
+
+        // p 태그가 단일 img 요소만 포함하는 경우
+        if (
+          meaningfulChildren.length === 1 &&
+          meaningfulChildren[0].type === "element" &&
+          (meaningfulChildren[0] as Element).tagName === "img"
+        ) {
+          // p 태그를 img로 교체 (unwrap)
+          (parent.children as Element[])[index] = meaningfulChildren[0] as Element;
+        }
+      }
+    });
+  };
+}
+
 // 이미지 스타일 처리 플러그인
 function rehypeImageStyles() {
   return (tree: Root) => {
@@ -196,6 +231,7 @@ export async function MarkdownRenderer({
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeSlug) // 헤딩에 id 자동 부여 (TOC용)
+    .use(rehypeUnwrapImages) // 단독 이미지를 p 태그에서 분리
     .use(rehypeImageStyles)
     .use(rehypeShiki);
 

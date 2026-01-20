@@ -1,4 +1,4 @@
-import { use } from "react";
+import { use, Suspense } from "react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,7 +8,10 @@ import { SITE_URL, SITE_NAME } from "@/lib/config";
 import { getServerSession } from "@/lib/auth-helpers";
 import { MemberProfileHeader } from "@/components/member/member-profile-header";
 import { MemberCommitList } from "@/components/member/member-commit-list";
+import { MemberActivitySection } from "@/components/member/member-activity-section";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -129,11 +132,52 @@ async function MemberProfile({ githubName }: { githubName: string }) {
 
         <Separator className="my-8" />
 
+        {/* 개발 활동 지표 섹션 */}
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4">📊 개발 활동</h2>
+          <Suspense fallback={<ActivitySectionSkeleton />}>
+            <MemberActivitySection githubName={member.githubName} />
+          </Suspense>
+        </section>
+
+        <Separator className="my-8" />
+
         <section>
           <h2 className="text-xl font-semibold mb-4">최근 커밋</h2>
           <MemberCommitList commits={recentCommits} />
         </section>
       </div>
+    </div>
+  );
+}
+
+function ActivitySectionSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-4">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-8 w-48" />
+      </div>
+      <Card>
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-32 w-full" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="pb-3">
+          <Skeleton className="h-6 w-24" />
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
+            {Array(6).fill(0).map((_, i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

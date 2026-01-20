@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Eye, Save, Send, Trash2 } from "lucide-react";
+
+const CATEGORY_NONE = "__none__";
+const CATEGORY_CUSTOM = "__custom__";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,13 +58,20 @@ function generateSlug(title: string): string {
 export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
   const router = useRouter();
   const isEditMode = !!post;
+  const selectId = useId();
 
   const [title, setTitle] = useState(post?.title || "");
   const [content, setContent] = useState(post?.content || "");
   const [summary, setSummary] = useState(post?.summary || "");
   const [slug, setSlug] = useState(post?.slug || "");
-  const [category, setCategory] = useState(post?.category || "");
+  const [category, setCategory] = useState(post?.category || CATEGORY_NONE);
   const [customCategory, setCustomCategory] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  // Hydration 오류 방지를 위해 클라이언트에서만 Select 렌더링
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">(
     post?.status === "PUBLISHED" ? "PUBLISHED" : "DRAFT"
   );
@@ -107,7 +117,11 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
 
     setSaving(true);
     try {
-      const finalCategory = category === "__custom__" ? customCategory : category;
+      const finalCategory = category === CATEGORY_CUSTOM
+        ? customCategory
+        : category === CATEGORY_NONE
+          ? undefined
+          : category;
 
       const endpoint = "/api/admin/posts/manual";
       const method = isEditMode ? "PUT" : "POST";
@@ -178,7 +192,10 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
     }
   };
 
-  const allCategories = [...new Set([...categories, ...(category && category !== "__custom__" ? [category] : [])])];
+  const allCategories = [...new Set([
+    ...categories,
+    ...(category && category !== CATEGORY_CUSTOM && category !== CATEGORY_NONE ? [category] : [])
+  ])];
 
   return (
     <div className="space-y-6">
@@ -231,21 +248,25 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
       <div className="space-y-2">
         <Label htmlFor="category">카테고리</Label>
         <div className="flex gap-2">
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="카테고리 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">없음</SelectItem>
-              {allCategories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-              <SelectItem value="__custom__">+ 새 카테고리</SelectItem>
-            </SelectContent>
-          </Select>
-          {category === "__custom__" && (
+          {mounted ? (
+            <Select key={selectId} value={category} onValueChange={setCategory}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="카테고리 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={CATEGORY_NONE}>없음</SelectItem>
+                {allCategories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+                <SelectItem value={CATEGORY_CUSTOM}>+ 새 카테고리</SelectItem>
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="w-[200px] h-10 rounded-md border bg-background" />
+          )}
+          {category === CATEGORY_CUSTOM && (
             <Input
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}

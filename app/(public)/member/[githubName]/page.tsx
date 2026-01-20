@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
+import { getServerSession } from "@/lib/auth-helpers";
 import { MemberProfileHeader } from "@/components/member/member-profile-header";
 import { MemberCommitList } from "@/components/member/member-commit-list";
 import { Separator } from "@/components/ui/separator";
@@ -66,6 +67,20 @@ async function MemberProfile({ githubName }: { githubName: string }) {
     notFound();
   }
 
+  // 세션 확인 (편집 권한 체크)
+  const session = await getServerSession();
+  let canEdit = false;
+
+  if (session?.user) {
+    const admin = await prisma.admin.findUnique({
+      where: { id: session.user.id },
+      select: { role: true, linkedMemberId: true },
+    });
+
+    // 본인 프로필이거나 Admin인 경우 편집 가능
+    canEdit = admin?.linkedMemberId === member.id || admin?.role === "ADMIN";
+  }
+
   // 최근 커밋 조회 (authorEmail로 매칭)
   const recentCommits = await prisma.commitLog.findMany({
     where: { authorEmail: member.email },
@@ -109,7 +124,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
           팀원 목록으로
         </Link>
 
-        <MemberProfileHeader member={member} stats={stats} />
+        <MemberProfileHeader member={member} stats={stats} canEdit={canEdit} />
 
         <Separator className="my-8" />
 

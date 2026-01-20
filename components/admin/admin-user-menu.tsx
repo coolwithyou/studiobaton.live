@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -8,7 +9,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import type { UserRole } from "@/app/generated/prisma";
 
 interface UserInfo {
@@ -44,10 +44,12 @@ export function AdminUserMenu({
           <TooltipTrigger asChild>
             <div className="flex justify-center">
               {userInfo.image ? (
-                <img
+                <Image
                   src={userInfo.image}
                   alt={displayName}
-                  className="h-8 w-8 rounded-full"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
                 <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
@@ -95,10 +97,12 @@ export function AdminUserMenu({
       {/* 사용자 정보 */}
       <div className="flex items-center gap-3">
         {userInfo.image ? (
-          <img
+          <Image
             src={userInfo.image}
             alt={displayName}
-            className="h-8 w-8 rounded-full shrink-0"
+            width={32}
+            height={32}
+            className="h-8 w-8 rounded-full shrink-0 object-cover"
           />
         ) : (
           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">

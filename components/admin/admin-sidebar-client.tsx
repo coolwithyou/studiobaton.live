@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,54 @@ import type { MenuGroup } from "./admin-sidebar-config";
 import type { UserRole } from "@/app/generated/prisma";
 
 const STORAGE_KEY = "admin-sidebar-collapsed";
+
+// 클라이언트 마운트 감지를 위한 훅
+function useMounted() {
+  const getSnapshot = () => true;
+  const getServerSnapshot = () => false;
+  const subscribe = () => () => {};
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}
+
+// localStorage 상태를 동기화하기 위한 훅
+function useLocalStorageState(key: string, defaultValue: boolean) {
+  const getSnapshot = useCallback(() => {
+    if (typeof window === "undefined") return defaultValue;
+    const stored = localStorage.getItem(key);
+    return stored === null ? defaultValue : stored === "true";
+  }, [key, defaultValue]);
+
+  const getServerSnapshot = useCallback(() => defaultValue, [defaultValue]);
+
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === key) callback();
+      };
+      window.addEventListener("storage", handleStorageChange);
+      return () => window.removeEventListener("storage", handleStorageChange);
+    },
+    [key]
+  );
+
+  const value = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  const setValue = useCallback(
+    (newValue: boolean | ((prev: boolean) => boolean)) => {
+      const resolved =
+        typeof newValue === "function" ? newValue(getSnapshot()) : newValue;
+      localStorage.setItem(key, String(resolved));
+      // storage 이벤트는 같은 윈도우에서 발생하지 않으므로 수동 dispatch
+      window.dispatchEvent(
+        new StorageEvent("storage", { key, newValue: String(resolved) })
+      );
+    },
+    [key, getSnapshot]
+  );
+
+  return [value, setValue] as const;
+}
 
 interface UserInfo {
   email: string;
@@ -31,25 +79,12 @@ export function AdminSidebarClient({
   userInfo,
   logoutAction,
 }: AdminSidebarClientProps) {
-  const [collapsed, setCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
+  const [collapsed, setCollapsed] = useLocalStorageState(STORAGE_KEY, false);
 
-  // 클라이언트 마운트 후 localStorage에서 상태 복원
-  useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "true") {
-      setCollapsed(true);
-    }
-  }, []);
-
-  const toggleCollapsed = () => {
-    setCollapsed((prev) => {
-      const newValue = !prev;
-      localStorage.setItem(STORAGE_KEY, String(newValue));
-      return newValue;
-    });
-  };
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => !prev);
+  }, [setCollapsed]);
 
   // hydration 불일치 방지
   if (!mounted) {

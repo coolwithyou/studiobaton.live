@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const memberId = formData.get("memberId") as string | null;
+    const imageType = (formData.get("imageType") as string) || "avatar"; // avatar | profile
 
     if (!file) {
       return NextResponse.json(
@@ -32,6 +33,13 @@ export async function POST(request: NextRequest) {
     if (!memberId) {
       return NextResponse.json(
         { error: "멤버 ID가 필요합니다." },
+        { status: 400 }
+      );
+    }
+
+    if (!["avatar", "profile"].includes(imageType)) {
+      return NextResponse.json(
+        { error: "imageType은 avatar 또는 profile이어야 합니다." },
         { status: 400 }
       );
     }
@@ -55,7 +63,7 @@ export async function POST(request: NextRequest) {
     // 멤버 조회 및 권한 확인
     const member = await prisma.member.findUnique({
       where: { id: memberId },
-      select: { id: true, avatarUrl: true, email: true },
+      select: { id: true, avatarUrl: true, profileImageUrl: true, email: true },
     });
 
     if (!member) {
@@ -82,25 +90,29 @@ export async function POST(request: NextRequest) {
     }
 
     // 기존 이미지가 Vercel Blob이면 삭제
-    if (member.avatarUrl?.includes("blob.vercel-storage.com")) {
+    const existingUrl = imageType === "avatar" ? member.avatarUrl : member.profileImageUrl;
+    if (existingUrl?.includes("blob.vercel-storage.com")) {
       try {
-        await del(member.avatarUrl);
+        await del(existingUrl);
       } catch {
         // 삭제 실패해도 계속 진행
       }
     }
 
     // Vercel Blob에 업로드
-    const filename = `profile/${memberId}/${Date.now()}.${file.type.split("/")[1]}`;
+    const folder = imageType === "avatar" ? "avatar" : "profile";
+    const filename = `${folder}/${memberId}/${Date.now()}.${file.type.split("/")[1]}`;
     const blob = await put(filename, file, {
       access: "public",
       addRandomSuffix: false,
     });
 
-    // DB 업데이트
+    // DB 업데이트 (이미지 타입에 따라 해당 필드 업데이트)
     await prisma.member.update({
       where: { id: memberId },
-      data: { avatarUrl: blob.url },
+      data: imageType === "avatar"
+        ? { avatarUrl: blob.url }
+        : { profileImageUrl: blob.url },
     });
 
     return NextResponse.json({
@@ -128,6 +140,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get("memberId");
+    const imageType = searchParams.get("imageType") || "avatar"; // avatar | profile
 
     if (!memberId) {
       return NextResponse.json(
@@ -136,9 +149,16 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    if (!["avatar", "profile"].includes(imageType)) {
+      return NextResponse.json(
+        { error: "imageType은 avatar 또는 profile이어야 합니다." },
+        { status: 400 }
+      );
+    }
+
     const member = await prisma.member.findUnique({
       where: { id: memberId },
-      select: { avatarUrl: true },
+      select: { avatarUrl: true, profileImageUrl: true },
     });
 
     if (!member) {
@@ -165,14 +185,17 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Vercel Blob에서 삭제
-    if (member.avatarUrl?.includes("blob.vercel-storage.com")) {
-      await del(member.avatarUrl);
+    const urlToDelete = imageType === "avatar" ? member.avatarUrl : member.profileImageUrl;
+    if (urlToDelete?.includes("blob.vercel-storage.com")) {
+      await del(urlToDelete);
     }
 
-    // DB 업데이트
+    // DB 업데이트 (이미지 타입에 따라 해당 필드 null로 설정)
     await prisma.member.update({
       where: { id: memberId },
-      data: { avatarUrl: null },
+      data: imageType === "avatar"
+        ? { avatarUrl: null }
+        : { profileImageUrl: null },
     });
 
     return NextResponse.json({ success: true });

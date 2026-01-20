@@ -167,13 +167,14 @@ model ProjectMapping {
 }
 
 model Member {
-  id           String   @id @default(cuid())
-  name         String   // 팀원 이름 (예: "홍길동")
-  githubName   String   // GitHub 사용자명
-  email        String   @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
-  avatarUrl    String?  // 프로필 이미지 URL
-  isActive     Boolean  @default(true) // 활성화 여부
-  displayOrder Int      @default(0) // 탭 표시 순서
+  id              String   @id @default(cuid())
+  name            String   // 팀원 이름 (예: "홍길동")
+  githubName      String   // GitHub 사용자명
+  email           String   @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
+  avatarUrl       String?  // 1:1 아바타 (포스트, 헤더, 멤버 카드)
+  profileImageUrl String?  // 3:4 프로필 이미지 (프로필 페이지)
+  isActive        Boolean  @default(true) // 활성화 여부
+  displayOrder    Int      @default(0) // 탭 표시 순서
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

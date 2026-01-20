@@ -145,121 +145,129 @@ export default async function PostPage({ params }: PageProps) {
         </Link>
 
         <article>
-        {/* 헤더 */}
-        <header className="mb-8">
-          <time className="text-sm text-muted-foreground">
-            {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
-          </time>
-          <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
+          {/* 헤더 */}
+          <header className="mb-8">
+            <time className="text-sm text-muted-foreground">
+              {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
+            </time>
+            <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
 
-          {/* 저자 */}
-          <div className="flex items-center gap-3 mt-4">
-            <div className="flex -space-x-2">
-              {authors.slice(0, 5).map((author, i) => (
-                <Avatar key={i} className="w-8 h-8 border-2 border-background">
-                  <AvatarImage src={author.avatar || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {author.name.slice(0, 1).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+            {/* 저자 */}
+            <div className="flex items-center gap-3 mt-4">
+              <div className="flex -space-x-2">
+                {authors.slice(0, 5).map((author, i) => (
+                  <Avatar key={i} className="w-8 h-8 border-2 border-background">
+                    <AvatarImage src={author.avatar || undefined} />
+                    <AvatarFallback className="text-xs">
+                      {author.name.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {authors.map((a) => a.name).join(", ")}
+              </span>
+            </div>
+          </header>
+
+          {/* 본문 (마크다운 파싱) */}
+          <MarkdownRenderer
+            content={maskedPost.content || ""}
+            className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
+          />
+
+          {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
+          {!isAuthenticated && (
+            <p className="text-xs text-muted-foreground text-center mt-6">
+              개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
+            </p>
+          )}
+
+          <Separator className="my-8" />
+
+          {/* 레포지토리별 통계 */}
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold mb-4">작업한 프로젝트</h2>
+            <div className="grid gap-3">
+              {Object.entries(repoStats).map(([repo, stats]) => (
+                <div
+                  key={repo}
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                >
+                  <span className="font-medium">{repo}</span>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <span>{stats.commits}개 커밋</span>
+                    <span className="text-green-600">+{stats.additions}</span>
+                    <span className="text-red-600">-{stats.deletions}</span>
+                  </div>
+                </div>
               ))}
             </div>
-            <span className="text-sm text-muted-foreground">
-              {authors.map((a) => a.name).join(", ")}
-            </span>
-          </div>
-        </header>
+          </section>
 
-        {/* 본문 (마크다운 파싱) */}
-        <MarkdownRenderer
-          content={maskedPost.content || ""}
-          className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
-        />
+          {/* 커밋 목록 */}
+          <section>
+            <h2 className="text-lg font-semibold mb-4">상세 커밋 내역</h2>
+            <div className="space-y-2">
+              {maskedPost.commits.map((commit) => {
+                const CommitWrapper = commit.url ? "a" : "div";
+                const wrapperProps = commit.url
+                  ? {
+                      href: commit.url,
+                      target: "_blank",
+                      rel: "noopener noreferrer",
+                    }
+                  : {};
 
-        {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
-        {!isAuthenticated && (
-          <p className="text-xs text-muted-foreground text-center mt-6">
-            개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
-          </p>
-        )}
-
-        <Separator className="my-8" />
-
-        {/* 레포지토리별 통계 */}
-        <section className="mb-8">
-          <h2 className="text-lg font-semibold mb-4">작업한 프로젝트</h2>
-          <div className="grid gap-3">
-            {Object.entries(repoStats).map(([repo, stats]) => (
-              <div
-                key={repo}
-                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-              >
-                <span className="font-medium">{repo}</span>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{stats.commits}개 커밋</span>
-                  <span className="text-green-600">+{stats.additions}</span>
-                  <span className="text-red-600">-{stats.deletions}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* 커밋 목록 */}
-        <section>
-          <h2 className="text-lg font-semibold mb-4">상세 커밋 내역</h2>
-          <div className="space-y-2">
-            {maskedPost.commits.map((commit) => {
-              const CommitWrapper = commit.url ? "a" : "div";
-              const wrapperProps = commit.url
-                ? {
-                  href: commit.url,
-                  target: "_blank",
-                  rel: "noopener noreferrer",
-                }
-                : {};
-
-              return (
-                <CommitWrapper
-                  key={commit.id}
-                  {...wrapperProps}
-                  className={`block p-3 rounded-lg transition-colors ${commit.url ? "hover:bg-muted/50 group cursor-pointer" : "bg-muted/30"
+                return (
+                  <CommitWrapper
+                    key={commit.id}
+                    {...wrapperProps}
+                    className={`block p-3 rounded-lg transition-colors ${
+                      commit.url
+                        ? "hover:bg-muted/50 group cursor-pointer"
+                        : "bg-muted/30"
                     }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-6 h-6 mt-0.5">
-                      <AvatarImage src={commit.authorAvatar || undefined} />
-                      <AvatarFallback className="text-xs">
-                        {commit.author.slice(0, 1).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className={`text-sm font-mono truncate transition-colors ${commit.url ? "group-hover:text-primary" : ""
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar className="w-6 h-6 mt-0.5">
+                        <AvatarImage src={commit.authorAvatar || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {commit.author.slice(0, 1).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`text-sm font-mono truncate transition-colors ${
+                            commit.url ? "group-hover:text-primary" : ""
                           }`}
-                      >
-                        {commit.message.split("\n")[0]}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {commit.repository} · {commit.author} ·{" "}
-                        <span className="text-green-600">+{commit.additions}</span>
-                        {" / "}
-                        <span className="text-red-600">-{commit.deletions}</span>
-                      </p>
+                        >
+                          {commit.message.split("\n")[0]}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {commit.repository} · {commit.author} ·{" "}
+                          <span className="text-green-600">
+                            +{commit.additions}
+                          </span>
+                          {" / "}
+                          <span className="text-red-600">
+                            -{commit.deletions}
+                          </span>
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </CommitWrapper>
-              );
-            })}
-          </div>
-        </section>
+                  </CommitWrapper>
+                );
+              })}
+            </div>
+          </section>
 
-        {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
-        {!isAuthenticated && (
-          <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
-            개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
-          </p>
-        )}
+          {/* 마스킹 안내 (비로그인 사용자에게만 표시) */}
+          {!isAuthenticated && (
+            <p className="text-xs text-muted-foreground text-center mt-8 border-t pt-6">
+              개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부 정보는 마스킹 처리되어 있습니다.
+            </p>
+          )}
         </article>
 
         {/* JSON-LD (마스킹된 데이터 사용) */}

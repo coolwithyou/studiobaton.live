@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Github, GitCommit, FolderGit2 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EditableProfileImage } from "./editable-profile-image";
 
@@ -10,6 +10,7 @@ interface MemberProfileHeaderProps {
     name: string;
     githubName: string;
     avatarUrl: string | null;
+    profileImageUrl: string | null;
   };
   stats: {
     totalCommits: number;
@@ -22,17 +23,19 @@ interface MemberProfileHeaderProps {
 export function MemberProfileHeader({ member, stats, canEdit = false }: MemberProfileHeaderProps) {
   return (
     <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+      {/* 3:4 프로필 이미지 */}
       {canEdit ? (
         <EditableProfileImage
           memberId={member.id}
-          currentImageUrl={member.avatarUrl}
+          currentImageUrl={member.profileImageUrl}
           memberName={member.name}
+          imageType="profile"
         />
       ) : (
         <div className="relative w-36 sm:w-48 aspect-[3/4] rounded-lg overflow-hidden bg-muted">
-          {member.avatarUrl ? (
+          {member.profileImageUrl ? (
             <Image
-              src={member.avatarUrl}
+              src={member.profileImageUrl}
               alt={member.name}
               fill
               className="object-cover"
@@ -51,8 +54,29 @@ export function MemberProfileHeader({ member, stats, canEdit = false }: MemberPr
       )}
 
       <div className="flex-1 text-center sm:text-left">
-        <h1 className="text-2xl font-bold">{member.name}</h1>
-        <p className="text-muted-foreground mt-1">@{member.githubName}</p>
+        {/* 멤버 정보 + 아바타 섹션 */}
+        <div className="flex items-center gap-3 justify-center sm:justify-start">
+          {/* 1:1 아바타 */}
+          {canEdit ? (
+            <EditableProfileImage
+              memberId={member.id}
+              currentImageUrl={member.avatarUrl}
+              memberName={member.name}
+              imageType="avatar"
+            />
+          ) : (
+            <Avatar className="w-16 h-16 sm:w-20 sm:h-20">
+              <AvatarImage src={member.avatarUrl || undefined} alt={member.name} />
+              <AvatarFallback className="text-xl">
+                {member.name.slice(0, 1).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold">{member.name}</h1>
+            <p className="text-muted-foreground">@{member.githubName}</p>
+          </div>
+        </div>
 
         <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">

@@ -60,6 +60,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
       githubName: true,
       email: true,
       avatarUrl: true,
+      profileImageUrl: true,
     },
   });
 

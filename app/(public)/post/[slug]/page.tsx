@@ -191,7 +191,7 @@ export default async function PostPage({ params }: PageProps) {
           </p>
         )}
 
-        {maskedPost.commits.length > 0 && (
+        {post.type === "COMMIT_BASED" && maskedPost.commits.length > 0 && (
           <>
             <Separator className="my-8" />
             <section className="mb-8">

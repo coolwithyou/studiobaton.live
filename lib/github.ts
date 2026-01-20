@@ -317,6 +317,66 @@ export async function getCommitsByAuthor(
 }
 
 /**
+ * 특정 GitHub 사용자의 날짜별 커밋 조회 (상세 정보 포함)
+ * - additions, deletions, files 정보 포함
+ * - DB 저장에 필요한 전체 정보 반환
+ */
+export async function getCommitsByAuthorWithDetails(
+  githubName: string,
+  targetDate: Date
+): Promise<CommitData[]> {
+  // 먼저 간단한 커밋 목록 조회
+  const simpleCommits = await getCommitsByAuthor(githubName, targetDate);
+
+  if (simpleCommits.length === 0) {
+    return [];
+  }
+
+  // 각 커밋의 상세 정보 조회 (배치 처리)
+  const detailedCommits = await processBatch(
+    simpleCommits,
+    async (commit) => {
+      try {
+        const detail = await getCommitDetail(commit.repository, commit.sha);
+        return {
+          sha: commit.sha,
+          repository: commit.repository,
+          message: commit.message,
+          author: commit.authorName || "Unknown",
+          authorEmail: commit.authorEmail,
+          authorAvatar: null, // 상세 조회 시 avatar 정보는 별도 처리 필요
+          committedAt: new Date(commit.committedAt),
+          additions: detail.additions,
+          deletions: detail.deletions,
+          filesChanged: detail.filesChanged,
+          url: commit.url,
+          files: detail.files,
+        };
+      } catch (error) {
+        console.error(`Error fetching commit detail for ${commit.sha}:`, error);
+        return {
+          sha: commit.sha,
+          repository: commit.repository,
+          message: commit.message,
+          author: commit.authorName || "Unknown",
+          authorEmail: commit.authorEmail,
+          authorAvatar: null,
+          committedAt: new Date(commit.committedAt),
+          additions: 0,
+          deletions: 0,
+          filesChanged: 0,
+          url: commit.url,
+          files: [],
+        };
+      }
+    },
+    BATCH_SIZE
+  );
+
+  return detailedCommits;
+}
+
+/**
  * GitHub 검색 URL 생성
  */
 export function buildGitHubSearchUrl(githubName: string, date: Date): string {

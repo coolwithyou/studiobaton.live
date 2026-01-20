@@ -13,12 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, Loader2, ListChecks, ExternalLink } from "lucide-react";
+import { CalendarIcon, Loader2, ListChecks, ExternalLink, RefreshCw } from "lucide-react";
 import { StandupChecklist } from "./_components/standup-checklist";
 import { CommitSummary } from "./_components/commit-summary";
 import { CommitDiagnoseDialog } from "./_components/commit-diagnose-dialog";
 import { CommitRepositoryGroup } from "../review/_components/commit-repository-group";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
+import { toast } from "sonner";
 
 interface Member {
   id: string;
@@ -81,6 +82,12 @@ interface ReviewData {
   };
 }
 
+interface UserInfo {
+  id: string;
+  role: "ADMIN" | "TEAM_MEMBER" | "ORG_MEMBER";
+  linkedMemberId: string | null;
+}
+
 export default function WrapUpPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedMember, setSelectedMember] = useState<string>("");
@@ -89,6 +96,24 @@ export default function WrapUpPage() {
   const [reviewData, setReviewData] = useState<ReviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // 현재 사용자 정보 조회
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch("/api/me");
+        if (response.ok) {
+          const data = await response.json();
+          setUserInfo(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   // 팀원 목록 조회
   const fetchMembers = useCallback(async () => {
@@ -111,6 +136,47 @@ export default function WrapUpPage() {
   useEffect(() => {
     fetchMembers();
   }, [fetchMembers]);
+
+  // 커밋 새로고침 핸들러
+  const handleRefreshCommits = async () => {
+    if (!selectedMember) return;
+
+    setRefreshing(true);
+    try {
+      const dateStr = formatKST(selectedDate, "yyyy-MM-dd");
+      const response = await fetch("/api/member/commits/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId: selectedMember, date: dateStr }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        toast.error(result.error || "커밋 새로고침 실패");
+        return;
+      }
+
+      if (result.addedCount > 0) {
+        toast.success(`${result.addedCount}개의 새 커밋을 가져왔습니다.`);
+        // 데이터 새로고침
+        fetchData();
+      } else {
+        toast.info("새로운 커밋이 없습니다.");
+      }
+    } catch (error) {
+      console.error("Failed to refresh commits:", error);
+      toast.error("커밋 새로고침 중 오류가 발생했습니다.");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // 새로고침 버튼 표시 여부
+  const canRefreshCommits = userInfo && (
+    userInfo.role === "ADMIN" ||
+    (userInfo.role === "TEAM_MEMBER" && userInfo.linkedMemberId === selectedMember)
+  );
 
   // 스탠드업 + 커밋 리뷰 데이터 조회
   const fetchData = useCallback(async () => {
@@ -280,7 +346,21 @@ export default function WrapUpPage() {
               {hasCommits && reviewData && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">커밋 상세</h2>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-lg font-semibold">커밋 상세</h2>
+                      {canRefreshCommits && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRefreshCommits}
+                          disabled={refreshing}
+                          className="gap-1.5 text-muted-foreground hover:text-foreground"
+                        >
+                          <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
+                          {refreshing ? "가져오는 중..." : "새로고침"}
+                        </Button>
+                      )}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       <span className="text-green-600">
                         +{reviewData.summary.totalAdditions}
@@ -311,6 +391,18 @@ export default function WrapUpPage() {
                         이 날짜에는 커밋이 없습니다.
                       </p>
                       <div className="flex items-center justify-center gap-3">
+                        {canRefreshCommits && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={handleRefreshCommits}
+                            disabled={refreshing}
+                            className="gap-1.5"
+                          >
+                            <RefreshCw className={`size-4 ${refreshing ? "animate-spin" : ""}`} />
+                            {refreshing ? "가져오는 중..." : "내 커밋 가져오기"}
+                          </Button>
+                        )}
                         {githubSearchUrl && (
                           <a
                             href={githubSearchUrl}

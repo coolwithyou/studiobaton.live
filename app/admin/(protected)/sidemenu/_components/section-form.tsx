@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,18 +37,17 @@ export function SectionForm({
 }: SectionFormProps) {
   const isEditMode = !!section;
 
-  const [title, setTitle] = useState(section?.title || "");
-  const [isActive, setIsActive] = useState(section?.isActive ?? true);
+  const [title, setTitle] = useState("");
+  const [isActive, setIsActive] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // 다이얼로그가 열릴 때 값 초기화
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen) {
+  // section 또는 open이 변경될 때 폼 필드 동기화
+  useEffect(() => {
+    if (open) {
       setTitle(section?.title || "");
       setIsActive(section?.isActive ?? true);
     }
-    onOpenChange(newOpen);
-  };
+  }, [open, section]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,7 +88,7 @@ export function SectionForm({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>

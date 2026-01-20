@@ -67,23 +67,19 @@ export function ItemForm({
 }: ItemFormProps) {
   const isEditMode = !!item;
 
-  const [sectionId, setSectionId] = useState(
-    item?.sectionId || defaultSectionId || ""
-  );
-  const [title, setTitle] = useState(item?.title || "");
-  const [isActive, setIsActive] = useState(item?.isActive ?? true);
-  const [linkType, setLinkType] = useState<LinkType>(
-    item?.linkType || "INTERNAL"
-  );
-  const [internalPath, setInternalPath] = useState(item?.internalPath || "");
-  const [externalUrl, setExternalUrl] = useState(item?.externalUrl || "");
-  const [postCategory, setPostCategory] = useState(item?.postCategory || "");
+  const [sectionId, setSectionId] = useState("");
+  const [title, setTitle] = useState("");
+  const [isActive, setIsActive] = useState(true);
+  const [linkType, setLinkType] = useState<LinkType>("INTERNAL");
+  const [internalPath, setInternalPath] = useState("");
+  const [externalUrl, setExternalUrl] = useState("");
+  const [postCategory, setPostCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // 다이얼로그가 열릴 때 값 초기화
-  const handleOpenChange = (newOpen: boolean) => {
-    if (newOpen) {
+  // item 또는 open이 변경될 때 폼 필드 동기화
+  useEffect(() => {
+    if (open) {
       setSectionId(item?.sectionId || defaultSectionId || "");
       setTitle(item?.title || "");
       setIsActive(item?.isActive ?? true);
@@ -93,8 +89,7 @@ export function ItemForm({
       setPostCategory(item?.postCategory || "");
       setCustomCategory("");
     }
-    onOpenChange(newOpen);
-  };
+  }, [open, item, defaultSectionId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,7 +173,7 @@ export function ItemForm({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>

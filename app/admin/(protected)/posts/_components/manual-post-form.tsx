@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Eye, Save, Send, Trash2 } from "lucide-react";
 
 const CATEGORY_NONE = "__none__";
@@ -40,6 +41,7 @@ interface ManualPostFormProps {
     slug: string | null;
     category: string | null;
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    showInTimeline: boolean;
   };
   categories?: string[];
 }
@@ -66,6 +68,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
   const [slug, setSlug] = useState(post?.slug || "");
   const [category, setCategory] = useState(post?.category || CATEGORY_NONE);
   const [customCategory, setCustomCategory] = useState("");
+  const [showInTimeline, setShowInTimeline] = useState(post?.showInTimeline ?? false);
   const [mounted, setMounted] = useState(false);
 
   // Hydration 오류 방지를 위해 클라이언트에서만 Select 렌더링
@@ -134,6 +137,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
             slug: slug.trim(),
             category: finalCategory || undefined,
             status: publishStatus,
+            showInTimeline,
           }
         : {
             title: title.trim(),
@@ -142,6 +146,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
             slug: slug.trim(),
             category: finalCategory || undefined,
             status: publishStatus,
+            showInTimeline,
           };
 
       const response = await fetch(endpoint, {
@@ -278,6 +283,26 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
         <p className="text-xs text-muted-foreground">
           사이드 메뉴와 연동하여 카테고리별로 포스트를 분류할 수 있습니다.
         </p>
+      </div>
+
+      {/* 타임라인 노출 */}
+      <div className="flex items-center space-x-3 py-2">
+        <Checkbox
+          id="showInTimeline"
+          checked={showInTimeline}
+          onCheckedChange={(checked) => setShowInTimeline(checked === true)}
+        />
+        <div className="grid gap-1.5 leading-none">
+          <Label
+            htmlFor="showInTimeline"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            타임라인에 노출
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            체크하면 메인 페이지 타임라인에 이 포스트가 표시됩니다.
+          </p>
+        </div>
       </div>
 
       {/* 요약 */}

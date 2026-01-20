@@ -93,6 +93,7 @@ model Post {
   // 포스트 타입 및 카테고리
   type          PostType      @default(COMMIT_BASED)
   category      String?       // 카테고리 (사이드 메뉴 연동용)
+  showInTimeline Boolean      @default(false) // MANUAL 타입 포스트의 타임라인 노출 여부
 
   title         String?
   content       String?

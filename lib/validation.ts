@@ -58,6 +58,7 @@ export const manualPostCreateSchema = z.object({
   slug: slugSchema,
   category: z.string().max(50).optional(),
   status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
+  showInTimeline: z.boolean().default(false), // 타임라인 노출 여부 (기본: 표시 안 함)
 });
 
 export const manualPostUpdateSchema = manualPostCreateSchema.partial().extend({

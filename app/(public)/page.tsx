@@ -30,6 +30,11 @@ async function Timeline() {
   const posts = await prisma.post.findMany({
     where: {
       status: "PUBLISHED",
+      // COMMIT_BASED는 항상 표시, MANUAL은 showInTimeline=true인 경우만 표시
+      OR: [
+        { type: "COMMIT_BASED" },
+        { type: "MANUAL", showInTimeline: true },
+      ],
     },
     orderBy: {
       targetDate: "desc",

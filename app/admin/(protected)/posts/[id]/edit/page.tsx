@@ -20,6 +20,7 @@ async function getPost(id: string) {
       slug: true,
       category: true,
       status: true,
+      showInTimeline: true,
     },
   });
 

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, content, summary, slug, category, status } = validation.data;
+    const { title, content, summary, slug, category, status, showInTimeline } = validation.data;
 
     // slug 중복 검사
     const existingPost = await prisma.post.findUnique({
@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
         summary,
         slug,
         category,
+        showInTimeline,
         status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
         publishedAt: status === "PUBLISHED" ? nowKST() : null,
         publishedById: status === "PUBLISHED" ? admin.id : null,

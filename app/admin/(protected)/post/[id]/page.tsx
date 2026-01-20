@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MarkdownEditor } from "@/components/markdown/markdown-editor";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +22,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AVAILABLE_MODELS, AIModel, DEFAULT_MODEL, estimateCost, formatCost } from "@/lib/ai-models";
+
+const CATEGORY_NONE = "__none__";
+const CATEGORY_CUSTOM = "__custom__";
 
 interface PostVersion {
   id: string;
@@ -58,6 +63,8 @@ interface Post {
   content: string | null;
   summary: string | null;
   slug: string | null;
+  category: string | null;
+  showInTimeline: boolean;
   versions: PostVersion[];
   commits: Commit[];
   repositoryMappings: RepositoryMapping[];
@@ -95,10 +102,27 @@ export default function PostEditPage({
   } | null>(null);
   const [generatingTone, setGeneratingTone] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<AIModel>(DEFAULT_MODEL);
+  const [category, setCategory] = useState<string>(CATEGORY_NONE);
+  const [customCategory, setCustomCategory] = useState("");
+  const [showInTimeline, setShowInTimeline] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchPost();
+    fetchCategories();
   }, [id]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/admin/posts/categories");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data.categories || []);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
 
   const fetchPost = async () => {
     try {
@@ -112,13 +136,9 @@ export default function PostEditPage({
         setTitle(data.title || "");
         setContent(data.content || "");
         setSummary(data.summary || "");
-        // 발행된 포스트의 slug에서 날짜 부분 제거하여 설정
-        if (data.slug) {
-          const slugParts = data.slug.split("-");
-          // YYYY-MM-DD 형식 제거 (처음 3개 부분)
-          const slugWithoutDate = slugParts.slice(3).join("-");
-          setSlug(slugWithoutDate);
-        }
+        setSlug(data.slug || "");
+        setCategory(data.category || CATEGORY_NONE);
+        setShowInTimeline(data.showInTimeline ?? false);
       } else if (data.versions.length > 0) {
         const firstVersion = data.versions[0];
         setSelectedVersionId(firstVersion.id);
@@ -166,12 +186,24 @@ export default function PostEditPage({
       return;
     }
 
+    const finalCategory = category === CATEGORY_CUSTOM
+      ? customCategory
+      : category === CATEGORY_NONE
+        ? undefined
+        : category;
+
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/posts/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, summary }),
+        body: JSON.stringify({
+          title,
+          content,
+          summary,
+          category: finalCategory,
+          showInTimeline,
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to save");
@@ -193,6 +225,12 @@ export default function PostEditPage({
       return;
     }
 
+    const finalCategory = category === CATEGORY_CUSTOM
+      ? customCategory
+      : category === CATEGORY_NONE
+        ? undefined
+        : category;
+
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/posts/${id}`, {
@@ -203,6 +241,8 @@ export default function PostEditPage({
           content,
           summary,
           slug,
+          category: finalCategory,
+          showInTimeline,
           action: "publish",
           versionId: selectedVersionId,
         }),
@@ -519,7 +559,7 @@ export default function PostEditPage({
               <Label htmlFor="slug">URL Slug</Label>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  /post/{formatKST(post.targetDate, "yyyyMMdd")}-
+                  /post/
                 </span>
                 <Input
                   id="slug"
@@ -542,6 +582,80 @@ export default function PostEditPage({
               </p>
             </div>
 
+            {/* 카테고리 선택 */}
+            <div className="space-y-2">
+              <Label>카테고리</Label>
+              <div className="flex gap-2">
+                <Select
+                  value={category}
+                  onValueChange={setCategory}
+                  disabled={isPublished && !isEditMode}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="카테고리 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={CATEGORY_NONE}>없음</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={CATEGORY_CUSTOM}>+ 새 카테고리</SelectItem>
+                  </SelectContent>
+                </Select>
+                {category === CATEGORY_CUSTOM && (
+                  <Input
+                    value={customCategory}
+                    onChange={(e) => setCustomCategory(e.target.value)}
+                    placeholder="새 카테고리명"
+                    className="flex-1"
+                    disabled={isPublished && !isEditMode}
+                  />
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                사이드 메뉴와 연동하여 카테고리별로 포스트를 분류할 수 있습니다.
+              </p>
+            </div>
+
+            {/* 타임라인 노출 */}
+            <div className="flex items-center space-x-3 py-2">
+              <Checkbox
+                id="showInTimeline"
+                checked={showInTimeline}
+                onCheckedChange={(checked) => setShowInTimeline(checked === true)}
+                disabled={isPublished && !isEditMode}
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label
+                  htmlFor="showInTimeline"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  타임라인에 노출
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  체크하면 메인 페이지 타임라인에 이 포스트가 표시됩니다.
+                </p>
+              </div>
+            </div>
+
+            {/* 요약 */}
+            <div className="space-y-2">
+              <Label htmlFor="summary">요약</Label>
+              <Textarea
+                id="summary"
+                value={summary}
+                onChange={(e) => {
+                  setSummary(e.target.value);
+                  setIsEditing(true);
+                }}
+                disabled={isPublished && !isEditMode}
+                placeholder="포스트 요약 (목록에 표시됩니다)"
+                rows={2}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="content">내용</Label>
               <MarkdownEditor
@@ -552,20 +666,6 @@ export default function PostEditPage({
                 }}
                 disabled={isPublished && !isEditMode}
                 minHeight={400}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="summary">요약 (선택)</Label>
-              <Input
-                id="summary"
-                value={summary}
-                onChange={(e) => {
-                  setSummary(e.target.value);
-                  setIsEditing(true);
-                }}
-                disabled={isPublished && !isEditMode}
-                placeholder="짧은 요약을 입력하세요"
               />
             </div>
           </div>

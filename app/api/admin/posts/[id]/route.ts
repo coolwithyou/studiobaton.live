@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import slugify from "slugify";
-import { formatKST } from "@/lib/date-utils";
 import { sanitizeMarkdown } from "@/lib/sanitize-markdown";
 
 export async function GET(
@@ -79,7 +78,7 @@ export async function PATCH(
     const title = body.title ? sanitizeMarkdown(body.title) : undefined;
     const content = body.content ? sanitizeMarkdown(body.content) : undefined;
     const summary = body.summary ? sanitizeMarkdown(body.summary) : undefined;
-    const { action, versionId, slug: userSlug } = body;
+    const { action, versionId, slug: userSlug, category, showInTimeline } = body;
 
     const post = await prisma.post.findUnique({
       where: { id },
@@ -94,27 +93,22 @@ export async function PATCH(
     }
 
     if (action === "publish") {
-      // 발행
-      const dateSlug = formatKST(post.targetDate, "yyyyMMdd");
-
-      // 사용자가 입력한 slug 또는 제목 기반 자동 생성
-      let slugPart: string;
+      // 발행 - 날짜 prefix 없이 slug 생성
+      let slug: string;
       if (userSlug && userSlug.trim()) {
         // 사용자 입력 slug 정제 (혹시 모를 잘못된 문자 제거)
-        slugPart = userSlug
+        slug = userSlug
           .toLowerCase()
           .replace(/[^a-z0-9-]/g, "-")
           .replace(/-+/g, "-")
           .replace(/^-|-$/g, "");
       } else {
         // 기존 방식: 제목에서 slugify
-        slugPart = slugify(title || "post", {
+        slug = slugify(title || "post", {
           lower: true,
           strict: true,
         });
       }
-
-      const slug = `${dateSlug}-${slugPart}`;
 
       // slug 중복 검사 (자신 제외)
       const existingPost = await prisma.post.findFirst({
@@ -138,6 +132,8 @@ export async function PATCH(
           content,
           summary,
           slug,
+          category: category || null,
+          showInTimeline: showInTimeline ?? false,
           status: "PUBLISHED",
           publishedAt: new Date(),
           publishedById: session.user.id,
@@ -188,6 +184,8 @@ export async function PATCH(
           title,
           content,
           summary,
+          category: category || null,
+          showInTimeline: showInTimeline ?? false,
         },
       });
 

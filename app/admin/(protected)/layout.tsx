@@ -20,9 +20,9 @@ export default async function ProtectedLayout({
     <SidebarProvider defaultOpen={true} open={true}>
       <AppSidebar />
       <SidebarInset className="bg-muted/40">
-        <SiteHeader />
-        <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <main className="flex flex-1 flex-col p-4">
           <div className="@container/main flex flex-1 flex-col rounded-xl border bg-card shadow-sm">
+            <SiteHeader />
             {children}
           </div>
         </main>

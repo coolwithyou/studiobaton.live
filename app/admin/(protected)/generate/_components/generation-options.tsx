@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { formatKST } from "@/lib/date-utils";
 import { Calendar, CalendarRange, Loader2, Download, FileText } from "lucide-react";
-import { AVAILABLE_MODELS, AIModel } from "@/lib/ai-models";
+import { AVAILABLE_MODELS, AIModel, estimateCost, formatCost } from "@/lib/ai-models";
 
 interface GenerationOptionsProps {
   selectionMode: "single" | "range";
@@ -34,6 +34,7 @@ interface GenerationOptionsProps {
   isCollecting: boolean;
   isGenerating: boolean;
   canGeneratePost: boolean;
+  commitCount?: number; // 수집된 커밋 수 (예상 요금 계산용)
 }
 
 export function GenerationOptions({
@@ -55,6 +56,7 @@ export function GenerationOptions({
   isCollecting,
   isGenerating,
   canGeneratePost,
+  commitCount = 0,
 }: GenerationOptionsProps) {
   const hasSelection =
     selectedDates.length > 0 || (rangeStart !== null && rangeEnd !== null);
@@ -166,11 +168,21 @@ export function GenerationOptions({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {Object.entries(AVAILABLE_MODELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
-            ))}
+            {Object.entries(AVAILABLE_MODELS).map(([key, label]) => {
+              const cost = commitCount > 0 ? estimateCost(commitCount, key as AIModel) : null;
+              return (
+                <SelectItem key={key} value={key}>
+                  <div className="flex items-center justify-between gap-3 w-full">
+                    <span>{label}</span>
+                    {cost && (
+                      <span className="text-xs text-muted-foreground">
+                        {formatCost(cost)}
+                      </span>
+                    )}
+                  </div>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">

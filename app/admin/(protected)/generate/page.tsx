@@ -390,6 +390,7 @@ export default function GeneratePage() {
             isCollecting={isCollecting}
             isGenerating={isGenerating}
             canGeneratePost={canGeneratePost}
+            commitCount={collectResult?.totalCommitsCount ?? 0}
           />
 
           <GenerationProgress

@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AVAILABLE_MODELS, AIModel, DEFAULT_MODEL } from "@/lib/ai-models";
+import { AVAILABLE_MODELS, AIModel, DEFAULT_MODEL, estimateCost, formatCost } from "@/lib/ai-models";
 
 interface PostVersion {
   id: string;
@@ -446,11 +446,21 @@ export default function PostEditPage({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(AVAILABLE_MODELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
+                  {Object.entries(AVAILABLE_MODELS).map(([key, label]) => {
+                    const cost = post.commits.length > 0 ? estimateCost(post.commits.length, key as AIModel) : null;
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center justify-between gap-3 w-full">
+                          <span>{label}</span>
+                          {cost && (
+                            <span className="text-xs text-muted-foreground">
+                              {formatCost(cost)}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               {(["PROFESSIONAL", "CASUAL", "TECHNICAL"] as const).map((tone) => {

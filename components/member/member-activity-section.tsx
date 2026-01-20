@@ -137,6 +137,9 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
 
   const { stats, heatmap, trend, commitTypes, repos, badges } = data;
 
+  // 현재 연도
+  const currentYear = new Date().getFullYear();
+
   // 시간대별 분포 데이터 (hourly chart용)
   // 실제로는 API에서 받아야 하지만, 현재 구조에서는 없으므로 빈 배열
   const hourlyDistribution = Array(24).fill(0);
@@ -159,11 +162,11 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Calendar className="w-5 h-5" />
-            기여 히트맵
+            {currentYear}년 기여 히트맵
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ContributionHeatmap data={heatmap} />
+          <ContributionHeatmap data={heatmap} year={currentYear} />
         </CardContent>
       </Card>
 
@@ -215,7 +218,7 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
             </TabsList>
 
             <TabsContent value="trend" className="mt-4">
-              <WeeklyTrendChart data={trend} />
+              <WeeklyTrendChart data={trend} year={currentYear} />
             </TabsContent>
 
             <TabsContent value="types" className="mt-4">

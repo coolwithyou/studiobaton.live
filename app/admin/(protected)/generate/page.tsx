@@ -10,7 +10,7 @@ import { GenerateCalendar } from "./_components/generate-calendar";
 import { GenerationOptions } from "./_components/generation-options";
 import { GenerationProgress } from "./_components/generation-progress";
 import { ErrorDetailModal, ErrorDetails } from "./_components/error-detail-modal";
-import { DEFAULT_MODEL, AIModel } from "@/lib/ai";
+import { DEFAULT_MODEL, AIModel } from "@/lib/ai-models";
 
 interface CollectResult {
   success: boolean;
@@ -252,7 +252,7 @@ export default function GeneratePage() {
       } else if (rangeStart && rangeEnd && collectResult?.results) {
         // 구간 글 생성 - SSE 스트림 사용
         const postIds = collectResult.results.map((r) => r.postId);
-        const response = await fetch("/api/admin/generate/batch/stream", {
+        const response = await fetch("/api/admin/generate/versions/batch/stream", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

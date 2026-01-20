@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { formatKST } from "@/lib/date-utils";
 import { Calendar, CalendarRange, Loader2, Download, FileText } from "lucide-react";
-import { AVAILABLE_MODELS, AIModel } from "@/lib/ai";
+import { AVAILABLE_MODELS, AIModel } from "@/lib/ai-models";
 
 interface GenerationOptionsProps {
   selectionMode: "single" | "range";

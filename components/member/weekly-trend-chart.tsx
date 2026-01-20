@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Calendar } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -26,11 +26,17 @@ interface WeeklyTrendChartProps {
   data: TrendData[];
   /** 표시할 최근 주 수 */
   weeks?: number;
+  /** 표시 연도 (기본: 현재 연도) */
+  year?: number;
 }
 
-export function WeeklyTrendChart({ data, weeks = 12 }: WeeklyTrendChartProps) {
+export function WeeklyTrendChart({ data, weeks = 12, year }: WeeklyTrendChartProps) {
+  const currentYear = year ?? new Date().getFullYear();
+
   const chartData = useMemo(() => {
-    const recentData = data.slice(-weeks);
+    // 현재 연도 데이터만 필터링
+    const yearData = data.filter((d) => d.week.startsWith(`${currentYear}-`));
+    const recentData = yearData.slice(-weeks);
 
     return recentData.map((d) => {
       // week가 "YYYY-WW" 형식이면 날짜로 변환
@@ -43,7 +49,7 @@ export function WeeklyTrendChart({ data, weeks = 12 }: WeeklyTrendChartProps) {
         label: weekLabel,
       };
     });
-  }, [data, weeks]);
+  }, [data, weeks, currentYear]);
 
   const trend = useMemo(() => {
     if (chartData.length < 2) return { type: "neutral" as const, percentage: 0 };
@@ -73,8 +79,8 @@ export function WeeklyTrendChart({ data, weeks = 12 }: WeeklyTrendChartProps) {
   if (chartData.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-30" />
-        <p>트렌드 데이터가 없습니다</p>
+        <Calendar className="w-12 h-12 mx-auto mb-2 opacity-30" />
+        <p>{currentYear}년 트렌드 데이터가 없습니다</p>
       </div>
     );
   }
@@ -125,7 +131,7 @@ export function WeeklyTrendChart({ data, weeks = 12 }: WeeklyTrendChartProps) {
                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
             <XAxis
               dataKey="label"
               tick={{ fontSize: 10 }}
@@ -139,6 +145,7 @@ export function WeeklyTrendChart({ data, weeks = 12 }: WeeklyTrendChartProps) {
               axisLine={false}
               width={30}
               className="fill-muted-foreground"
+              allowDecimals={false}
             />
             <Tooltip
               content={({ active, payload }) => {
@@ -163,11 +170,13 @@ export function WeeklyTrendChart({ data, weeks = 12 }: WeeklyTrendChartProps) {
               }}
             />
             <Area
-              type="monotone"
+              type="natural"
               dataKey="commits"
               stroke="#3b82f6"
               strokeWidth={2}
               fill="url(#colorCommits)"
+              dot={{ r: 3, fill: "#3b82f6", strokeWidth: 0 }}
+              activeDot={{ r: 5, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }}
             />
           </AreaChart>
         </ResponsiveContainer>

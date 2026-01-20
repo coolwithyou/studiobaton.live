@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { format, subDays, startOfWeek, eachDayOfInterval, isSameDay } from "date-fns";
+import { format, startOfWeek, eachDayOfInterval, isSameDay, startOfYear } from "date-fns";
 import { ko } from "date-fns/locale";
 import {
   Tooltip,
@@ -18,12 +18,12 @@ interface HeatmapData {
 
 interface ContributionHeatmapProps {
   data: HeatmapData[];
-  /** 히트맵에 표시할 일 수 (기본: 365) */
-  days?: number;
+  /** 표시할 연도 (기본: 현재 연도) */
+  year?: number;
 }
 
-const CELL_SIZE = 11;
-const CELL_GAP = 3;
+const CELL_SIZE = 10;
+const CELL_GAP = 2;
 const DAYS_IN_WEEK = 7;
 const MONTHS_LABELS = ["1월", "2월", "3월", "4월", "5월", "6월", "7월", "8월", "9월", "10월", "11월", "12월"];
 const DAYS_LABELS = ["", "월", "", "수", "", "금", ""];
@@ -44,11 +44,17 @@ const intensityColors = [
   "bg-green-800 dark:bg-green-300",
 ];
 
-export function ContributionHeatmap({ data, days = 365 }: ContributionHeatmapProps) {
+export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
+  const currentYear = year ?? new Date().getFullYear();
+
   const { weeks, monthLabels, totalContributions } = useMemo(() => {
     const today = new Date();
-    const endDate = today;
-    const startDate = startOfWeek(subDays(today, days), { weekStartsOn: 0 });
+    // 현재 연도의 1월 1일부터 오늘까지만 표시
+    const yearStart = startOfYear(new Date(currentYear, 0, 1));
+    const endDate = currentYear === today.getFullYear() ? today : new Date(currentYear, 11, 31);
+
+    // 연도 시작일이 속한 주의 시작(일요일)부터 시작
+    const startDate = startOfWeek(yearStart, { weekStartsOn: 0 });
 
     const allDays = eachDayOfInterval({ start: startDate, end: endDate });
 
@@ -59,29 +65,31 @@ export function ContributionHeatmap({ data, days = 365 }: ContributionHeatmapPro
     });
 
     // 주 단위로 그룹화
-    const weeks: Array<Array<{ date: Date; count: number }>> = [];
-    let currentWeek: Array<{ date: Date; count: number }> = [];
+    const weeks: Array<Array<{ date: Date; count: number; isCurrentYear: boolean }>> = [];
+    let currentWeek: Array<{ date: Date; count: number; isCurrentYear: boolean }> = [];
 
     allDays.forEach((date, index) => {
       const dateStr = format(date, "yyyy-MM-dd");
       const count = dataMap.get(dateStr) || 0;
+      const isCurrentYear = date.getFullYear() === currentYear;
 
-      currentWeek.push({ date, count });
+      currentWeek.push({ date, count, isCurrentYear });
 
-      if ((index + 1) % DAYS_IN_WEEK === 0 || index === allDays.length - 1) {
+      if (date.getDay() === 6 || index === allDays.length - 1) {
         weeks.push(currentWeek);
         currentWeek = [];
       }
     });
 
-    // 월 라벨 위치 계산
+    // 월 라벨 위치 계산 - 해당 월의 첫 주에만 라벨 표시
     const monthLabels: Array<{ label: string; weekIndex: number }> = [];
     let lastMonth = -1;
 
     weeks.forEach((week, weekIndex) => {
-      const firstDayOfWeek = week[0]?.date;
-      if (firstDayOfWeek) {
-        const month = firstDayOfWeek.getMonth();
+      // 해당 주에서 현재 연도에 해당하는 첫 날짜를 찾음
+      const firstDayOfCurrentYear = week.find(d => d.isCurrentYear);
+      if (firstDayOfCurrentYear) {
+        const month = firstDayOfCurrentYear.date.getMonth();
         if (month !== lastMonth) {
           monthLabels.push({
             label: MONTHS_LABELS[month],
@@ -92,33 +100,39 @@ export function ContributionHeatmap({ data, days = 365 }: ContributionHeatmapPro
       }
     });
 
-    // 총 기여 수 계산
-    const totalContributions = data.reduce((sum, d) => sum + d.count, 0);
+    // 현재 연도의 총 기여 수 계산
+    const totalContributions = data
+      .filter(d => d.date.startsWith(`${currentYear}-`))
+      .reduce((sum, d) => sum + d.count, 0);
 
     return { weeks, monthLabels, totalContributions };
-  }, [data, days]);
+  }, [data, currentYear]);
+
+  // 히트맵 전체 너비 계산
+  const heatmapWidth = weeks.length * (CELL_SIZE + CELL_GAP) + 28; // 28은 요일 라벨 영역
 
   return (
     <div className="space-y-2">
       {/* 통계 헤더 */}
       <div className="text-sm text-muted-foreground">
-        지난 {days}일간 <span className="font-semibold text-foreground">{totalContributions.toLocaleString()}개</span> 커밋
+        <span className="font-medium text-foreground">{currentYear}년</span> 기여 현황 ·
+        <span className="font-semibold text-foreground ml-1">{totalContributions.toLocaleString()}개</span> 커밋
       </div>
 
       <TooltipProvider delayDuration={100}>
         <div className="overflow-x-auto pb-2">
-          <div className="inline-block">
+          <div className="inline-block relative" style={{ minWidth: heatmapWidth }}>
             {/* 월 라벨 */}
             <div
-              className="flex text-xs text-muted-foreground mb-1"
+              className="relative text-xs text-muted-foreground mb-1 h-4"
               style={{ marginLeft: 28 }}
             >
               {monthLabels.map((month, idx) => (
                 <div
                   key={idx}
+                  className="absolute whitespace-nowrap"
                   style={{
-                    position: "absolute",
-                    left: 28 + month.weekIndex * (CELL_SIZE + CELL_GAP),
+                    left: month.weekIndex * (CELL_SIZE + CELL_GAP),
                   }}
                 >
                   {month.label}
@@ -126,20 +140,20 @@ export function ContributionHeatmap({ data, days = 365 }: ContributionHeatmapPro
               ))}
             </div>
 
-            <div className="flex gap-0.5 mt-5">
+            <div className="flex gap-0.5">
               {/* 요일 라벨 */}
               <div
-                className="flex flex-col text-xs text-muted-foreground mr-1"
+                className="flex flex-col text-xs text-muted-foreground mr-1 shrink-0"
                 style={{ gap: CELL_GAP }}
               >
                 {DAYS_LABELS.map((label, idx) => (
                   <div
                     key={idx}
+                    className="flex items-center justify-end pr-1"
                     style={{
                       height: CELL_SIZE,
                       width: 20,
-                      lineHeight: `${CELL_SIZE}px`,
-                      fontSize: 10,
+                      fontSize: 9,
                     }}
                   >
                     {label}
@@ -158,6 +172,8 @@ export function ContributionHeatmap({ data, days = 365 }: ContributionHeatmapPro
                     {week.map((day, dayIdx) => {
                       const level = getIntensityLevel(day.count);
                       const isToday = isSameDay(day.date, new Date());
+                      // 현재 연도가 아닌 날짜는 흐리게 표시
+                      const isOutsideYear = !day.isCurrentYear;
 
                       return (
                         <Tooltip key={dayIdx}>
@@ -165,7 +181,9 @@ export function ContributionHeatmap({ data, days = 365 }: ContributionHeatmapPro
                             <div
                               className={cn(
                                 "rounded-sm transition-colors cursor-default",
-                                intensityColors[level],
+                                isOutsideYear
+                                  ? "bg-transparent"
+                                  : intensityColors[level],
                                 isToday && "ring-1 ring-foreground ring-offset-1 ring-offset-background"
                               )}
                               style={{
@@ -174,16 +192,18 @@ export function ContributionHeatmap({ data, days = 365 }: ContributionHeatmapPro
                               }}
                             />
                           </TooltipTrigger>
-                          <TooltipContent side="top" className="text-xs">
-                            <p className="font-semibold">
-                              {day.count > 0
-                                ? `${day.count}개 커밋`
-                                : "커밋 없음"}
-                            </p>
-                            <p className="text-muted-foreground">
-                              {format(day.date, "yyyy년 M월 d일 (eee)", { locale: ko })}
-                            </p>
-                          </TooltipContent>
+                          {!isOutsideYear && (
+                            <TooltipContent side="top" className="text-xs">
+                              <p className="font-semibold">
+                                {day.count > 0
+                                  ? `${day.count}개 커밋`
+                                  : "커밋 없음"}
+                              </p>
+                              <p className="text-muted-foreground">
+                                {format(day.date, "M월 d일 (eee)", { locale: ko })}
+                              </p>
+                            </TooltipContent>
+                          )}
                         </Tooltip>
                       );
                     })}

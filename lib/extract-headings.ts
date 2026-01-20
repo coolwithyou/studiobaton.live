@@ -7,10 +7,11 @@ export interface TocHeading {
 }
 
 /**
- * 헤딩 텍스트에서 마크다운 문법을 제거합니다.
+ * 헤딩 텍스트에서 마크다운 문법과 HTML 태그를 제거합니다.
  */
 function stripHeadingMarkdown(text: string): string {
   return text
+    .replace(/<[^>]*>/g, "") // HTML 태그 제거 <tag>, </tag>, <tag />
     .replace(/\*\*([^*]+)\*\*/g, "$1") // 볼드 **text**
     .replace(/\*([^*]+)\*/g, "$1") // 이탤릭 *text*
     .replace(/__([^_]+)__/g, "$1") // 볼드 __text__

@@ -449,18 +449,25 @@ export async function getMemberProfileStats(memberId: string) {
 }
 
 /**
- * 히트맵 데이터를 조회합니다 (최근 1년)
+ * 히트맵 데이터를 조회합니다 (해당 연도 기준)
+ * @param memberId 멤버 ID
+ * @param year 조회할 연도 (기본: 현재 연도)
  */
 export async function getHeatmapData(
   memberId: string,
-  days: number = 365
+  year?: number
 ): Promise<Array<{ date: string; count: number }>> {
-  const startDate = startOfDayKST(subDaysKST(nowKST(), days));
+  const targetYear = year ?? nowKST().getFullYear();
+  const startDate = startOfDayKST(new Date(targetYear, 0, 1)); // 연도 1월 1일
+  const endDate = startOfDayKST(new Date(targetYear, 11, 31, 23, 59, 59)); // 연도 12월 31일
 
   const activities = await prisma.memberDailyActivity.findMany({
     where: {
       memberId,
-      date: { gte: startDate },
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
     },
     select: {
       date: true,
@@ -476,18 +483,25 @@ export async function getHeatmapData(
 }
 
 /**
- * 주간 트렌드 데이터를 조회합니다.
+ * 주간 트렌드 데이터를 조회합니다 (해당 연도 기준).
+ * @param memberId 멤버 ID
+ * @param year 조회할 연도 (기본: 현재 연도)
  */
 export async function getWeeklyTrendData(
   memberId: string,
-  weeks: number = 12
+  year?: number
 ): Promise<Array<{ week: string; commits: number; additions: number; deletions: number }>> {
-  const startDate = startOfDayKST(subDaysKST(nowKST(), weeks * 7));
+  const targetYear = year ?? nowKST().getFullYear();
+  const startDate = startOfDayKST(new Date(targetYear, 0, 1)); // 연도 1월 1일
+  const endDate = startOfDayKST(new Date(targetYear, 11, 31, 23, 59, 59)); // 연도 12월 31일
 
   const activities = await prisma.memberDailyActivity.findMany({
     where: {
       memberId,
-      date: { gte: startDate },
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
     },
     select: {
       date: true,

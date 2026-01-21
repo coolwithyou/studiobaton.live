@@ -46,6 +46,7 @@ interface Author {
 interface Post {
   id: string
   slug: string
+  title: string | null // MANUAL 타입 포스트의 제목
   category: string | null
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
   targetDate: string
@@ -222,8 +223,8 @@ export default function PostsPage() {
                   return (
                     <TableRow key={post.id}>
                       <TableCell className="font-medium">
-                        <div className="truncate max-w-[260px]" title={selectedVersion?.title || post.slug}>
-                          {selectedVersion?.title || post.slug}
+                        <div className="truncate max-w-[260px]" title={selectedVersion?.title || post.title || post.slug || ""}>
+                          {selectedVersion?.title || post.title || post.slug}
                         </div>
                       </TableCell>
                       <TableCell>

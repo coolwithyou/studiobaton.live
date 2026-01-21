@@ -30,9 +30,25 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        // 기존 /admin/review 경로를 /admin/wrap-up으로 리다이렉트
-        source: "/admin/review",
-        destination: "/admin/wrap-up",
+        // 기존 /console/review 경로를 /console/wrap-up으로 리다이렉트
+        source: "/console/review",
+        destination: "/console/wrap-up",
+        permanent: true,
+      },
+      // 하위 호환성: /admin/* → /console/* 301 리다이렉트
+      {
+        source: "/admin",
+        destination: "/console",
+        permanent: true,
+      },
+      {
+        source: "/admin/:path*",
+        destination: "/console/:path*",
+        permanent: true,
+      },
+      {
+        source: "/api/admin/:path*",
+        destination: "/api/console/:path*",
         permanent: true,
       },
     ];

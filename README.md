@@ -131,7 +131,7 @@ GOOGLE_CLIENT_SECRET="GOCSPX-xxxxxxxxxxxxxxxx"
 
 Google OAuth를 사용하며, **@ba-ton.kr 도메인 계정만** 로그인할 수 있습니다.
 
-1. http://localhost:3090/admin 접속
+1. http://localhost:3090/console 접속
 2. "Google로 로그인" 버튼 클릭
 3. @ba-ton.kr 계정으로 로그인
 4. 최초 로그인 시 승인 대기 상태 (ADMIN이 승인 필요)
@@ -141,7 +141,7 @@ Google OAuth를 사용하며, **@ba-ton.kr 도메인 계정만** 로그인할 �
 ```
 ├── app/
 │   ├── (public)/              # 공개 페이지 (홈, 포스트)
-│   ├── admin/
+│   ├── console/
 │   │   ├── (auth)/            # 인증 페이지 (로그인, 승인 대기)
 │   │   └── (protected)/       # 보호된 관리자 페이지
 │   │       ├── standup/       # 스탠드업 (할 일 관리)
@@ -153,7 +153,7 @@ Google OAuth를 사용하며, **@ba-ton.kr 도메인 계정만** 로그인할 �
 │   │       ├── users/         # 사용자 관리
 │   │       └── stats/         # 통계
 │   ├── api/
-│   │   ├── admin/             # 관리자 API
+│   │   ├── console/           # 관리자 API
 │   │   ├── auth/              # 인증 API
 │   │   ├── cron/              # Cron 작업
 │   │   ├── giphy/             # GIPHY API
@@ -194,18 +194,18 @@ Google OAuth를 사용하며, **@ba-ton.kr 도메인 계정만** 로그인할 �
 
 ## 관리자 페이지
 
-| 경로             | 설명                           | 권한 |
-| ---------------- | ------------------------------ | ---- |
-| `/admin`         | 대시보드                       | ALL  |
-| `/admin/standup` | 스탠드업 (일일 할 일 관리)     | TEAM_MEMBER+ |
-| `/admin/review`  | 커밋 리뷰 (팀원별 커밋 검토)   | TEAM_MEMBER+ |
-| `/admin/wrap-up` | 일일 Wrap-up (AI 커밋 요약)    | TEAM_MEMBER+ |
-| `/admin/generate`| 글 생성                        | ADMIN |
-| `/admin/post/[id]`| 글 편집                       | ADMIN |
-| `/admin/projects`| 프로젝트 매핑 관리             | ADMIN |
-| `/admin/members` | 팀원 관리                      | ADMIN |
-| `/admin/users`   | 사용자 관리 (승인/거부)        | ADMIN |
-| `/admin/stats`   | 통계                           | ADMIN |
+| 경로               | 설명                           | 권한 |
+| ------------------ | ------------------------------ | ---- |
+| `/console`         | 대시보드                       | ALL  |
+| `/console/standup` | 스탠드업 (일일 할 일 관리)     | TEAM_MEMBER+ |
+| `/console/review`  | 커밋 리뷰 (팀원별 커밋 검토)   | TEAM_MEMBER+ |
+| `/console/wrap-up` | 일일 Wrap-up (AI 커밋 요약)    | TEAM_MEMBER+ |
+| `/console/generate`| 글 생성                        | ADMIN |
+| `/console/post/[id]`| 글 편집                       | ADMIN |
+| `/console/projects`| 프로젝트 매핑 관리             | ADMIN |
+| `/console/members` | 팀원 관리                      | ADMIN |
+| `/console/users`   | 사용자 관리 (승인/거부)        | ADMIN |
+| `/console/stats`   | 통계                           | ADMIN |
 
 ## 개발/테스트 API (AI 에이전트용)
 
@@ -247,7 +247,7 @@ Content-Type: application/json
 ```bash
 # 관리자 API 호출 예시
 curl -H "Authorization: Bearer dev_YWRtaW5AYmEtdG9uLmty" \
-  http://localhost:3090/api/admin/posts
+  http://localhost:3090/api/console/posts
 ```
 
 TypeScript/JavaScript:
@@ -255,7 +255,7 @@ TypeScript/JavaScript:
 const token = "dev_YWRtaW5AYmEtdG9uLmty" // 발급받은 토큰
 
 // API 요청
-const response = await fetch('http://localhost:3090/api/admin/posts', {
+const response = await fetch('http://localhost:3090/api/console/posts', {
   headers: {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json'

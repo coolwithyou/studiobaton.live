@@ -79,7 +79,7 @@ export function StatsDashboard() {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       });
-      const response = await fetch(`/api/admin/stats?${params}`);
+      const response = await fetch(`/api/console/stats?${params}`);
       if (!response.ok) {
         throw new Error("통계 데이터를 불러오는데 실패했습니다.");
       }

@@ -312,7 +312,7 @@ export function DeveloperStatsDashboard() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/admin/stats/developers?days=${days}`);
+      const response = await fetch(`/api/console/stats/developers?days=${days}`);
       if (!response.ok) {
         throw new Error("통계 데이터를 불러오는데 실패했습니다.");
       }

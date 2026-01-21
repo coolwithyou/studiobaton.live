@@ -143,7 +143,7 @@ const columns: ColumnDef<PostData>[] = [
       const post = row.original
       return (
         <Button variant="ghost" size="sm" asChild>
-          <Link href={`/admin/post/${post.id}`}>
+          <Link href={`/console/post/${post.id}`}>
             <ExternalLink className="h-4 w-4" />
           </Link>
         </Button>

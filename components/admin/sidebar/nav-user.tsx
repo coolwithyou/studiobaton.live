@@ -35,7 +35,7 @@ export function NavUser({ user }: NavUserProps) {
   const { theme, setTheme } = useTheme()
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: "/admin/login" })
+    await signOut({ callbackUrl: "/console/login" })
   }
 
   const toggleTheme = () => {
@@ -95,7 +95,7 @@ export function NavUser({ user }: NavUserProps) {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link href="/admin/profile">
+                <Link href="/console/profile">
                   <User className="mr-2 h-4 w-4" />
                   프로필
                 </Link>

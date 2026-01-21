@@ -13,7 +13,7 @@ async function main() {
   console.log("📋 Google OAuth 로그인 시스템을 사용합니다.");
   console.log("");
   console.log("✅ 로그인 방법:");
-  console.log("   1. http://localhost:3000/admin 접속");
+  console.log("   1. http://localhost:3000/console 접속");
   console.log("   2. 'Google로 로그인' 버튼 클릭");
   console.log("   3. @ba-ton.kr 계정으로 로그인");
   console.log("");
@@ -90,7 +90,7 @@ async function main() {
 
   console.log("");
   console.log("⚠️  중요: 팀원 이메일을 실제 GitHub 커밋 이메일로 업데이트해주세요!");
-  console.log("   - /admin/members 페이지에서 수정 가능합니다.");
+  console.log("   - /console/members 페이지에서 수정 가능합니다.");
 }
 
 main()

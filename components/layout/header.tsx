@@ -65,7 +65,7 @@ export function Header() {
                     {session?.user?.name || session?.user?.email?.split("@")[0]}
                   </span>
                   {canAccessAdmin && (
-                    <Link href="/admin">
+                    <Link href="/console">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -86,7 +86,7 @@ export function Header() {
                   </Button>
                 </div>
               ) : (
-                <Link href="/admin/login">
+                <Link href="/console/login">
                   <Button variant="ghost" size="sm" className="text-muted-foreground">
                     로그인
                   </Button>

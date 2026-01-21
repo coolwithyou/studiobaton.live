@@ -5,8 +5,8 @@ import type { UserRole, UserStatus } from "@/app/generated/prisma"
 
 // 역할별 접근 가능한 어드민 경로
 const ROLE_ROUTES: Record<UserRole, string[]> = {
-  ADMIN: ["/admin"], // 모든 어드민 경로
-  TEAM_MEMBER: ["/admin/review", "/admin/standup", "/admin/wrap-up"], // 스탠드업/랩업
+  ADMIN: ["/console"], // 모든 어드민 경로
+  TEAM_MEMBER: ["/console/review", "/console/standup", "/console/wrap-up"], // 스탠드업/랩업
   ORG_MEMBER: [], // 어드민 접근 불가
 }
 
@@ -51,8 +51,8 @@ export async function proxy(request: NextRequest) {
 
   // 로그인, 승인대기 페이지와 auth API는 항상 허용
   if (
-    pathname.startsWith("/admin/login") ||
-    pathname.startsWith("/admin/pending") ||
+    pathname.startsWith("/console/login") ||
+    pathname.startsWith("/console/pending") ||
     pathname.startsWith("/api/auth")
   ) {
     return NextResponse.next()
@@ -66,11 +66,11 @@ export async function proxy(request: NextRequest) {
 
   const isAuthenticated = !!session?.user || hasDevToken
 
-  // /admin 하위 페이지는 인증 및 역할 확인 필요
-  if (pathname.startsWith("/admin")) {
+  // /console 하위 페이지는 인증 및 역할 확인 필요
+  if (pathname.startsWith("/console")) {
     // 미인증 → 로그인 페이지
     if (!session?.user) {
-      const loginUrl = new URL("/admin/login", request.url)
+      const loginUrl = new URL("/console/login", request.url)
       return NextResponse.redirect(loginUrl)
     }
 
@@ -79,13 +79,13 @@ export async function proxy(request: NextRequest) {
 
     // PENDING 상태 → 승인 대기 페이지
     if (status === "PENDING") {
-      const pendingUrl = new URL("/admin/pending", request.url)
+      const pendingUrl = new URL("/console/pending", request.url)
       return NextResponse.redirect(pendingUrl)
     }
 
     // INACTIVE 상태 → 로그아웃 처리 (로그인 페이지로)
     if (status === "INACTIVE") {
-      const loginUrl = new URL("/admin/login?error=inactive", request.url)
+      const loginUrl = new URL("/console/login?error=inactive", request.url)
       return NextResponse.redirect(loginUrl)
     }
 
@@ -93,15 +93,15 @@ export async function proxy(request: NextRequest) {
     if (!canAccessPath(role, pathname)) {
       // 접근 권한 없음 → 권한 내 기본 페이지로 리다이렉트
       if (role === "TEAM_MEMBER") {
-        return NextResponse.redirect(new URL("/admin/review", request.url))
+        return NextResponse.redirect(new URL("/console/review", request.url))
       }
       // ORG_MEMBER는 어드민 접근 불가 → 홈으로
       return NextResponse.redirect(new URL("/", request.url))
     }
   }
 
-  // /api/admin 하위 API는 인증 필요
-  if (pathname.startsWith("/api/admin")) {
+  // /api/console 하위 API는 인증 필요
+  if (pathname.startsWith("/api/console")) {
     if (!isAuthenticated) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -121,5 +121,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  matcher: ["/console/:path*", "/api/console/:path*"],
 }

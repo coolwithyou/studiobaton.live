@@ -49,8 +49,8 @@ export const NAV_MAIN: NavGroup[] = [
         url: "#",
         icon: "Home",
         items: [
-          { title: "홈", url: "/admin" },
-          { title: "통계", url: "/admin/stats" },
+          { title: "홈", url: "/console" },
+          { title: "통계", url: "/console/stats" },
         ],
       },
     ],
@@ -65,9 +65,9 @@ export const NAV_MAIN: NavGroup[] = [
         url: "#",
         icon: "FileText",
         items: [
-          { title: "커밋 수집", url: "/admin/generate" },
-          { title: "포스트 작성", url: "/admin/posts/new" },
-          { title: "사이드 메뉴", url: "/admin/sidemenu" },
+          { title: "커밋 수집", url: "/console/generate" },
+          { title: "포스트 작성", url: "/console/posts/new" },
+          { title: "사이드 메뉴", url: "/console/sidemenu" },
         ],
       },
     ],
@@ -82,9 +82,9 @@ export const NAV_MAIN: NavGroup[] = [
         url: "#",
         icon: "MessageSquare",
         items: [
-          { title: "스탠드업", url: "/admin/standup" },
-          { title: "랩업", url: "/admin/wrap-up" },
-          { title: "커밋 리뷰", url: "/admin/review" },
+          { title: "스탠드업", url: "/console/standup" },
+          { title: "랩업", url: "/console/wrap-up" },
+          { title: "커밋 리뷰", url: "/console/review" },
         ],
       },
     ],
@@ -95,17 +95,17 @@ export const NAV_MAIN: NavGroup[] = [
 export const NAV_SECONDARY: NavItem[] = [
   {
     title: "프로젝트 설정",
-    url: "/admin/projects",
+    url: "/console/projects",
     icon: "FolderGit2",
   },
   {
     title: "팀원 관리",
-    url: "/admin/members",
+    url: "/console/members",
     icon: "UserCog",
   },
   {
     title: "사용자 관리",
-    url: "/admin/users",
+    url: "/console/users",
     icon: "Shield",
   },
   {

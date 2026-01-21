@@ -64,11 +64,35 @@ function ImageIcon() {
   );
 }
 
+// 이미지 크기 파싱 유틸리티 (alt|크기 형식에서 크기 추출)
+// 예: "설명|100%" -> { altText: "설명", size: "100%" }
+// 예: "설명" -> { altText: "설명", size: null }
+function parseImageSize(alt: string | undefined): { altText: string; size: string | null } {
+  if (!alt) return { altText: "", size: null };
+
+  const match = alt.match(/^(.+?)\|(\d+%?)$/);
+  if (match) {
+    return { altText: match[1].trim(), size: match[2] };
+  }
+  return { altText: alt, size: null };
+}
+
+// 크기 값을 CSS max-width로 변환
+function getSizeClass(size: string | null, isGif: boolean): string {
+  if (size) {
+    // 숫자만 있으면 %로 변환
+    const sizeValue = size.endsWith("%") ? size : `${size}%`;
+    return `max-w-[${sizeValue}]`;
+  }
+  // 기본값: GIF는 50%, 일반 이미지는 100%
+  return isGif ? "max-w-[50%]" : "max-w-full";
+}
+
 // GIF 이미지 마크다운 생성 (data-gif 속성으로 구분)
 function createGifMarkdown(gifUrl: string, altText: string): string {
   const caption = altText.trim() || "GIF";
-  // 마크다운 이미지 문법 사용 (렌더러에서 스타일 적용)
-  return `![${caption}](${gifUrl})`;
+  // 마크다운 이미지 문법 사용 - GIF 기본 50% 크기
+  return `![${caption}|50%](${gifUrl})`;
 }
 
 interface MarkdownEditorProps {
@@ -148,9 +172,12 @@ export function MarkdownEditor({
   );
 
   // 이미지 삽입 핸들러 - 커서 위치에 삽입
+  // size: 퍼센트 값 (예: "100%", "75%", "50%") 또는 null (기본값 사용)
   const insertImageAtCursor = useCallback(
-    (imageUrl: string, altText: string = "image") => {
-      const imageMarkdown = `![${altText}](${imageUrl})`;
+    (imageUrl: string, altText: string = "image", size: string | null = null) => {
+      // 크기가 지정되면 alt|크기% 형식으로 삽입
+      const altWithSize = size ? `${altText}|${size}` : altText;
+      const imageMarkdown = `![${altWithSize}](${imageUrl})`;
       const pos = cursorPositionRef.current;
 
       const before = value.slice(0, pos);
@@ -329,27 +356,34 @@ export function MarkdownEditor({
               },
               img: ({ src, alt }) => {
                 const srcStr = typeof src === "string" ? src : "";
+                if (!srcStr) return null;
+
                 const isGif = srcStr.includes("giphy.com") || srcStr.endsWith(".gif");
-                if (isGif) {
+                const { altText, size } = parseImageSize(alt);
+                const sizeStyle = getSizeClass(size, isGif);
+
+                // GIF 또는 크기가 지정된 이미지는 figure로 감싸서 중앙 정렬
+                if (isGif || size) {
                   return (
                     <figure className="text-center my-6">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={src}
-                        alt={alt || "GIF"}
-                        className="inline-block max-w-[50%] h-auto"
+                        alt={altText || (isGif ? "GIF" : "image")}
+                        className={`inline-block ${sizeStyle} h-auto`}
                       />
-                      {alt && alt !== "GIF" && (
+                      {altText && altText !== "GIF" && (
                         <figcaption className="text-sm opacity-70 mt-2">
-                          {alt}
+                          {altText}
                         </figcaption>
                       )}
                     </figure>
                   );
                 }
+                // 일반 이미지 (크기 지정 없음)
                 return (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={src} alt={alt || ""} className="max-w-full h-auto" />
+                  <img src={src} alt={altText || ""} className="max-w-full h-auto" />
                 );
               },
               code: ({ className, children, ...props }) => {
@@ -404,31 +438,37 @@ export function MarkdownEditor({
           extraCommands={[imageCommand, gifCommand]}
           previewOptions={{
             components: {
-              // 빈 src 이미지 경고 방지
+              // 빈 src 이미지 경고 방지 및 크기 조절 지원
               img: ({ src, alt, ...props }) => {
                 // src가 비어있거나 문자열이 아니면 렌더링하지 않음
                 if (!src || typeof src !== "string") return null;
+
                 const isGif = src.includes("giphy.com") || src.endsWith(".gif");
-                if (isGif) {
+                const { altText, size } = parseImageSize(alt);
+                const sizeStyle = getSizeClass(size, isGif);
+
+                // GIF 또는 크기가 지정된 이미지는 figure로 감싸서 중앙 정렬
+                if (isGif || size) {
                   return (
                     <figure className="text-center my-4">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={src}
-                        alt={alt || "GIF"}
-                        className="inline-block max-w-[50%] h-auto"
+                        alt={altText || (isGif ? "GIF" : "image")}
+                        className={`inline-block ${sizeStyle} h-auto`}
                         {...props}
                       />
-                      {alt && alt !== "GIF" && (
+                      {altText && altText !== "GIF" && (
                         <figcaption className="text-sm opacity-70 mt-2">
-                          {alt}
+                          {altText}
                         </figcaption>
                       )}
                     </figure>
                   );
                 }
+                // 일반 이미지 (크기 지정 없음)
                 // eslint-disable-next-line @next/next/no-img-element
-                return <img src={src} alt={alt || ""} {...props} />;
+                return <img src={src} alt={altText || ""} className="max-w-full h-auto" {...props} />;
               },
             },
           }}

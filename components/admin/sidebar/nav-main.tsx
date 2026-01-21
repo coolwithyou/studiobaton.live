@@ -2,6 +2,7 @@
 
 import {
   Home,
+  LayoutDashboard,
   BarChart3,
   PenSquare,
   Wand2,
@@ -10,12 +11,17 @@ import {
   CheckSquare,
   GitCommit,
   FolderGit2,
+  FolderKanban,
   UserCog,
+  Users,
   Shield,
+  ShieldCheck,
   ExternalLink,
+  Globe,
   Settings,
   HelpCircle,
   FileText,
+  Newspaper,
   type LucideIcon,
 } from "lucide-react"
 import Link from "next/link"
@@ -33,6 +39,7 @@ import type { NavGroup, IconName } from "./sidebar-config"
 // 아이콘 이름 → 컴포넌트 매핑
 const ICON_MAP: Record<IconName, LucideIcon> = {
   Home,
+  LayoutDashboard,
   BarChart3,
   PenSquare,
   Wand2,
@@ -41,12 +48,17 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   CheckSquare,
   GitCommit,
   FolderGit2,
+  FolderKanban,
   UserCog,
+  Users,
   Shield,
+  ShieldCheck,
   ExternalLink,
+  Globe,
   Settings,
   HelpCircle,
   FileText,
+  Newspaper,
 }
 
 interface NavMainProps {

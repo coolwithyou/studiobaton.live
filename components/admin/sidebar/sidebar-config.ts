@@ -3,6 +3,7 @@ import type { UserRole } from "@/app/generated/prisma"
 // 아이콘 이름 타입 정의 (Server → Client 직렬화를 위해 문자열 사용)
 export type IconName =
   | "Home"
+  | "LayoutDashboard"
   | "BarChart3"
   | "PenSquare"
   | "Wand2"
@@ -11,12 +12,17 @@ export type IconName =
   | "CheckSquare"
   | "GitCommit"
   | "FolderGit2"
+  | "FolderKanban"
   | "UserCog"
+  | "Users"
   | "Shield"
+  | "ShieldCheck"
   | "ExternalLink"
+  | "Globe"
   | "Settings"
   | "HelpCircle"
   | "FileText"
+  | "Newspaper"
 
 export interface NavItem {
   title: string
@@ -47,7 +53,7 @@ export const NAV_MAIN: NavGroup[] = [
       {
         title: "대시보드",
         url: "#",
-        icon: "Home",
+        icon: "LayoutDashboard",
         items: [
           { title: "홈", url: "/console" },
           { title: "통계", url: "/console/stats" },
@@ -63,7 +69,7 @@ export const NAV_MAIN: NavGroup[] = [
       {
         title: "콘텐츠",
         url: "#",
-        icon: "FileText",
+        icon: "Newspaper",
         items: [
           { title: "커밋 수집", url: "/console/generate" },
           { title: "포스트 작성", url: "/console/posts/new" },
@@ -80,11 +86,11 @@ export const NAV_MAIN: NavGroup[] = [
       {
         title: "팀 활동",
         url: "#",
-        icon: "MessageSquare",
+        icon: "Users",
         items: [
           { title: "스탠드업", url: "/console/standup" },
           { title: "랩업", url: "/console/wrap-up" },
-          { title: "커밋 리뷰", url: "/console/review" },
+          // { title: "커밋 리뷰", url: "/console/review" },
         ],
       },
     ],
@@ -96,7 +102,7 @@ export const NAV_SECONDARY: NavItem[] = [
   {
     title: "프로젝트 설정",
     url: "/console/projects",
-    icon: "FolderGit2",
+    icon: "FolderKanban",
   },
   {
     title: "팀원 관리",
@@ -106,12 +112,12 @@ export const NAV_SECONDARY: NavItem[] = [
   {
     title: "사용자 관리",
     url: "/console/users",
-    icon: "Shield",
+    icon: "ShieldCheck",
   },
   {
     title: "사이트 보기",
     url: "/",
-    icon: "ExternalLink",
+    icon: "Globe",
     external: true,
   },
 ]

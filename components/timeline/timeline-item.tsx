@@ -28,6 +28,7 @@ interface TimelineItemProps {
     targetDate: string;
     publishedAt: string | null;
     commits: Commit[];
+    type: "COMMIT_BASED" | "MANUAL";
   };
   /** 정규화된 저자 목록 (서버에서 계산) */
   authors: Author[];
@@ -65,7 +66,10 @@ export function TimelineItem({ post, authors, isLatest }: TimelineItemProps) {
         </time>
 
         {/* 제목 */}
-        <Link href={`/post/${post.slug}`} className="block group mt-2">
+        <Link
+          href={post.type === "COMMIT_BASED" ? `/log/${post.slug}` : `/post/${post.slug}`}
+          className="block group mt-2"
+        >
           <h2 className="text-lg font-semibold group-hover:text-primary transition-colors">
             {post.title}
           </h2>

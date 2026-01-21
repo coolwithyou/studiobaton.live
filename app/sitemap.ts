@@ -12,6 +12,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     select: {
       slug: true,
+      type: true,
       updatedAt: true,
       publishedAt: true,
     },
@@ -21,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   const postUrls = posts.map((post) => ({
-    url: `${SITE_URL}/post/${post.slug}`,
+    url: `${SITE_URL}/${post.type === "COMMIT_BASED" ? "log" : "post"}/${post.slug}`,
     lastModified: post.updatedAt,
     changeFrequency: "weekly" as const,
     priority: 0.8,

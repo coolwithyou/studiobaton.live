@@ -106,6 +106,7 @@ async function Timeline() {
             targetDate: post.targetDate.toISOString(),
             publishedAt: post.publishedAt?.toISOString() || null,
             commits: post.commits,
+            type: post.type,
           }}
           authors={authors}
           isLatest={index === 0}

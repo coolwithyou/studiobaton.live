@@ -227,94 +227,102 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
         />
       </div>
 
-      {/* URL Slug */}
-      <div className="space-y-2">
-        <Label htmlFor="slug">
-          URL Slug <span className="text-red-500">*</span>
-        </Label>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">
-            /post/
-          </span>
-          <Input
-            id="slug"
-            value={slug}
-            onChange={(e) => handleSlugChange(e.target.value)}
-            placeholder="url-friendly-slug"
-            className="font-mono"
-          />
+      {/* URL Slug + 카테고리 (2열 레이아웃) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* URL Slug */}
+        <div className="space-y-2">
+          <Label htmlFor="slug">
+            URL Slug <span className="text-red-500">*</span>
+          </Label>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">
+              /post/
+            </span>
+            <Input
+              id="slug"
+              value={slug}
+              onChange={(e) => handleSlugChange(e.target.value)}
+              placeholder="url-friendly-slug"
+              className="font-mono"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.
+          </p>
         </div>
-        <p className="text-xs text-muted-foreground">
-          영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다. 제목 입력 시 자동 생성됩니다.
-        </p>
-      </div>
 
-      {/* 카테고리 */}
-      <div className="space-y-2">
-        <Label htmlFor="category">카테고리</Label>
-        <div className="flex gap-2">
-          {mounted ? (
-            <Select key={selectId} value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="카테고리 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={CATEGORY_NONE}>없음</SelectItem>
-                {allCategories.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-                <SelectItem value={CATEGORY_CUSTOM}>+ 새 카테고리</SelectItem>
-              </SelectContent>
-            </Select>
-          ) : (
-            <div className="w-[200px] h-10 rounded-md border bg-background" />
-          )}
+        {/* 카테고리 */}
+        <div className="space-y-2">
+          <Label htmlFor="category">카테고리</Label>
+          <div className="flex gap-2">
+            {mounted ? (
+              <Select key={selectId} value={category} onValueChange={setCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="카테고리 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CATEGORY_NONE}>없음</SelectItem>
+                  {allCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={CATEGORY_CUSTOM}>+ 새 카테고리</SelectItem>
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="w-full h-10 rounded-md border bg-background" />
+            )}
+          </div>
           {category === CATEGORY_CUSTOM && (
             <Input
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
               placeholder="새 카테고리명"
-              className="flex-1"
+              className="mt-2"
             />
           )}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          사이드 메뉴와 연동하여 카테고리별로 포스트를 분류할 수 있습니다.
-        </p>
-      </div>
-
-      {/* 타임라인 노출 */}
-      <div className="flex items-center space-x-3 py-2">
-        <Checkbox
-          id="showInTimeline"
-          checked={showInTimeline}
-          onCheckedChange={(checked) => setShowInTimeline(checked === true)}
-        />
-        <div className="grid gap-1.5 leading-none">
-          <Label
-            htmlFor="showInTimeline"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            타임라인에 노출
-          </Label>
           <p className="text-xs text-muted-foreground">
-            체크하면 메인 페이지 타임라인에 이 포스트가 표시됩니다.
+            사이드 메뉴와 연동하여 카테고리별로 분류합니다.
           </p>
         </div>
       </div>
 
-      {/* 요약 */}
-      <div className="space-y-2">
-        <Label htmlFor="summary">요약</Label>
-        <Textarea
-          id="summary"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          placeholder="포스트 요약 (목록에 표시됩니다)"
-          rows={2}
-        />
+      {/* 요약 + 타임라인 노출 (2열 레이아웃) */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-start">
+        {/* 요약 */}
+        <div className="space-y-2">
+          <Label htmlFor="summary">요약</Label>
+          <Textarea
+            id="summary"
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder="포스트 요약 (목록에 표시됩니다)"
+            rows={2}
+          />
+        </div>
+
+        {/* 타임라인 노출 */}
+        <div className="space-y-2 md:pt-7">
+          <div className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/30">
+            <Checkbox
+              id="showInTimeline"
+              checked={showInTimeline}
+              onCheckedChange={(checked) => setShowInTimeline(checked === true)}
+            />
+            <div className="grid gap-1 leading-none">
+              <Label
+                htmlFor="showInTimeline"
+                className="text-sm font-medium leading-none cursor-pointer"
+              >
+                타임라인에 노출
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                메인 페이지에 표시
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 내용 */}

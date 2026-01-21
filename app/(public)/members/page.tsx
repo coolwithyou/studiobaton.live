@@ -35,6 +35,8 @@ async function MemberGrid() {
       githubName: true,
       avatarUrl: true,
       profileImageUrl: true,
+      title: true,
+      role: true,
     },
   });
 

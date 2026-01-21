@@ -9,6 +9,8 @@ interface MemberCardProps {
     githubName: string;
     avatarUrl: string | null;
     profileImageUrl: string | null;
+    title: string | null;
+    role: string | null;
   };
 }
 
@@ -44,6 +46,14 @@ export function MemberCard({ member }: MemberCardProps) {
           <h3 className="font-semibold text-lg text-foreground group-hover:text-primary transition-colors">
             {member.name}
           </h3>
+
+          {/* 직함과 역할 */}
+          {(member.title || member.role) && (
+            <div className="text-sm text-muted-foreground space-y-0.5">
+              {member.title && <p>{member.title}</p>}
+              {member.role && <p>{member.role}</p>}
+            </div>
+          )}
 
           <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
             <Github className="w-4 h-4" />

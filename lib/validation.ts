@@ -155,6 +155,8 @@ export const memberSchema = z.object({
     .transform((val) => (val === "" ? null : val))
     .pipe(z.string().url("유효한 URL을 입력해주세요.").nullable())
     .optional(),
+  title: z.string().max(100, "직함은 100자 이내여야 합니다.").nullable().optional(),
+  role: z.string().max(100, "역할은 100자 이내여야 합니다.").nullable().optional(),
   displayOrder: z.number().int().min(0).default(0),
   isActive: z.boolean().default(true),
 });

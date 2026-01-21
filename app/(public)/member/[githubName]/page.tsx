@@ -10,6 +10,7 @@ import { MemberProfileHeader } from "@/components/member/member-profile-header";
 import { MemberCommitList } from "@/components/member/member-commit-list";
 import { MemberActivitySection } from "@/components/member/member-activity-section";
 import { EditableBio } from "@/components/member/editable-bio";
+import { EditableTitleRole } from "@/components/member/editable-title-role";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -67,6 +68,8 @@ async function MemberProfile({ githubName }: { githubName: string }) {
       avatarUrl: true,
       profileImageUrl: true,
       bio: true,
+      title: true,
+      role: true,
     },
   });
 
@@ -131,6 +134,21 @@ async function MemberProfile({ githubName }: { githubName: string }) {
       </Link>
 
       <MemberProfileHeader member={member} stats={stats} canEdit={canEdit} />
+
+      {/* 직함/역할 섹션 */}
+      {(member.title || member.role || canEdit) && (
+        <section className="mt-6">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2">
+            직함 / 역할
+          </h3>
+          <EditableTitleRole
+            memberId={member.id}
+            currentTitle={member.title}
+            currentRole={member.role}
+            canEdit={canEdit}
+          />
+        </section>
+      )}
 
       {/* 자기소개 섹션 */}
       {(member.bio || canEdit) && (

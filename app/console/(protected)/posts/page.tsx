@@ -268,7 +268,7 @@ export default function PostsPage() {
                         <div className="flex items-center justify-end gap-1">
                           {post.status === "PUBLISHED" && (
                             <Button variant="ghost" size="icon" asChild>
-                              <Link href={`/posts/${post.slug}`} target="_blank">
+                              <Link href={`/post/${post.slug}`} target="_blank">
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>

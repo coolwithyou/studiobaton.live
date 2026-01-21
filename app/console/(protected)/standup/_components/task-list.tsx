@@ -4,30 +4,62 @@ import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Trash2, Loader2, ExternalLink, Pencil, Check, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Loader2, ExternalLink, Pencil, Check, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { differenceInDays, parseISO } from "date-fns";
+import { startOfDayKST } from "@/lib/date-utils";
 
-interface Task {
+export interface Task {
   id: string;
   content: string;
   repository: string | null;
   isCompleted: boolean;
   completedAt: string | null;
   displayOrder: number;
+  dueDate: string;
+  originalDueDate: string;
 }
 
 interface TaskListProps {
   tasks: Task[];
   onTaskUpdated: () => void;
   readOnly?: boolean;
+  showDueDateBadge?: boolean; // 캐리오버 뱃지 표시 여부
 }
 
-export function TaskList({ tasks, onTaskUpdated, readOnly = false }: TaskListProps) {
+export function TaskList({
+  tasks,
+  onTaskUpdated,
+  readOnly = false,
+  showDueDateBadge = false,
+}: TaskListProps) {
   const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set());
   const [deletingTasks, setDeletingTasks] = useState<Set<string>>(new Set());
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+
+  // 캐리오버 뱃지 렌더링 (원래 날짜 기준으로 몇 일 전인지 표시)
+  const renderDueDateBadge = (task: Task) => {
+    if (!showDueDateBadge) return null;
+
+    const today = startOfDayKST(new Date());
+    const originalDate = startOfDayKST(parseISO(task.originalDueDate));
+    const daysAgo = differenceInDays(today, originalDate);
+
+    if (daysAgo <= 0) return null;
+
+    return (
+      <Badge
+        variant="outline"
+        className="ml-2 text-xs font-normal text-orange-600 border-orange-300 bg-orange-50"
+      >
+        <Clock className="size-3 mr-1" />
+        {daysAgo}일 전
+      </Badge>
+    );
+  };
 
   const handleToggleComplete = async (task: Task) => {
     if (readOnly) return;
@@ -216,14 +248,17 @@ export function TaskList({ tasks, onTaskUpdated, readOnly = false }: TaskListPro
             </div>
           ) : (
             <div className="flex-1 min-w-0">
-              <p
-                className={cn(
-                  "text-sm",
-                  task.isCompleted && "line-through text-muted-foreground"
-                )}
-              >
-                {renderContent(task.content)}
-              </p>
+              <div className="flex items-center flex-wrap gap-1">
+                <p
+                  className={cn(
+                    "text-sm",
+                    task.isCompleted && "line-through text-muted-foreground"
+                  )}
+                >
+                  {renderContent(task.content)}
+                </p>
+                {renderDueDateBadge(task)}
+              </div>
               {task.repository && (
                 <div className="mt-1">
                   <a

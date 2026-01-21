@@ -185,21 +185,38 @@ export const standupQuerySchema = z.object({
     "미래 날짜는 선택할 수 없습니다."
   ),
   memberId: z.string().cuid("유효한 팀원 ID를 선택해주세요."),
+  includeCarryover: z.preprocess(
+    (val) => val === "true" || val === true,
+    z.boolean().default(true)
+  ).optional(),
+  carryoverDays: z.preprocess(
+    (val) => (val === null || val === "" || val === undefined) ? 7 : Number(val),
+    z.number().int().min(1).max(30).default(7)
+  ).optional(),
 });
 
 export const standupTaskSchema = z.object({
-  date: z.coerce.date(),
+  dueDate: z.coerce.date().optional(), // 새로운 필드: 할 일의 목표 날짜
+  date: z.coerce.date().optional(),    // 하위 호환용 (deprecated)
   memberId: z.string().cuid(),
   content: z.string()
     .min(1, "할 일 내용을 입력해주세요.")
     .max(500, "500자 이내로 입력해주세요."),
   repository: z.string().max(200).nullable().optional(),
-});
+}).refine(
+  (data) => data.dueDate || data.date,
+  { message: "날짜를 지정해주세요." }
+).transform((data) => ({
+  ...data,
+  // dueDate가 없으면 date 사용 (하위 호환)
+  dueDate: data.dueDate || data.date!,
+}));
 
 export const standupTaskUpdateSchema = z.object({
   isCompleted: z.boolean().optional(),
   content: z.string().min(1).max(500).optional(),
   repository: z.string().max(200).nullable().optional(),
+  dueDate: z.coerce.date().optional(), // 리스케줄 기능
 });
 
 export const repoSearchSchema = z.object({

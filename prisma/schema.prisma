@@ -272,18 +272,25 @@ model Standup {
 
 // 스탠드업 할 일 항목
 model StandupTask {
-  id           String    @id @default(cuid())
-  standupId    String
-  standup      Standup   @relation(fields: [standupId], references: [id], onDelete: Cascade)
-  content      String    // 할 일 내용 (@mention 포함 가능)
-  repository   String?   // 참조된 레포 (예: studiobaton/kiaf.web)
-  isCompleted  Boolean   @default(false)
-  completedAt  DateTime?
-  displayOrder Int       @default(0)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  standupId       String
+  standup         Standup   @relation(fields: [standupId], references: [id], onDelete: Cascade)
+  content         String    // 할 일 내용 (@mention 포함 가능)
+  repository      String?   // 참조된 레포 (예: studiobaton/kiaf.web)
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  displayOrder    Int       @default(0)
+
+  // 날짜 관리 (캐리오버 & 미래 예약)
+  dueDate         DateTime  @db.Date  // 목표 완료 날짜 (리스케줄 가능)
+  originalDueDate DateTime  @db.Date  // 최초 작성 날짜 (불변, 뱃지 표시용)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   @@index([standupId])
+  @@index([dueDate])
+  @@index([isCompleted, dueDate])
 }
 
 // Auth.js required models

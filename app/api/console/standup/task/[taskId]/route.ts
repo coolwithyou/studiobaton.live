@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession, hasTeamAccess } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
+import { toDateOnlyUTC } from "@/lib/date-utils";
 import { standupTaskUpdateSchema, formatZodError } from "@/lib/validation";
 import {
   logError,
@@ -18,7 +19,7 @@ interface RouteParams {
 
 /**
  * PATCH /api/console/standup/task/[taskId]
- * 할 일 수정 (완료 체크, 내용 수정)
+ * 할 일 수정 (완료 체크, 내용 수정, 날짜 리스케줄)
  */
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
@@ -68,6 +69,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       repository?: string | null;
       isCompleted?: boolean;
       completedAt?: Date | null;
+      dueDate?: Date;
     } = {};
 
     if (data.content !== undefined) {
@@ -81,6 +83,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     if (data.isCompleted !== undefined) {
       updateData.isCompleted = data.isCompleted;
       updateData.completedAt = data.isCompleted ? new Date() : null;
+    }
+
+    // 날짜 리스케줄 (dueDate만 변경, originalDueDate는 불변)
+    if (data.dueDate !== undefined) {
+      updateData.dueDate = toDateOnlyUTC(data.dueDate);
     }
 
     const task = await prisma.standupTask.update({

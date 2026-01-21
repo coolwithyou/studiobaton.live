@@ -12,9 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Clock } from "lucide-react";
 import { StandupForm } from "./_components/standup-form";
-import { TaskList } from "./_components/task-list";
+import { TaskList, Task } from "./_components/task-list";
 import { VerifiedBadge } from "@/components/ui/verified-badge";
 import { PageContainer } from "@/components/admin/ui/page-container";
 import { PageHeader } from "@/components/admin/ui/page-header";
@@ -26,22 +26,14 @@ interface Member {
   isLinked?: boolean;
 }
 
-export interface Task {
-  id: string;
-  content: string;
-  repository: string | null;
-  isCompleted: boolean;
-  completedAt: string | null;
-  displayOrder: number;
-}
-
 interface StandupData {
   date: string;
   member: Member;
   standup: {
-    id: string;
+    id: string | null;
     tasks: Task[];
-  } | null;
+    carriedOverTasks: Task[];
+  };
 }
 
 export default function StandupPage() {
@@ -148,7 +140,10 @@ export default function StandupPage() {
   const isToday =
     formatKST(selectedDate, "yyyy-MM-dd") === formatKST(new Date(), "yyyy-MM-dd");
   const tasks = standupData?.standup?.tasks || [];
-  const completedCount = tasks.filter((t) => t.isCompleted).length;
+  const carriedOverTasks = standupData?.standup?.carriedOverTasks || [];
+  const allTasks = [...carriedOverTasks, ...tasks];
+  const completedCount = allTasks.filter((t) => t.isCompleted).length;
+  const totalCount = allTasks.length;
 
   return (
     <PageContainer maxWidth="xl">
@@ -221,10 +216,15 @@ export default function StandupPage() {
               </div>
 
               {/* 통계 */}
-              {tasks.length > 0 && (
+              {totalCount > 0 && (
                 <div className="flex items-center gap-4 p-3 bg-muted rounded-lg text-sm">
                   <span>
-                    총 <strong>{tasks.length}</strong>개
+                    총 <strong>{totalCount}</strong>개
+                    {carriedOverTasks.length > 0 && (
+                      <span className="text-orange-600 ml-1">
+                        (미완료 {carriedOverTasks.length}개 포함)
+                      </span>
+                    )}
                   </span>
                   <span className="text-muted-foreground">|</span>
                   <span className="text-green-600">
@@ -232,14 +232,36 @@ export default function StandupPage() {
                   </span>
                   <span className="text-muted-foreground">|</span>
                   <span className="text-orange-600">
-                    남음 <strong>{tasks.length - completedCount}</strong>개
+                    남음 <strong>{totalCount - completedCount}</strong>개
                   </span>
                 </div>
               )}
 
-              {/* 할 일 목록 */}
+              {/* 미완료 캐리오버 목록 */}
+              {carriedOverTasks.length > 0 && (
+                <div>
+                  <h3 className="flex items-center gap-2 text-sm font-medium mb-3 text-orange-600">
+                    <Clock className="size-4" />
+                    미완료 할 일 ({carriedOverTasks.length})
+                  </h3>
+                  <TaskList
+                    tasks={carriedOverTasks}
+                    onTaskUpdated={handleTaskAdded}
+                    showDueDateBadge
+                  />
+                </div>
+              )}
+
+              {/* 오늘의 할 일 목록 */}
               <div>
-                <h3 className="text-sm font-medium mb-3">오늘의 할 일</h3>
+                <h3 className="text-sm font-medium mb-3">
+                  {isToday ? "오늘의 할 일" : `${formatKST(selectedDate, "M월 d일")}의 할 일`}
+                  {tasks.length > 0 && (
+                    <span className="text-muted-foreground font-normal ml-2">
+                      ({tasks.length})
+                    </span>
+                  )}
+                </h3>
                 <TaskList tasks={tasks} onTaskUpdated={handleTaskAdded} />
               </div>
             </div>

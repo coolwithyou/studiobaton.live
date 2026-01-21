@@ -36,12 +36,15 @@ interface Task {
   content: string;
   repository: string | null;
   isCompleted: boolean;
+  dueDate?: string;
+  originalDueDate?: string;
 }
 
 interface StandupData {
   standup: {
     id: string;
     tasks: Task[];
+    carriedOverTasks: Task[];
   } | null;
 }
 
@@ -263,6 +266,7 @@ export default function WrapUpPage() {
   const isToday =
     formatKST(selectedDate, "yyyy-MM-dd") === formatKST(new Date(), "yyyy-MM-dd");
   const tasks = standupData?.standup?.tasks || [];
+  const carriedOverTasks = standupData?.standup?.carriedOverTasks || [];
   const hasCommits = (reviewData?.summary?.totalCommits || 0) > 0;
 
   // 커밋 해시 -> 리포지토리명 매핑 생성
@@ -345,7 +349,7 @@ export default function WrapUpPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <StandupChecklist tasks={tasks} />
+                  <StandupChecklist tasks={tasks} carriedOverTasks={carriedOverTasks} />
                 </CardContent>
               </Card>
 

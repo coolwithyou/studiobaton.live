@@ -151,7 +151,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   const type = params.type;
 
   return (
-    <ContentGrid maxWidth="4xl">
+    <ContentGrid>
       {category && (
         <div className="pb-4 border-b mb-4">
           <h1 className="text-2xl font-bold">{category}</h1>

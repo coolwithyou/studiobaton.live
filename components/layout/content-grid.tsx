@@ -18,19 +18,20 @@ const maxWidthClasses = {
 /**
  * ContentGrid - 3열 그리드 레이아웃을 위한 컨텐츠 래퍼
  *
- * 구조: [사이드바(layout)] | [메인 컨텐츠] | [우측 위젯(선택)]
+ * 구조: [사이드바(layout)] | [메인 컨텐츠(flex-1)] | [우측 위젯(선택)]
+ *
+ * 양쪽 사이드바는 224px 고정, 메인 콘텐츠는 남은 공간을 모두 활용
  *
  * @param children - 메인 컨텐츠 영역
  * @param aside - 우측 위젯 영역 (TOC, 메타 정보 등) - xl 이상에서만 표시
- * @param maxWidth - 메인 컨텐츠의 최대 너비 (기본: 2xl)
+ * @param maxWidth - 메인 컨텐츠의 최대 너비 (기본: full - 남은 공간 전부 사용)
  */
 export function ContentGrid({
   children,
   aside,
-  maxWidth = "4xl",
+  maxWidth = "full",
   className,
 }: ContentGridProps) {
-  // 기본값 "4xl"로 2:8:2 비율 유지 (좌측 사이드바 224px, 메인 896px, 우측 위젯 224px)
   return (
     <div className={cn("py-8", className)}>
       <div className="flex gap-8">

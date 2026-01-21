@@ -69,7 +69,7 @@ async function MemberGrid() {
 
 export default function MembersPage() {
   return (
-    <ContentGrid maxWidth="4xl">
+    <ContentGrid>
       <header className="mb-8">
         <h1 className="text-3xl font-bold">팀원 소개</h1>
         <p className="text-muted-foreground mt-2">

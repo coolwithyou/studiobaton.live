@@ -16,7 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Eye, Save, Send, Trash2 } from "lucide-react";
+import { Loader2, Save, Send, Trash2 } from "lucide-react";
+import { MarkdownGuideDialog } from "@/components/markdown/markdown-guide-dialog";
 
 const CATEGORY_NONE = "__none__";
 const CATEGORY_CUSTOM = "__custom__";

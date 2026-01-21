@@ -6,15 +6,10 @@ import { ArrowLeft } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
 import { getServerSession } from "@/lib/auth-helpers";
-import { MemberProfileHeader } from "@/components/member/member-profile-header";
+import { MemberProfileSidebar } from "@/components/member/member-profile-sidebar";
 import { MemberCommitList } from "@/components/member/member-commit-list";
 import { MemberActivitySection } from "@/components/member/member-activity-section";
-import { EditableBio } from "@/components/member/editable-bio";
-import { EditableTitleRole } from "@/components/member/editable-title-role";
-import { ContentGrid } from "@/components/layout/content-grid";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +84,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
     });
 
     isAdmin = admin?.role === "ADMIN";
-    // 본인 프로필이거나 Admin인 경우 편집 가능 (bio)
+    // 본인 프로필이거나 Admin인 경우 편집 가능
     canEdit = admin?.linkedMemberId === member.id || isAdmin;
   }
 
@@ -126,7 +121,8 @@ async function MemberProfile({ githubName }: { githubName: string }) {
   };
 
   return (
-    <ContentGrid maxWidth="4xl">
+    <div className="container max-w-6xl mx-auto px-4 py-6">
+      {/* 뒤로가기 버튼 */}
       <Link
         href="/members"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
@@ -135,84 +131,50 @@ async function MemberProfile({ githubName }: { githubName: string }) {
         팀원 목록으로
       </Link>
 
-      <MemberProfileHeader member={member} stats={stats} canEdit={canEdit} />
+      {/* 2열 레이아웃 (데스크톱) / 1열 레이아웃 (모바일) */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* 좌측 사이드바 */}
+        <MemberProfileSidebar
+          member={member}
+          stats={stats}
+          canEdit={canEdit}
+          isAdmin={isAdmin}
+        />
 
-      {/* 직함/역할 섹션 - Admin만 수정 가능 */}
-      {(member.title || member.role || isAdmin) && (
-        <section className="mt-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">
-            직함 / 역할
-          </h3>
-          <EditableTitleRole
-            memberId={member.id}
-            currentTitle={member.title}
-            currentRole={member.role}
-            canEdit={isAdmin}
-          />
-        </section>
-      )}
+        {/* 우측 메인 컨텐츠 */}
+        <main className="flex-1 min-w-0 space-y-8">
+          {/* 개발 활동 지표 섹션 */}
+          <section>
+            <h2 className="text-lg font-semibold mb-4">개발 활동</h2>
+            <Suspense fallback={<ActivitySectionSkeleton />}>
+              <MemberActivitySection githubName={member.githubName} />
+            </Suspense>
+          </section>
 
-      {/* 자기소개 섹션 */}
-      {(member.bio || canEdit) && (
-        <section className="mt-6">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2">
-            소개
-          </h3>
-          <EditableBio
-            memberId={member.id}
-            currentBio={member.bio}
-            canEdit={canEdit}
-          />
-        </section>
-      )}
-
-      <Separator className="my-8" />
-
-      {/* 개발 활동 지표 섹션 */}
-      <section className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">📊 개발 활동</h2>
-        <Suspense fallback={<ActivitySectionSkeleton />}>
-          <MemberActivitySection githubName={member.githubName} />
-        </Suspense>
-      </section>
-
-      <Separator className="my-8" />
-
-      <section>
-        <h2 className="text-xl font-semibold mb-4">최근 커밋</h2>
-        <MemberCommitList commits={recentCommits} />
-      </section>
-    </ContentGrid>
+          {/* 최근 커밋 목록 */}
+          <section>
+            <h2 className="text-lg font-semibold mb-4">최근 커밋</h2>
+            <MemberCommitList commits={recentCommits} />
+          </section>
+        </main>
+      </div>
+    </div>
   );
 }
 
 function ActivitySectionSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="flex gap-4">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-8 w-48" />
+    <div className="space-y-4">
+      {/* 히트맵 스켈레톤 */}
+      <Skeleton className="h-32 w-full" />
+      {/* 통계 스켈레톤 */}
+      <div className="flex gap-4 flex-wrap">
+        {Array(6).fill(0).map((_, i) => (
+          <Skeleton key={i} className="h-8 w-24" />
+        ))}
       </div>
-      <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-32 w-full" />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-6 w-24" />
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            {Array(6).fill(0).map((_, i) => (
-              <Skeleton key={i} className="h-24" />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* 차트 스켈레톤 */}
+      <Skeleton className="h-48 w-full" />
     </div>
   );
 }

@@ -5,18 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Calendar,
-  Clock,
   GitBranch,
   FolderGit2,
   Award,
   TrendingUp,
 } from "lucide-react";
 import { ContributionHeatmap } from "./contribution-heatmap";
-import { StreakDisplay, StreakBadge } from "./streak-display";
+import { StreakBadge } from "./streak-display";
 import { BadgeDisplay, BadgeList } from "./badge-display";
 import { ActivityStatsCard } from "./activity-stats-card";
-import { HourlyChart } from "./hourly-chart";
 import { WeeklyTrendChart } from "./weekly-trend-chart";
 import { CommitTypeChart } from "./commit-type-chart";
 import { RepoDistribution } from "./repo-distribution";
@@ -140,67 +137,28 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
   // 현재 연도
   const currentYear = new Date().getFullYear();
 
-  // 시간대별 분포 데이터 (hourly chart용)
-  // 실제로는 API에서 받아야 하지만, 현재 구조에서는 없으므로 빈 배열
-  const hourlyDistribution = Array(24).fill(0);
-
   return (
     <div className="space-y-6">
-      {/* 스트릭 + 배지 요약 */}
-      <div className="flex flex-wrap items-center gap-4">
-        <StreakBadge
-          currentStreak={stats.currentStreak}
-          longestStreak={stats.longestStreak}
-        />
-        {badges.length > 0 && (
-          <BadgeDisplay badges={badges} maxDisplay={5} size="sm" />
-        )}
-      </div>
+      {/* 기여 히트맵 - 카드 없이 바로 표시 */}
+      <ContributionHeatmap data={heatmap} year={currentYear} />
 
-      {/* 기여 히트맵 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Calendar className="w-5 h-5" />
-            {currentYear}년 기여 히트맵
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ContributionHeatmap data={heatmap} year={currentYear} />
-        </CardContent>
-      </Card>
-
-      {/* 통계 카드 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">활동 통계</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActivityStatsCard stats={stats} />
-        </CardContent>
-      </Card>
-
-      {/* 스트릭 상세 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            🔥 연속 기여
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <StreakDisplay
+      {/* 스트릭 + 활동 통계 (컴팩트) */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-4">
+          <StreakBadge
             currentStreak={stats.currentStreak}
             longestStreak={stats.longestStreak}
           />
-        </CardContent>
-      </Card>
+          {badges.length > 0 && (
+            <BadgeDisplay badges={badges} maxDisplay={5} size="sm" />
+          )}
+        </div>
+        <ActivityStatsCard stats={stats} compact />
+      </div>
 
       {/* 차트 탭 */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">상세 분석</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
           <Tabs defaultValue="trend" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="trend" className="text-xs sm:text-sm">
@@ -234,17 +192,13 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
 
       {/* 배지 목록 */}
       {badges.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Award className="w-5 h-5" />
-              획득 배지 ({badges.length}개)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BadgeList badges={badges} />
-          </CardContent>
-        </Card>
+        <div>
+          <h3 className="flex items-center gap-2 text-sm font-medium mb-3">
+            <Award className="w-4 h-4" />
+            획득 배지 ({badges.length}개)
+          </h3>
+          <BadgeList badges={badges} />
+        </div>
       )}
     </div>
   );
@@ -253,44 +207,22 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
 function MemberActivitySkeleton() {
   return (
     <div className="space-y-6">
-      {/* 스트릭 + 배지 */}
-      <div className="flex gap-4">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-8 w-48" />
-      </div>
-
       {/* 히트맵 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-32 w-full" />
-        </CardContent>
-      </Card>
+      <Skeleton className="h-36 w-full" />
 
-      {/* 통계 */}
-      <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-6 w-24" />
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            {Array(6)
-              .fill(0)
-              .map((_, i) => (
-                <Skeleton key={i} className="h-24" />
-              ))}
-          </div>
-        </CardContent>
-      </Card>
+      {/* 스트릭 + 통계 */}
+      <div className="space-y-3">
+        <div className="flex gap-4">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-48" />
+        </div>
+        <Skeleton className="h-6 w-full max-w-xl" />
+      </div>
 
       {/* 차트 */}
       <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-6 w-28" />
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-4">
+          <Skeleton className="h-10 w-full mb-4" />
           <Skeleton className="h-48 w-full" />
         </CardContent>
       </Card>

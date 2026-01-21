@@ -298,7 +298,9 @@ export async function getUniqueAuthors(
   }
 
   // 변경량(additions + deletions) 기준 내림차순 정렬
+  // 팀원(githubName이 있는)만 반환 - 봇이나 외부 기여자 제외
   return Array.from(authorMap.values())
+    .filter((author) => author.githubName !== null)
     .sort((a, b) => b.totalChanges - a.totalChanges)
     .map((author) => ({
       name: author.name,

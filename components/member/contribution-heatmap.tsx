@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { format, startOfWeek, eachDayOfInterval, isSameDay, startOfYear } from "date-fns";
-import { ko } from "date-fns/locale";
+import { startOfWeek, eachDayOfInterval, startOfYear } from "date-fns";
+import { formatKST, nowKST } from "@/lib/date-utils";
 import {
   Tooltip,
   TooltipContent,
@@ -47,8 +47,11 @@ const intensityColors = [
 export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
   const currentYear = year ?? new Date().getFullYear();
 
-  const { weeks, monthLabels, totalContributions, today } = useMemo(() => {
-    const today = new Date();
+  const { weeks, monthLabels, totalContributions, todayStr } = useMemo(() => {
+    // KST 기준 오늘 날짜 (서버에서 KST 기준으로 데이터를 보내므로 동일하게 처리)
+    const todayKST = nowKST();
+    const todayStr = formatKST(todayKST, "yyyy-MM-dd");
+
     // 연도 전체를 표시 (1월 1일 ~ 12월 31일)
     const yearStart = startOfYear(new Date(currentYear, 0, 1));
     const endDate = new Date(currentYear, 11, 31);
@@ -65,16 +68,17 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
     });
 
     // 주 단위로 그룹화
-    const weeks: Array<Array<{ date: Date; count: number; isCurrentYear: boolean; isFuture: boolean }>> = [];
-    let currentWeek: Array<{ date: Date; count: number; isCurrentYear: boolean; isFuture: boolean }> = [];
+    const weeks: Array<Array<{ date: Date; dateStr: string; count: number; isCurrentYear: boolean; isFuture: boolean }>> = [];
+    let currentWeek: Array<{ date: Date; dateStr: string; count: number; isCurrentYear: boolean; isFuture: boolean }> = [];
 
     allDays.forEach((date, index) => {
-      const dateStr = format(date, "yyyy-MM-dd");
+      // KST 기준으로 날짜 문자열 생성 (서버 데이터와 동일한 기준)
+      const dateStr = formatKST(date, "yyyy-MM-dd");
       const count = dataMap.get(dateStr) || 0;
       const isCurrentYear = date.getFullYear() === currentYear;
-      const isFuture = date > today;
+      const isFuture = dateStr > todayStr;
 
-      currentWeek.push({ date, count, isCurrentYear, isFuture });
+      currentWeek.push({ date, dateStr, count, isCurrentYear, isFuture });
 
       if (date.getDay() === 6 || index === allDays.length - 1) {
         weeks.push(currentWeek);
@@ -106,7 +110,7 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
       .filter(d => d.date.startsWith(`${currentYear}-`))
       .reduce((sum, d) => sum + d.count, 0);
 
-    return { weeks, monthLabels, totalContributions, today };
+    return { weeks, monthLabels, totalContributions, todayStr };
   }, [data, currentYear]);
 
   // 히트맵 전체 너비 계산
@@ -172,7 +176,8 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                   >
                     {week.map((day, dayIdx) => {
                       const level = getIntensityLevel(day.count);
-                      const isToday = isSameDay(day.date, today);
+                      // KST 기준 문자열 비교로 오늘 여부 확인
+                      const isToday = day.dateStr === todayStr;
                       // 현재 연도가 아닌 날짜는 흐리게 표시
                       const isOutsideYear = !day.isCurrentYear;
                       const isFuture = day.isFuture;
@@ -206,7 +211,7 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                                     : "커밋 없음"}
                               </p>
                               <p className="text-muted-foreground">
-                                {format(day.date, "M월 d일 (eee)", { locale: ko })}
+                                {formatKST(day.date, "M월 d일 (eee)")}
                               </p>
                             </TooltipContent>
                           )}

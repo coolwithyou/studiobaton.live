@@ -80,6 +80,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
   // 세션 확인 (편집 권한 체크)
   const session = await getServerSession();
   let canEdit = false;
+  let isAdmin = false;
 
   if (session?.user) {
     const admin = await prisma.admin.findUnique({
@@ -87,8 +88,9 @@ async function MemberProfile({ githubName }: { githubName: string }) {
       select: { role: true, linkedMemberId: true },
     });
 
-    // 본인 프로필이거나 Admin인 경우 편집 가능
-    canEdit = admin?.linkedMemberId === member.id || admin?.role === "ADMIN";
+    isAdmin = admin?.role === "ADMIN";
+    // 본인 프로필이거나 Admin인 경우 편집 가능 (bio)
+    canEdit = admin?.linkedMemberId === member.id || isAdmin;
   }
 
   // 최근 커밋 조회 (authorEmail로 매칭)
@@ -135,8 +137,8 @@ async function MemberProfile({ githubName }: { githubName: string }) {
 
       <MemberProfileHeader member={member} stats={stats} canEdit={canEdit} />
 
-      {/* 직함/역할 섹션 */}
-      {(member.title || member.role || canEdit) && (
+      {/* 직함/역할 섹션 - Admin만 수정 가능 */}
+      {(member.title || member.role || isAdmin) && (
         <section className="mt-6">
           <h3 className="text-sm font-medium text-muted-foreground mb-2">
             직함 / 역할
@@ -145,7 +147,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
             memberId={member.id}
             currentTitle={member.title}
             currentRole={member.role}
-            canEdit={canEdit}
+            canEdit={isAdmin}
           />
         </section>
       )}

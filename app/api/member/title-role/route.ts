@@ -70,18 +70,15 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // 본인 또는 Admin만 수정 가능
+    // Admin만 수정 가능
     const admin = await prisma.admin.findUnique({
       where: { id: session.user.id },
-      select: { role: true, linkedMemberId: true },
+      select: { role: true },
     });
 
-    const isOwnProfile = admin?.linkedMemberId === memberId;
-    const isAdmin = admin?.role === "ADMIN";
-
-    if (!isOwnProfile && !isAdmin) {
+    if (admin?.role !== "ADMIN") {
       return NextResponse.json(
-        { error: "직함/역할을 수정할 권한이 없습니다." },
+        { error: "직함/역할은 최고 관리자만 수정할 수 있습니다." },
         { status: 403 }
       );
     }

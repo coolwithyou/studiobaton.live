@@ -1,6 +1,7 @@
 import { unified } from "unified";
 import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
+import remarkGithubAlerts from "remark-github-alerts";
 import remarkRehype from "remark-rehype";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
@@ -143,6 +144,9 @@ function rehypeImageStyles() {
           className: [...classArray, "!text-center", "!my-6"].join(" "),
         };
 
+        // figure의 data-size 속성 읽기
+        const dataSize = node.properties?.["data-size"] as string | undefined;
+
         // figure 내부의 img에 스타일 적용 (figure 자식으로 있는 경우에만)
         for (const child of node.children) {
           if (child.type === "element" && (child as Element).tagName === "img") {
@@ -154,7 +158,11 @@ function rehypeImageStyles() {
               : typeof imgExistingClass === "string"
                 ? [imgExistingClass]
                 : [];
-            const isGifImage = src && isGif(src);
+            const isGifImage = Boolean(src && isGif(src));
+
+            // data-size 우선, 없으면 GIF 여부에 따라 기본값 적용
+            const maxWidth = getMaxWidthValue(dataSize || null, isGifImage);
+
             imgNode.properties = {
               ...imgNode.properties,
               className: [
@@ -162,8 +170,8 @@ function rehypeImageStyles() {
                 "!inline-block",
                 "!h-auto",
                 "!m-0",
-                isGifImage ? "!max-w-[50%]" : "!max-w-full",
               ].join(" "),
+              style: `max-width: ${maxWidth}`,
             };
           }
         }
@@ -265,6 +273,7 @@ export async function MarkdownRenderer({
   const processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
+    .use(remarkGithubAlerts)
     .use(remarkRehype, { allowDangerousHtml: true })
     .use(rehypeRaw)
     .use(rehypeSlug) // 헤딩에 id 자동 부여 (TOC용)

@@ -30,10 +30,11 @@ export function MarkdownGuideDialog() {
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basic">기본 문법</TabsTrigger>
             <TabsTrigger value="image">이미지</TabsTrigger>
             <TabsTrigger value="code">코드</TabsTrigger>
+            <TabsTrigger value="alerts">알림</TabsTrigger>
           </TabsList>
 
           {/* 기본 문법 */}
@@ -116,6 +117,45 @@ export function MarkdownGuideDialog() {
                 title="지원 언어"
                 description="javascript, typescript, python, bash, json, css, html, markdown 등 대부분의 언어를 지원합니다."
               />
+            </div>
+          </TabsContent>
+
+          {/* 알림 (GitHub Alerts) */}
+          <TabsContent value="alerts" className="space-y-4 mt-4">
+            <div className="space-y-3">
+              <GuideItem
+                title="참고 (Note)"
+                syntax={`> [!NOTE]\n> 참고할 내용을 작성합니다.`}
+                description="일반적인 정보나 참고 사항을 강조할 때 사용합니다."
+              />
+              <GuideItem
+                title="팁 (Tip)"
+                syntax={`> [!TIP]\n> 유용한 팁을 작성합니다.`}
+                description="독자에게 도움이 되는 팁이나 조언을 제공할 때 사용합니다."
+              />
+              <GuideItem
+                title="중요 (Important)"
+                syntax={`> [!IMPORTANT]\n> 중요한 내용을 작성합니다.`}
+                description="반드시 알아야 할 중요한 정보를 강조할 때 사용합니다."
+              />
+              <GuideItem
+                title="주의 (Warning)"
+                syntax={`> [!WARNING]\n> 주의할 내용을 작성합니다.`}
+                description="잠재적인 문제나 주의가 필요한 상황을 알릴 때 사용합니다."
+              />
+              <GuideItem
+                title="경고 (Caution)"
+                syntax={`> [!CAUTION]\n> 위험한 내용을 작성합니다.`}
+                description="심각한 위험이나 부정적인 결과를 경고할 때 사용합니다."
+              />
+            </div>
+
+            <div className="p-3 bg-muted/50 rounded-lg text-sm">
+              <p className="font-medium mb-2">사용 예시</p>
+              <p className="text-muted-foreground">
+                GitHub 스타일의 알림 블록입니다. 인용문({">"}) 시작 후 [!TYPE]을 입력하고
+                다음 줄에 내용을 작성하세요. 여러 줄 작성 시 각 줄 앞에 {">"} 를 붙입니다.
+              </p>
             </div>
           </TabsContent>
         </Tabs>

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkGithubAlerts from "remark-github-alerts";
 import rehypeRaw from "rehype-raw";
 import { visit } from "unist-util-visit";
 import type { Root, Element, Text, Parents } from "hast";
@@ -372,7 +373,7 @@ export function MarkdownEditor({
       >
         <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
           <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
+            remarkPlugins={[remarkGfm, remarkGithubAlerts]}
             rehypePlugins={[rehypeRaw]}
             components={{
               // HTML figure 태그 지원 (data-size 속성으로 크기 조절)
@@ -493,6 +494,7 @@ export function MarkdownEditor({
           }}
           extraCommands={[imageCommand, gifCommand]}
           previewOptions={{
+            remarkPlugins: [remarkGithubAlerts],
             rehypePlugins: [rehypeRaw, rehypeUnwrapImages],
             components: {
               // HTML figure 태그 지원 (data-size 속성으로 크기 조절)

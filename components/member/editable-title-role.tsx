@@ -23,6 +23,9 @@ export function EditableTitleRole({
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(currentTitle || "");
   const [role, setRole] = useState(currentRole || "");
+  // 저장된 값을 추적하여 즉시 UI 반영
+  const [savedTitle, setSavedTitle] = useState(currentTitle);
+  const [savedRole, setSavedRole] = useState(currentRole);
   const [isPending, startTransition] = useTransition();
 
   const handleSave = async () => {
@@ -43,6 +46,11 @@ export function EditableTitleRole({
           throw new Error(data.error || "저장 실패");
         }
 
+        const data = await response.json();
+        // 저장된 값 업데이트하여 즉시 UI 반영
+        setSavedTitle(data.title);
+        setSavedRole(data.role);
+
         toast.success("저장 완료", {
           description: "직함과 역할이 업데이트되었습니다.",
         });
@@ -56,8 +64,8 @@ export function EditableTitleRole({
   };
 
   const handleCancel = () => {
-    setTitle(currentTitle || "");
-    setRole(currentRole || "");
+    setTitle(savedTitle || "");
+    setRole(savedRole || "");
     setIsEditing(false);
   };
 
@@ -110,23 +118,23 @@ export function EditableTitleRole({
     );
   }
 
-  // 보기 모드
-  const hasContent = currentTitle || currentRole;
+  // 보기 모드 - savedTitle/savedRole 사용하여 저장 후 즉시 반영
+  const hasContent = savedTitle || savedRole;
 
   return (
     <div className="group relative">
       {hasContent ? (
         <div className="space-y-1">
-          {currentTitle && (
+          {savedTitle && (
             <p className="text-muted-foreground">
               <span className="text-xs text-muted-foreground/70 mr-2">직함</span>
-              {currentTitle}
+              {savedTitle}
             </p>
           )}
-          {currentRole && (
+          {savedRole && (
             <p className="text-muted-foreground">
               <span className="text-xs text-muted-foreground/70 mr-2">역할</span>
-              {currentRole}
+              {savedRole}
             </p>
           )}
         </div>

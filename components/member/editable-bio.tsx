@@ -15,6 +15,8 @@ interface EditableBioProps {
 export function EditableBio({ memberId, currentBio, canEdit }: EditableBioProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [bio, setBio] = useState(currentBio || "");
+  // 저장된 값을 추적하여 즉시 UI 반영
+  const [savedBio, setSavedBio] = useState(currentBio);
   const [isPending, startTransition] = useTransition();
 
   const handleSave = async () => {
@@ -31,6 +33,10 @@ export function EditableBio({ memberId, currentBio, canEdit }: EditableBioProps)
           throw new Error(data.error || "저장 실패");
         }
 
+        const data = await response.json();
+        // 저장된 값 업데이트하여 즉시 UI 반영
+        setSavedBio(data.bio);
+
         toast.success("저장 완료", {
           description: "자기소개가 업데이트되었습니다.",
         });
@@ -44,7 +50,7 @@ export function EditableBio({ memberId, currentBio, canEdit }: EditableBioProps)
   };
 
   const handleCancel = () => {
-    setBio(currentBio || "");
+    setBio(savedBio || "");
     setIsEditing(false);
   };
 
@@ -93,11 +99,11 @@ export function EditableBio({ memberId, currentBio, canEdit }: EditableBioProps)
     );
   }
 
-  // 보기 모드
+  // 보기 모드 - savedBio 사용하여 저장 후 즉시 반영
   return (
     <div className="group relative">
-      {currentBio ? (
-        <p className="text-muted-foreground whitespace-pre-wrap">{currentBio}</p>
+      {savedBio ? (
+        <p className="text-muted-foreground whitespace-pre-wrap">{savedBio}</p>
       ) : (
         canEdit && (
           <p className="text-muted-foreground italic">

@@ -244,6 +244,36 @@ export function MarkdownEditor({
             placeholder,
           }}
           extraCommands={[gifCommand]}
+          previewOptions={{
+            components: {
+              // 빈 src 이미지 경고 방지
+              img: ({ src, alt, ...props }) => {
+                // src가 비어있거나 문자열이 아니면 렌더링하지 않음
+                if (!src || typeof src !== "string") return null;
+                const isGif = src.includes("giphy.com") || src.endsWith(".gif");
+                if (isGif) {
+                  return (
+                    <figure className="text-center my-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src}
+                        alt={alt || "GIF"}
+                        className="inline-block max-w-[50%] h-auto"
+                        {...props}
+                      />
+                      {alt && alt !== "GIF" && (
+                        <figcaption className="text-sm opacity-70 mt-2">
+                          {alt}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                }
+                // eslint-disable-next-line @next/next/no-img-element
+                return <img src={src} alt={alt || ""} {...props} />;
+              },
+            },
+          }}
         />
       </div>
       <GiphyPickerDialog

@@ -12,12 +12,10 @@ export function Footer() {
           <span>
             Built by{" "}
             <Link
-              href="https://github.com/coolwithyou"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/member/coolwithyou"
               className="hover:text-foreground transition-colors"
             >
-              @coolwithyou ↗
+              @coolwithyou
             </Link>
           </span>
         </div>

@@ -72,6 +72,7 @@ export const NAV_MAIN: NavGroup[] = [
         icon: "Newspaper",
         items: [
           { title: "커밋 수집", url: "/console/generate" },
+          { title: "포스트 목록", url: "/console/posts" },
           { title: "포스트 작성", url: "/console/posts/new" },
           { title: "사이드 메뉴", url: "/console/sidemenu" },
         ],

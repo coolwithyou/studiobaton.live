@@ -144,8 +144,8 @@ function rehypeImageStyles() {
           className: [...classArray, "!text-center", "!my-6"].join(" "),
         };
 
-        // figure의 data-size 속성 읽기
-        const dataSize = node.properties?.["data-size"] as string | undefined;
+        // figure의 data-size 속성 읽기 (rehype는 data-* 속성을 dataSize로 camelCase 변환)
+        const dataSize = (node.properties?.dataSize ?? node.properties?.["data-size"]) as string | undefined;
 
         // figure 내부의 img에 스타일 적용 (figure 자식으로 있는 경우에만)
         for (const child of node.children) {
@@ -208,8 +208,8 @@ function createComponents() {
       const classStr = typeof className === "string" ? className : "";
 
       // 이미 figure 내부에서 스타일이 적용된 이미지 (HTML로 직접 작성된 경우)
-      // rehypeImageStyles에서 !important 클래스를 추가했으므로 이를 체크
-      if (classStr.includes("!inline-block") || classStr.includes("!max-w-")) {
+      // rehypeImageStyles에서 !inline-block 클래스와 style을 추가했으므로 이를 체크
+      if (classStr.includes("!inline-block")) {
         return (
           // eslint-disable-next-line @next/next/no-img-element
           <img

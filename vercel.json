@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/aggregate-profile-stats",
       "schedule": "10 15 * * *"
+    },
+    {
+      "path": "/api/cron/collect-commits-today",
+      "schedule": "15 8 * * *"
     }
   ]
 }

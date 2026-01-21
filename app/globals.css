@@ -5,6 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-key: var(--key-color);
+  --color-key-hover: var(--key-color-hover);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-pretendard), "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -49,6 +51,8 @@
 
 :root {
   --radius: 0.625rem;
+  --key-color: #ffd970;
+  --key-color-hover: #ffce4a;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -83,6 +87,8 @@
 }
 
 .dark {
+  --key-color: #ffd970;
+  --key-color-hover: #ffe59c;
   --background: oklch(0.178 0 0); /* #1d1d1d */
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.22 0 0); /* slightly lighter than background */
@@ -131,6 +137,14 @@
   }
   h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.02em;
+  }
+  a {
+    color: var(--key-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  a:hover {
+    color: var(--key-color-hover);
   }
 }
 

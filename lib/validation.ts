@@ -186,8 +186,12 @@ export const standupQuerySchema = z.object({
   ),
   memberId: z.string().cuid("유효한 팀원 ID를 선택해주세요."),
   includeCarryover: z.preprocess(
-    (val) => val === "true" || val === true,
-    z.boolean().default(true)
+    (val) => {
+      // null/undefined/빈문자열일 때는 기본값 true 사용
+      if (val === null || val === undefined || val === "") return true;
+      return val === "true" || val === true;
+    },
+    z.boolean()
   ).optional(),
   carryoverDays: z.preprocess(
     (val) => (val === null || val === "" || val === undefined) ? 7 : Number(val),

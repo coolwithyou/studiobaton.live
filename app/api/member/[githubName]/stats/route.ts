@@ -15,6 +15,7 @@ import {
   getRepoDistribution,
 } from "@/lib/profile-stats";
 import { getBadgeDetails } from "@/lib/badges";
+import { calculateTrophies, TrophyStats } from "@/lib/trophies";
 
 interface RouteParams {
   params: Promise<{
@@ -74,12 +75,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         commitTypes: null,
         repos: [],
         badges: [],
+        trophies: [],
       });
     }
 
     // 배지 상세 정보
     const badgeIds = (stats.badges as string[]) || [];
     const badges = getBadgeDetails(badgeIds);
+
+    // 트로피 계산
+    const trophyStats: TrophyStats = {
+      totalCommits: stats.totalCommits,
+      longestStreak: stats.longestStreak,
+      activeDays: stats.activeDays,
+      totalAdditions: stats.totalAdditions,
+    };
+    const trophies = calculateTrophies(trophyStats);
 
     // 추가 데이터 조회 (필요한 것만)
     const [heatmap, trend, commitTypes, repos] = await Promise.all([
@@ -114,6 +125,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       commitTypes,
       repos,
       badges,
+      trophies,
     });
   } catch (error) {
     console.error("Error fetching member stats:", error);

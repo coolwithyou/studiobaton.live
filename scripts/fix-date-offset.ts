@@ -78,8 +78,8 @@ async function main() {
 
   let taskUpdated = 0;
   for (const task of allTasks) {
-    const newDueDate = task.dueDate ? new Date(task.dueDate.getTime() + 24 * 60 * 60 * 1000) : null;
-    const newOriginalDueDate = task.originalDueDate ? new Date(task.originalDueDate.getTime() + 24 * 60 * 60 * 1000) : null;
+    const newDueDate = task.dueDate ? new Date(task.dueDate.getTime() + 24 * 60 * 60 * 1000) : undefined;
+    const newOriginalDueDate = task.originalDueDate ? new Date(task.originalDueDate.getTime() + 24 * 60 * 60 * 1000) : undefined;
 
     await prisma.standupTask.update({
       where: { id: task.id },

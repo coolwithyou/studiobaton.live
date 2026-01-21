@@ -20,25 +20,25 @@ const typeConfig = {
   feat: {
     label: "기능 추가",
     shortLabel: "feat",
-    color: "#22c55e", // green-500
+    color: "#34d399", // emerald-400: 부드러운 녹색
     emoji: "✨",
   },
   fix: {
     label: "버그 수정",
     shortLabel: "fix",
-    color: "#ef4444", // red-500
+    color: "#fb923c", // orange-400: 주황색 (빨강보다 부드러움)
     emoji: "🐛",
   },
   refactor: {
     label: "리팩토링",
     shortLabel: "refactor",
-    color: "#3b82f6", // blue-500
+    color: "#a78bfa", // violet-400: 부드러운 보라색
     emoji: "♻️",
   },
   other: {
     label: "기타",
     shortLabel: "other",
-    color: "#a1a1aa", // zinc-400
+    color: "#94a3b8", // slate-400: 부드러운 회색
     emoji: "📝",
   },
 };

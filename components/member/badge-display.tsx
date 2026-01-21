@@ -13,7 +13,7 @@ interface BadgeInfo {
   id: string;
   name: string;
   description: string;
-  emoji: string;
+  icon: string;
   category: string;
 }
 
@@ -63,7 +63,7 @@ export function BadgeDisplay({ badges, maxDisplay = 0, size = "md" }: BadgeDispl
                   badgeStyles[size]
                 )}
               >
-                <span className={sizeClasses[size]}>{badge.emoji}</span>
+                <span className={sizeClasses[size]}>{badge.icon}</span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[200px]">
@@ -119,8 +119,8 @@ export function BadgeList({ badges }: BadgeListProps) {
   const categoryLabels: Record<string, string> = {
     commits: "커밋 달성",
     streak: "연속 기여",
-    time: "활동 시간",
-    impact: "코드 영향력",
+    activity: "활동 패턴",
+    volume: "코드 볼륨",
   };
 
   return (
@@ -137,7 +137,7 @@ export function BadgeList({ badges }: BadgeListProps) {
                 className="flex items-center gap-3 p-3 rounded-lg border bg-card"
               >
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-                  <span className="text-2xl">{badge.emoji}</span>
+                  <span className="text-2xl">{badge.icon}</span>
                 </div>
                 <div>
                   <p className="font-medium">{badge.name}</p>

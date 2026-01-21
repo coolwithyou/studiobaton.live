@@ -62,7 +62,7 @@ interface BadgeInfo {
   id: string;
   name: string;
   description: string;
-  emoji: string;
+  icon: string;
   category: string;
 }
 

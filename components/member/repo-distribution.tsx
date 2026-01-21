@@ -15,16 +15,16 @@ interface RepoDistributionProps {
   maxItems?: number;
 }
 
-// 레포지토리 색상 팔레트
+// 레포지토리 색상 팔레트 (부드러운 -400 계열)
 const repoColors = [
-  "#3b82f6", // blue-500
-  "#22c55e", // green-500
-  "#f97316", // orange-500
-  "#8b5cf6", // violet-500
-  "#ec4899", // pink-500
-  "#14b8a6", // teal-500
-  "#f59e0b", // amber-500
-  "#6366f1", // indigo-500
+  "#60a5fa", // blue-400
+  "#34d399", // emerald-400
+  "#fb923c", // orange-400
+  "#a78bfa", // violet-400
+  "#f472b6", // pink-400
+  "#2dd4bf", // teal-400
+  "#fbbf24", // amber-400
+  "#818cf8", // indigo-400
 ];
 
 export function RepoDistribution({ data, maxItems = 8 }: RepoDistributionProps) {

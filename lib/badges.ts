@@ -30,6 +30,7 @@ export interface EarnedBadge {
   name: string;
   icon: string;
   description: string;
+  category: "commits" | "streak" | "activity" | "volume";
   earnedAt?: Date;
 }
 
@@ -154,6 +155,7 @@ export function getBadgeDetails(badgeIds: string[]): EarnedBadge[] {
         name: def.name,
         icon: def.icon,
         description: def.description,
+        category: def.category,
       };
     })
     .filter((b): b is EarnedBadge => b !== null);

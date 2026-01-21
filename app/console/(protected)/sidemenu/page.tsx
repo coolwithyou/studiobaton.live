@@ -20,6 +20,7 @@ interface Item {
   internalPath: string | null;
   externalUrl: string | null;
   postCategory: string | null;
+  activePattern: string | null;
 }
 
 interface Section {

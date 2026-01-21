@@ -444,6 +444,7 @@ model SideMenuItem {
   internalPath String?          // 내부 경로: "/posts?category=dev"
   externalUrl  String?          // 외부 URL
   postCategory String?          // Post.category와 매핑
+  activePattern String?         // 활성화 URL 정규표현식 (예: "^/$|^/post/")
 
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt

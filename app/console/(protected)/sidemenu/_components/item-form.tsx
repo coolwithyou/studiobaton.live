@@ -38,6 +38,7 @@ interface Item {
   internalPath: string | null;
   externalUrl: string | null;
   postCategory: string | null;
+  activePattern: string | null;
 }
 
 interface ItemFormProps {
@@ -75,6 +76,7 @@ export function ItemForm({
   const [externalUrl, setExternalUrl] = useState("");
   const [postCategory, setPostCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
+  const [activePattern, setActivePattern] = useState("");
   const [saving, setSaving] = useState(false);
 
   // item 또는 open이 변경될 때 폼 필드 동기화
@@ -88,6 +90,7 @@ export function ItemForm({
       setExternalUrl(item?.externalUrl || "");
       setPostCategory(item?.postCategory || "");
       setCustomCategory("");
+      setActivePattern(item?.activePattern || "");
     }
   }, [open, item, defaultSectionId]);
 
@@ -138,6 +141,10 @@ export function ItemForm({
             externalUrl: linkType === "EXTERNAL" ? externalUrl.trim() : null,
             postCategory:
               linkType === "POST_CATEGORY" ? finalCategory.trim() : null,
+            activePattern:
+              linkType === "INTERNAL" && activePattern.trim()
+                ? activePattern.trim()
+                : null,
           }
         : {
             sectionId,
@@ -148,6 +155,10 @@ export function ItemForm({
             externalUrl: linkType === "EXTERNAL" ? externalUrl.trim() : undefined,
             postCategory:
               linkType === "POST_CATEGORY" ? finalCategory.trim() : undefined,
+            activePattern:
+              linkType === "INTERNAL" && activePattern.trim()
+                ? activePattern.trim()
+                : undefined,
           };
 
       const response = await fetch(endpoint, {
@@ -232,18 +243,33 @@ export function ItemForm({
             </div>
 
             {linkType === "INTERNAL" && (
-              <div className="space-y-2">
-                <Label htmlFor="internalPath">내부 경로</Label>
-                <Input
-                  id="internalPath"
-                  value={internalPath}
-                  onChange={(e) => setInternalPath(e.target.value)}
-                  placeholder="/members"
-                />
-                <p className="text-xs text-muted-foreground">
-                  사이트 내부 페이지 경로를 입력하세요.
-                </p>
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="internalPath">내부 경로</Label>
+                  <Input
+                    id="internalPath"
+                    value={internalPath}
+                    onChange={(e) => setInternalPath(e.target.value)}
+                    placeholder="/members"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    사이트 내부 페이지 경로를 입력하세요.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="activePattern">활성화 패턴 (선택)</Label>
+                  <Input
+                    id="activePattern"
+                    value={activePattern}
+                    onChange={(e) => setActivePattern(e.target.value)}
+                    placeholder="^/$|^/post/"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    정규표현식으로 활성화 URL을 지정합니다. 비워두면 내부 경로와
+                    정확히 일치할 때만 활성화됩니다.
+                  </p>
+                </div>
+              </>
             )}
 
             {linkType === "EXTERNAL" && (

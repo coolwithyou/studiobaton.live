@@ -304,6 +304,7 @@ export const sideMenuItemCreateSchema = z.object({
   internalPath: z.string().max(200).optional(),
   externalUrl: z.string().url("유효한 URL을 입력해주세요.").optional(),
   postCategory: z.string().max(50).optional(),
+  activePattern: z.string().max(500).optional(), // 활성화 URL 정규표현식
 }).refine(
   (data) => {
     // 링크 타입에 따라 필수 필드 검증
@@ -333,6 +334,7 @@ export const sideMenuItemUpdateSchema = z.object({
   internalPath: z.string().max(200).nullable().optional(),
   externalUrl: z.string().url().nullable().optional(),
   postCategory: z.string().max(50).nullable().optional(),
+  activePattern: z.string().max(500).nullable().optional(), // 활성화 URL 정규표현식
 });
 
 export const reorderSchema = z.object({

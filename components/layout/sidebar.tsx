@@ -10,6 +10,7 @@ export interface MenuSection {
     title: string;
     href: string;
     isExternal: boolean;
+    activePattern?: string | null;
   }[];
 }
 
@@ -23,6 +24,7 @@ interface SideMenuSection {
     internalPath: string | null;
     externalUrl: string | null;
     postCategory: string | null;
+    activePattern: string | null;
   }[];
 }
 
@@ -42,6 +44,7 @@ async function getSideMenu(): Promise<SideMenuSection[]> {
             internalPath: true,
             externalUrl: true,
             postCategory: true,
+            activePattern: true,
           },
         },
       },
@@ -88,6 +91,7 @@ export async function Sidebar({ className }: SidebarProps) {
       title: item.title,
       href: getItemLink(item),
       isExternal: item.linkType === "EXTERNAL",
+      activePattern: item.activePattern,
     })),
   }));
 
@@ -113,6 +117,7 @@ export async function getSideMenuSections(): Promise<MenuSection[]> {
       title: item.title,
       href: getItemLink(item),
       isExternal: item.linkType === "EXTERNAL",
+      activePattern: item.activePattern,
     })),
   }));
 }

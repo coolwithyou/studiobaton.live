@@ -10,6 +10,7 @@ interface MenuItem {
   title: string;
   href: string;
   isExternal: boolean;
+  activePattern?: string | null;
 }
 
 interface MenuSection {
@@ -32,10 +33,23 @@ export function SidebarClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // 현재 URL과 메뉴 아이템 href 비교
-  const isActive = (href: string): boolean => {
+  // 현재 URL과 메뉴 아이템 비교
+  const isActive = (item: MenuItem): boolean => {
+    const { href, activePattern } = item;
+
     // 외부 링크는 활성 상태 체크 안함
     if (href.startsWith("http")) return false;
+
+    // activePattern이 있으면 정규식 매칭 우선
+    if (activePattern) {
+      try {
+        const regex = new RegExp(activePattern);
+        return regex.test(pathname);
+      } catch {
+        // 정규식 오류 시 기본 로직으로 폴백
+        console.warn(`Invalid activePattern: ${activePattern}`);
+      }
+    }
 
     // 쿼리 파라미터가 있는 경우 (예: /posts?category=xxx)
     if (href.includes("?")) {
@@ -66,7 +80,7 @@ export function SidebarClient({
             </h3>
             <ul className="space-y-1">
               {section.items.map((item) => {
-                const active = isActive(item.href);
+                const active = isActive(item);
 
                 if (item.isExternal) {
                   return (

@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       internalPath,
       externalUrl,
       postCategory,
+      activePattern,
     } = validation.data;
 
     // 섹션 존재 확인
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
         internalPath: linkType === "INTERNAL" ? internalPath : null,
         externalUrl: linkType === "EXTERNAL" ? externalUrl : null,
         postCategory: linkType === "POST_CATEGORY" ? postCategory : null,
+        activePattern: linkType === "INTERNAL" ? activePattern : null,
       },
     });
 
@@ -135,6 +137,7 @@ export async function PUT(request: NextRequest) {
     if (updateData.linkType) {
       if (updateData.linkType !== "INTERNAL") {
         finalUpdateData.internalPath = null;
+        finalUpdateData.activePattern = null;
       }
       if (updateData.linkType !== "EXTERNAL") {
         finalUpdateData.externalUrl = null;

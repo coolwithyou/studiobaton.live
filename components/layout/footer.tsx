@@ -6,18 +6,18 @@ export function Footer() {
   return (
     <footer className="border-t border-border/40 py-6 mt-auto">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-1 text-sm text-muted-foreground">
-          <span>&copy; {currentYear} All rights reserved.</span>
-          <span className="hidden sm:inline">&middot;</span>
+        <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground">
+          <span>&copy; {currentYear} studiobaton</span>
+          <span>&middot;</span>
           <span>
-            Powered by{" "}
+            Built by{" "}
             <Link
-              href="https://ba-ton.kr"
+              href="https://github.com/coolwithyou"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
             >
-              studiobaton
+              @coolwithyou ↗
             </Link>
           </span>
         </div>

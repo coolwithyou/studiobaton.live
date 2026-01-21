@@ -144,7 +144,7 @@ export default async function PostPage({ params }: PageProps) {
 
   return (
     <ContentGrid
-      maxWidth="3xl"
+      maxWidth="4xl"
       aside={headings.length > 0 ? <TableOfContents headings={headings} /> : undefined}
     >
       <Link

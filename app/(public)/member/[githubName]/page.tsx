@@ -126,7 +126,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
   };
 
   return (
-    <ContentGrid maxWidth="3xl">
+    <ContentGrid maxWidth="4xl">
       <Link
         href="/members"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"

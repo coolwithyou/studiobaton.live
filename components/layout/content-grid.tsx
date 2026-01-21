@@ -27,9 +27,10 @@ const maxWidthClasses = {
 export function ContentGrid({
   children,
   aside,
-  maxWidth = "2xl",
+  maxWidth = "4xl",
   className,
 }: ContentGridProps) {
+  // 기본값 "4xl"로 2:8:2 비율 유지 (좌측 사이드바 224px, 메인 896px, 우측 위젯 224px)
   return (
     <div className={cn("py-8", className)}>
       <div className="flex gap-8">

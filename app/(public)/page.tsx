@@ -156,7 +156,7 @@ export default function HomePage() {
   };
 
   return (
-    <ContentGrid maxWidth="3xl">
+    <ContentGrid maxWidth="4xl">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

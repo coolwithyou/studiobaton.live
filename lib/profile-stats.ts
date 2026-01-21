@@ -9,9 +9,10 @@ import {
   subDaysKST,
   toKST,
   nowKST,
+  toDateOnlyUTC,
 } from "@/lib/date-utils";
 import { calculateBadges, BadgeCheckStats } from "@/lib/badges";
-import { isSameDay, differenceInDays } from "date-fns";
+import { isSameDay, differenceInDays, format as fnsFormat, parseISO } from "date-fns";
 
 /**
  * 커밋 메시지에서 유형을 파싱합니다.
@@ -85,10 +86,11 @@ export async function aggregateDailyActivity(
 
   if (commits.length === 0) {
     // 커밋이 없으면 해당 날짜의 레코드 삭제 (있다면)
+    // PostgreSQL DATE 컬럼 쿼리를 위해 toDateOnlyUTC 사용
     await prisma.memberDailyActivity.deleteMany({
       where: {
         memberId,
-        date: startOfDayKST(date),
+        date: toDateOnlyUTC(date),
       },
     });
     return;
@@ -137,16 +139,19 @@ export async function aggregateDailyActivity(
   }
 
   // upsert로 저장
+  // PostgreSQL DATE 컬럼에 저장할 때는 toDateOnlyUTC 사용하여 KST 날짜 부분 유지
+  const dateForStorage = toDateOnlyUTC(date);
+
   await prisma.memberDailyActivity.upsert({
     where: {
       memberId_date: {
         memberId,
-        date: startOfDayKST(date),
+        date: dateForStorage,
       },
     },
     create: {
       memberId,
-      date: startOfDayKST(date),
+      date: dateForStorage,
       commitCount: commits.length,
       additions,
       deletions,
@@ -175,40 +180,45 @@ export async function aggregateDailyActivity(
 
 /**
  * 스트릭 계산 (연속 커밋 일수)
+ *
+ * DB의 날짜는 toDateOnlyUTC 형식(UTC 자정, KST 날짜 유지)으로 저장되므로
+ * 비교도 같은 형식으로 해야 합니다.
  */
 export function calculateStreak(
   dailyActivities: Array<{ date: Date; commitCount: number }>,
   today: Date
 ): { current: number; longest: number } {
-  // 커밋이 있는 날짜만 필터링하고 날짜순 정렬 (최신순)
+  // 커밋이 있는 날짜만 필터링
+  // DB 날짜는 이미 toDateOnlyUTC 형식(UTC 자정)으로 저장되어 있음
   const activeDates = dailyActivities
     .filter((a) => a.commitCount > 0)
-    .map((a) => startOfDayKST(a.date))
+    .map((a) => a.date) // DB에서 온 날짜는 이미 UTC 자정
     .sort((a, b) => b.getTime() - a.getTime());
 
   if (activeDates.length === 0) {
     return { current: 0, longest: 0 };
   }
 
-  const todayStart = startOfDayKST(today);
-  const yesterdayStart = startOfDayKST(subDaysKST(today, 1));
+  // 오늘/어제도 toDateOnlyUTC 형식으로 변환하여 비교
+  const todayUTC = toDateOnlyUTC(today);
+  const yesterdayUTC = new Date(todayUTC.getTime() - 24 * 60 * 60 * 1000);
 
   // 현재 스트릭 계산
   let current = 0;
-  let checkDate = todayStart;
+  let checkDate = todayUTC;
 
   // 오늘 또는 어제부터 시작
   const firstActiveDate = activeDates[0];
-  const isActiveToday = isSameDay(firstActiveDate, todayStart);
-  const isActiveYesterday = isSameDay(firstActiveDate, yesterdayStart);
+  const isActiveToday = firstActiveDate.getTime() === todayUTC.getTime();
+  const isActiveYesterday = firstActiveDate.getTime() === yesterdayUTC.getTime();
 
   if (isActiveToday || isActiveYesterday) {
-    checkDate = isActiveToday ? todayStart : yesterdayStart;
+    checkDate = isActiveToday ? todayUTC : yesterdayUTC;
 
     for (const activeDate of activeDates) {
-      if (isSameDay(activeDate, checkDate)) {
+      if (activeDate.getTime() === checkDate.getTime()) {
         current++;
-        checkDate = startOfDayKST(subDaysKST(checkDate, 1));
+        checkDate = new Date(checkDate.getTime() - 24 * 60 * 60 * 1000);
       } else if (activeDate.getTime() < checkDate.getTime()) {
         // 연속이 끊김
         break;
@@ -428,8 +438,10 @@ export async function rebuildMemberStats(
   }
 
   // 각 날짜별로 일일 활동 집계
+  // dateStr은 "yyyy-MM-dd" KST 형식이므로 parseISO 후 그대로 사용
+  // aggregateDailyActivity 내부에서 적절히 처리
   for (const dateStr of uniqueDates) {
-    const date = new Date(dateStr);
+    const date = parseISO(dateStr);
     await aggregateDailyActivity(memberId, memberEmail, date);
   }
 
@@ -458,8 +470,10 @@ export async function getHeatmapData(
   year?: number
 ): Promise<Array<{ date: string; count: number }>> {
   const targetYear = year ?? nowKST().getFullYear();
-  const startDate = startOfDayKST(new Date(targetYear, 0, 1)); // 연도 1월 1일
-  const endDate = startOfDayKST(new Date(targetYear, 11, 31, 23, 59, 59)); // 연도 12월 31일
+  // PostgreSQL DATE 컬럼 쿼리를 위해 toDateOnlyUTC 사용
+  // KST 날짜 부분을 그대로 UTC 자정으로 변환하여 쿼리
+  const startDate = toDateOnlyUTC(new Date(targetYear, 0, 1)); // 연도 1월 1일
+  const endDate = toDateOnlyUTC(new Date(targetYear, 11, 31)); // 연도 12월 31일
 
   const activities = await prisma.memberDailyActivity.findMany({
     where: {
@@ -476,8 +490,9 @@ export async function getHeatmapData(
     orderBy: { date: "asc" },
   });
 
+  // DATE 컬럼은 UTC 자정으로 저장되어 있으므로 그대로 날짜 문자열로 변환
   return activities.map((a) => ({
-    date: formatKST(a.date, "yyyy-MM-dd"),
+    date: fnsFormat(a.date, "yyyy-MM-dd"),
     count: a.commitCount,
   }));
 }
@@ -492,8 +507,9 @@ export async function getWeeklyTrendData(
   year?: number
 ): Promise<Array<{ week: string; commits: number; additions: number; deletions: number }>> {
   const targetYear = year ?? nowKST().getFullYear();
-  const startDate = startOfDayKST(new Date(targetYear, 0, 1)); // 연도 1월 1일
-  const endDate = startOfDayKST(new Date(targetYear, 11, 31, 23, 59, 59)); // 연도 12월 31일
+  // PostgreSQL DATE 컬럼 쿼리를 위해 toDateOnlyUTC 사용
+  const startDate = toDateOnlyUTC(new Date(targetYear, 0, 1)); // 연도 1월 1일
+  const endDate = toDateOnlyUTC(new Date(targetYear, 11, 31)); // 연도 12월 31일
 
   const activities = await prisma.memberDailyActivity.findMany({
     where: {
@@ -512,14 +528,14 @@ export async function getWeeklyTrendData(
     orderBy: { date: "asc" },
   });
 
-  // 주 단위로 그룹화
+  // 주 단위로 그룹화 (DATE 컬럼은 UTC 자정으로 저장되어 있으므로 그대로 사용)
   const weeklyData: Record<
     string,
     { commits: number; additions: number; deletions: number }
   > = {};
 
   for (const activity of activities) {
-    const weekKey = formatKST(activity.date, "yyyy-'W'ww");
+    const weekKey = fnsFormat(activity.date, "yyyy-'W'ww");
     if (!weeklyData[weekKey]) {
       weeklyData[weekKey] = { commits: 0, additions: 0, deletions: 0 };
     }

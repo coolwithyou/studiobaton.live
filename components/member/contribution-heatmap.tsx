@@ -126,7 +126,9 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
 
       <TooltipProvider delayDuration={100}>
         <div className="overflow-x-auto pb-2">
-          <div className="inline-block relative" style={{ minWidth: heatmapWidth }}>
+          {/* 히트맵을 중앙 정렬하여 좌우 균형 유지 */}
+          <div className="flex justify-center">
+            <div style={{ minWidth: heatmapWidth }}>
             {/* 월 라벨 */}
             <div
               className="relative text-xs text-muted-foreground mb-1 h-4"
@@ -236,6 +238,7 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                 ))}
               </div>
               <span>많음</span>
+            </div>
             </div>
           </div>
         </div>

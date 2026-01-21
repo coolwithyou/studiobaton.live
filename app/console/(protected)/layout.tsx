@@ -17,11 +17,11 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={true} open={true}>
+    <SidebarProvider defaultOpen={true} open={true} className="console-layout">
       <AppSidebar />
-      <SidebarInset className="bg-muted/40">
+      <SidebarInset className="console-content">
         <main className="flex flex-1 flex-col p-4">
-          <div className="@container/main flex flex-1 flex-col rounded-xl border bg-card shadow-sm">
+          <div className="@container/main flex flex-1 flex-col rounded-xl border bg-card console-main-card shadow-sm">
             <SiteHeader />
             {children}
           </div>

@@ -281,3 +281,17 @@ body[data-overlayscrollbars-body] {
 .os-scrollbar {
   z-index: 9999 !important;
 }
+
+/* Console 레이아웃 전용 다크모드 색상 */
+.dark .console-layout {
+  --sidebar: #181818;
+  --card: #181818;
+}
+
+.dark .console-layout .console-content {
+  background-color: #181818;
+}
+
+.dark .console-layout .console-main-card {
+  background-color: #0a0a0a;
+}

@@ -191,6 +191,17 @@
   font-size: 0.875rem;
 }
 
+/* prose 내 링크 스타일 - 키 컬러 적용 */
+.prose a {
+  color: var(--key-color) !important;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.prose a:hover {
+  color: var(--key-color-hover) !important;
+}
+
 /* Monaco Editor diff 라인 스타일 */
 /* 라이트모드 */
 .diff-line-added {

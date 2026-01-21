@@ -376,7 +376,8 @@ export function MarkdownEditor({
             rehypePlugins={[rehypeRaw]}
             components={{
               // HTML figure 태그 지원 (data-size 속성으로 크기 조절)
-              figure: ({ children, node, ...props }) => {
+              // 주의: react-markdown이 전달하는 props 중 유효하지 않은 DOM 속성이 있어 스프레드하지 않음
+              figure: ({ children, node }) => {
                 // data-size 속성에서 크기 추출
                 const dataSize = (node?.properties?.dataSize as string) || null;
                 const maxWidth = dataSize ? getMaxWidthValue(dataSize, false) : "100%";
@@ -385,7 +386,6 @@ export function MarkdownEditor({
                   <figure
                     className="text-center my-6 mx-auto"
                     style={{ maxWidth }}
-                    {...props}
                   >
                     {children}
                   </figure>
@@ -496,7 +496,8 @@ export function MarkdownEditor({
             rehypePlugins: [rehypeRaw, rehypeUnwrapImages],
             components: {
               // HTML figure 태그 지원 (data-size 속성으로 크기 조절)
-              figure: ({ children, node, ...props }) => {
+              // 주의: MDEditor가 전달하는 props 중 유효하지 않은 DOM 속성이 있어 스프레드하지 않음
+              figure: ({ children, node }) => {
                 const dataSize = (node?.properties?.dataSize as string) || null;
                 const maxWidth = dataSize ? getMaxWidthValue(dataSize, false) : "100%";
 
@@ -504,7 +505,6 @@ export function MarkdownEditor({
                   <figure
                     className="text-center my-4 mx-auto"
                     style={{ maxWidth }}
-                    {...props}
                   >
                     {children}
                   </figure>

@@ -4,9 +4,9 @@
 
 3년 전 이 페이지를 처음 만들었을 때와 비교하면, 정말 많은 것이 달라졌습니다. 기술 스택도, 일하는 방식도, 심지어 '개발자'라는 직업의 정의마저도요. 하지만 변하지 않은 것도 있습니다. 여전히 채용 면접에서 '정보를 찾기 어려웠다'는 피드백을 듣는다는 것―*그래서 이 페이지를 업데이트하게 되었습니다.*
 
-## 디자인 스튜디오와 개발팀 <a href="#about-baton" id="about-baton"></a>
+# 디자인 스튜디오와 개발팀
 
-<figure><img src="https://mir-s3-cdn-cf.behance.net/project_modules/1400_opt_1/b4c7ce141570299.626108e0126b1.gif" alt=""><figcaption><p>STUDIO BATON C.I Renewal &#x26; Application - <a href="https://www.behance.net/gallery/141570299/BATON">Behance</a></p></figcaption></figure>
+<figure data-size="100%"><img src="https://mir-s3-cdn-cf.behance.net/project_modules/1400_opt_1/b4c7ce141570299.626108e0126b1.gif" alt=""><figcaption><p>STUDIO BATON C.I Renewal &#x26; Application - <a href="https://www.behance.net/gallery/141570299/BATON">Behance</a></p></figcaption></figure>
 
 디자인 스튜디오의 개발팀은 여전히 냉면집의 녹두전, 보이밴드의 드럼, 팥빙수의 고명 같은 느낌이기도 합니다. 하지만 바톤의 슬로건이자 모토인 'The Balance of Aesthetics and Engineering'에서 알 수 있듯 바톤에서 **엔지니어링은 매우 중요한 가치를 구현하는 기능을** 합니다. *―3년이 지났지만 이 문장은 그대로 남겨둡니다.*
 
@@ -18,9 +18,9 @@
 
 즉, **개발팀의 역량은 기획과 디자인을 보다 자유롭게 만들고, 할 수 있는 것과 할 수 없는 것의 경계를 설정**하는 데 큰 역할을 합니다. 이는 결과물의 품질과 고객사의 만족도에 직접적인 영향을 미치는 요소입니다. 그리고 **이러한 개발 역량이 내부에 있고 없고는 생각보다 큰 차이를 만들어** 냅니다. 지금부터 바톤의 개발팀이 정확히 어떤 일을 하고 어떻게 일하는지에 대해 알아보겠습니다.&#x20;
 
-## 3년 사이에 일어난 일들 <a href="#what-changed" id="what-changed"></a>
+# 3년 사이에 일어난 일들
 
-### PHP와의 이별
+# PHP와의 이별
 
 솔직하게 말씀드리겠습니다. 저희는 더 이상 PHP 작업을 하지 않습니다.
 
@@ -30,7 +30,7 @@ WordPress는 여전히 훌륭한 CMS입니다. 전 세계 웹사이트의 상당
 
 하나하나 나열하자면 길어지겠지만, 결론적으로 기존에 WordPress로 만들었던 프로젝트들도 모두 React 기반으로 전환했거나 전환하고 있습니다. *―개인적으로 PHP를 싫어하지는 않았습니다. 다만 2026년의 웹 에이전시가 감당해야 할 책임의 무게가 달라졌을 뿐입니다.*
 
-### SOLID의 탄생
+# SOLID의 탄생
 
 그리고 저희는 **SOLID**라는 것을 만들었습니다.
 
@@ -40,7 +40,7 @@ AI로 촉발된 개발 패러다임의 변화가 이것을 가능하게 했습�
 
 > 실제 케이스를 하나 들어보자면, SOLID는 커스텀 기능을 원하는 Cafe24 쇼핑몰 클라이언트를 위해 자동화되고 정밀한 제어가 가능한 안정적인 솔루션을 제공합니다. 이미 다수의 고객들로부터 검증된 자체 제작 컴포넌트와 더불어, 완전한 클라이언트 맞춤 지원 시스템입니다. "이 기능은 Cafe24에서 안 돼요"라는 말 대신 "어떻게 구현하면 될까요"라고 말할 수 있게 된 것, 그게 SOLID의 역할입니다.
 
-### 모바일로의 확장
+# 모바일로의 확장
 
 2025년, 저희는 웹을 넘어 **iOS와 Android 앱 개발**에도 본격적으로 뛰어들었습니다. 그리고 프로덕션 앱을 성공적으로 런칭했습니다.
 
@@ -48,7 +48,7 @@ AI로 촉발된 개발 패러다임의 변화가 이것을 가능하게 했습�
 
 Flutter와 Native 코드를 넘나들며 모바일 앱 개발에 큰 진척을 보였고, 저희의 포트폴리오를 한 단계 넓힐 수 있었습니다. 웹에서 쌓아온 UI/UX에 대한 감각과 시스템 설계 경험이 모바일에서도 유효하다는 것을 확인한 한 해였습니다. 2026년에도 더 많은 앱 프로젝트를 진행할 예정이며, 이제 저희는 클라이언트에게 "웹으로 할까요, 앱으로 할까요?"가 아닌 "어떤 플랫폼이 사용자에게 가장 적합할까요?"라고 물을 수 있게 되었습니다.
 
-### AI, 또 다른 동료로서
+# AI, 또 다른 동료로서
 
 여기서 중요한 점을 짚고 넘어가야 할 것 같습니다.
 
@@ -56,13 +56,13 @@ Flutter와 Native 코드를 넘나들며 모바일 앱 개발에 큰 진척을 �
 
 다만 경계해야 할 것도 있습니다. AI가 생성한 코드를 그대로 복사해서 붙여넣는 것, 그것은 협업이 아닙니다. 저희가 AI를 사용하는 방식은 능동적입니다. 질문하고, 검토하고, 수정하고, 때로는 "아니, 이건 좀 아닌 것 같은데?"라고 피드백을 주기도 합니다.
 
-### 비용도 무시 못해
+# 비용도 무시 못해
 
 기존에는 '안정적', '빠른', '거대한' 앞에는 항상 '큰 비용'이 따라왔습니다. 하지만 이는 클라이언트도 저희도 지속 가능하지 못합니다.
 
 AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희는 소프트웨어를 가장 효과적으로 돌리기 위한 **가격 대비 성능의 최적점**을 찾는 데 오랜 연구를 해왔고, 이를 우선시하고 있습니다. 좋은 시스템이 반드시 비싼 시스템일 필요는 없습니다. *―물론 공짜로 좋은 시스템을 만들 수는 없지만, 적어도 불필요하게 비쌀 필요도 없습니다.*
 
-### 변하지 않는 것들
+# 변하지 않는 것들
 
 그럼에도 불구하고.
 
@@ -72,7 +72,7 @@ AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희�
 
 > 저희는 더 빠르게 발전하고 있고, 더 빠르게 가속하고 있습니다. 하지만 결국 디자인 스튜디오 바톤이 지향하는 하나―**사용자의 문제를 아름답고 우아한 방식으로 해결하고, 기술과 디자인, 기획의 균형을 맞춘 엔지니어링 철학**―은 계속됩니다.
 
-## 실제로 바톤에서 하는 개발 <a href="#development-in-baton" id="development-in-baton"></a>
+# 실제로 바톤에서 하는 개발
 
 앞서 소개한 바와 같이 저희는 **프로젝트를 성공시키기 위해 기술이 필요한 모든 것**을 합니다.
 
@@ -85,7 +85,7 @@ AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희�
 
 좀 더 실제 케이스를 중심으로 살펴볼까요?
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FNsMQ4ZOPYn3R02PHOINx%2Fimage.png?alt=media&#x26;token=a68842bb-8e32-41b1-b350-c02df1a20522" alt="" width="563"><figcaption><p>디자인 리뉴얼로 시작했던 작업은 아트페어의 신청, 운영, 관리영역까지 시스템을 확장하고 있습니다.</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FNsMQ4ZOPYn3R02PHOINx%2Fimage.png?alt=media&#x26;token=a68842bb-8e32-41b1-b350-c02df1a20522" alt="" width="563"><figcaption><p>디자인 리뉴얼로 시작했던 작업은 아트페어의 신청, 운영, 관리영역까지 시스템을 확장하고 있습니다.</p></figcaption></figure>
 
 > [Kiaf SEOUL](https://kiaf.org)은 2002년 처음 문을 연 한국 최초의 글로벌 아트페어이며, 바톤은 2020년부터 지금까지 Kiaf SEOUL의 웹사이트를 담당하고 있습니다.
 >
@@ -100,15 +100,15 @@ AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희�
 >
 > 즉, 디자인 포트폴리오 이면에 숨어있는 수많은 어드민 인터페이스와 기능도 저희의 구현 대상입니다.&#x20;
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FhUXbATMP04QvD9hX3yLE%2Fimage.png?alt=media&#x26;token=f34ef8a3-d9a9-46fd-9a98-2bf0fe9a1878" alt="" width="563"><figcaption><p>전 세계의 갤러리로부터 들어오는 신청서를 관리하기 위해 만든 관리 서비스</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FhUXbATMP04QvD9hX3yLE%2Fimage.png?alt=media&#x26;token=f34ef8a3-d9a9-46fd-9a98-2bf0fe9a1878" alt="" width="563"><figcaption><p>전 세계의 갤러리로부터 들어오는 신청서를 관리하기 위해 만든 관리 서비스</p></figcaption></figure>
 
-## 좋은 동료와 효율적으로 일한다는 것 <a href="#working-efficiently-with-good-coworkers" id="working-efficiently-with-good-coworkers"></a>
+# 좋은 동료와 효율적으로 일한다는 것
 
 기획자와 디자이너, 개발자가 같은 프로젝트 안에서 '잘' 일하는 방법에 대한 이야기는 여전히 현재진행형입니다. AI가 등장했다고 해서 이 문제가 해결된 것은 아닙니다. *―오히려 'AI도 팀원이라면 어떻게 협업해야 하나'라는 새로운 질문이 추가되었습니다.*
 
 저희는 지난 13년간 각 팀들이 서로 효율적으로 '함께' 일하는 방법에 대해 계속해서 실험하고 개선시켜 왔습니다. 많은 시행착오 끝에 지금은 각 팀의 전문성을 높이면서 병목은 제거하고 역할과 범위를 명확하게 구분해 팀 작업의 집중도를 높이는 나름의 시스템을 정착시켰습니다.&#x20;
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2Fq1IS62r5xofuoK6wGwbR%2Fimage.png?alt=media&#x26;token=154d649d-8aec-422a-962c-ffdb9a13bf4c" alt="" width="563"><figcaption><p>이 오래된 밈을 웃어 넘기기엔 IT 업계의 직무 간 갈등은 여전히 현재 진행중입니다.</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2Fq1IS62r5xofuoK6wGwbR%2Fimage.png?alt=media&#x26;token=154d649d-8aec-422a-962c-ffdb9a13bf4c" alt="" width="563"><figcaption><p>이 오래된 밈을 웃어 넘기기엔 IT 업계의 직무 간 갈등은 여전히 현재 진행중입니다.</p></figcaption></figure>
 
 그리고 이러한 시스템 외에 팀 구성도 한몫하고 있습니다. 디자이너 출신 개발자, 개발자 출신 기획자, 코딩 역량을 가진 디자이너 등 바톤에는 다양한 배경의 팀원들이 많습니다. **이런 팀원의 존재는 팀 간의 이해도와 문화 형성에 큰 기여를 하게 됩니다.** 당연하게도 많이 알수록 서로를 존중하게 됩니다.&#x20;
 
@@ -116,7 +116,7 @@ AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희�
 
 당연한 것을 당연하게 잘하는 것, 이것이 지속 가능하려면 구성원 간에 평등하고 존중하는 문화가 반드시 필요합니다. 이 부분에 대해서는 정말 자랑하고 싶은 부분이 많지만, 문장으로 표현하자니 좀 쑥스럽네요. 바톤의 [인스타그램](https://www.instagram.com/studio.baton/)과 이어질 내용, 개발팀 [TMI](https://dev.ba-ton.kr/about-us/tmi)를 확인해주시기 바랍니다.
 
-## 프론트와 백-엔드 개발자 비율? <a href="#ratio-of-developers" id="ratio-of-developers"></a>
+# 프론트와 백-엔드 개발자 비율?
 
 여전히 채용 면접에서 가장 자주 듣는 질문입니다. 그리고 여전히 답은 같습니다. 저희 개발팀은 풀-스택을 지향합니다.
 
@@ -126,33 +126,33 @@ AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희�
 
 바톤의 개발팀은 각자가 더 좋아하고 잘하는 분야는 있지만 한 명 한 명이 올라운드 플레이어를 지향합니다. 그래야 이슈가 있을 때, 같은 선상에서 같이 고민하며 함께 성장할 수 있다고 믿고, 그를 위해 계속해서 노력하고 있습니다.
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2Fn32SFuKyvMnHJZpzkfoI%2Fimage.png?alt=media&#x26;token=4dbe02b1-834e-411c-82dc-5fa5ee2b181b" alt="" width="467"><figcaption><p>저희가 추구하는 풀-스택은 뭐든지 다 할 수 있는 유니콘이 아닙니다. <br>분야에 대한 경계없이 필요한 기술을 습득하고 다루는 고유의 정체성입니다.</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2Fn32SFuKyvMnHJZpzkfoI%2Fimage.png?alt=media&#x26;token=4dbe02b1-834e-411c-82dc-5fa5ee2b181b" alt="" width="467"><figcaption><p>저희가 추구하는 풀-스택은 뭐든지 다 할 수 있는 유니콘이 아닙니다. <br>분야에 대한 경계없이 필요한 기술을 습득하고 다루는 고유의 정체성입니다.</p></figcaption></figure>
 
-## 실제 개발 프로세스 <a href="#development-process" id="development-process"></a>
+# 실제 개발 프로세스
 
 웹 프로젝트에서 개발 프로세스는 대부분 3단계로 진행됩니다. (물론, 유형과 일정에 따라 일부 생략되거나 추가되기도 합니다.)
 
-### Step 1 : 프로젝트의 모든 것, 개발 가이드
+# Step 1 : 프로젝트의 모든 것, 개발 가이드
 
 * 기획팀으로부터 'OOO 프로젝트 개발 가이드'라는 약 20-30페이지 분량의 구글 프리젠테이션 URL을 공유 받는 것으로 시작합니다.<br>
 
-  <figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FoifwTFuYYjcyU6VFWD7T%2Fimage.png?alt=media&#x26;token=305367ee-f6c7-4523-b112-4332db5622c4" alt="" width="375"><figcaption><p>제작 후, 시간이 흘러도 개발가이드만 살펴본다면 다시금 맥락을 잡아낼 수 있습니다.</p></figcaption></figure>
+  <figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FoifwTFuYYjcyU6VFWD7T%2Fimage.png?alt=media&#x26;token=305367ee-f6c7-4523-b112-4332db5622c4" alt="" width="375"><figcaption><p>제작 후, 시간이 흘러도 개발가이드만 살펴본다면 다시금 맥락을 잡아낼 수 있습니다.</p></figcaption></figure>
 
 * 이 개발 가이드는 말 그대로 개발 매뉴얼입니다. 사전에 요청한 운영서버, 도메인, 써드 파티 앱, 라이브러리, 관련 서비스 계정 등 모든 것이 들어있고 UI디자인팀에서 전달한 Figma URL이 각 디바이스별로 포함되어 있습니다.
 
 * 나머지 페이지에는 각 페이지별로 구현할 때의 특이사항과 주의할 점 등이 작성되어 있고 이것을 리뷰하며 보다 상세한 개발 일정과 계획을 수립합니다.&#x20;
 
-### Step 2 : 코드 작성
+# Step 2 : 코드 작성
 
 * 대다수의 프로젝트들이 초기 기획과정에서 기술 스택을 정합니다. 하지만 점점 내용이 구체화되며, 실제 개발 단계에서는 다른 스택으로 변경될 수 있습니다. 2단계의 시작은 개발 서버를 설정하며 시작합니다.&#x20;
 * 저희는 가급적 새로운 방법과 기술을 지향합니다. 물론, 저희 모두가 모든 것을 다 아는 고오급 개발자는 아닙니다. 하지만 시스템의 안정성을 해치지 않는 범위 내에서 새로운 시도를 하는 것을 즐기며, 더 나은, 더 멋진, 더 편리한 시스템을 만드는 데 주저하지 않으려 노력합니다.&#x20;
 * UI디자인팀이 만든 Figma 프로토타입은 매우 상세합니다. 개발 과정을 고려한 디자인과 사용성에 대한 고민의 흔적이 고스란히 결과물에 담겨있습니다. 저희는 이 이미지와 느낌이 그대로 고객에게 전달될 수 있도록 UI디자인팀과 계속 소통하며 완성해나갑니다. <br>
 
-  <figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FN2RJH5sYjSUpDfwkvL9a%2Fimage.png?alt=media&#x26;token=002f24d3-3418-4592-b38d-78718d102b9e" alt="" width="563"><figcaption><p>3년 전에는 "미래에는 이 자체로 그냥 사이트가 만들어지지 않을까?!"라고 썼는데, 그 미래가 꽤 가까워졌습니다. 하지만 여전히 '우리'가 필요합니다.<br></p></figcaption></figure>
+  <figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FN2RJH5sYjSUpDfwkvL9a%2Fimage.png?alt=media&#x26;token=002f24d3-3418-4592-b38d-78718d102b9e" alt="" width="563"><figcaption><p>3년 전에는 "미래에는 이 자체로 그냥 사이트가 만들어지지 않을까?!"라고 썼는데, 그 미래가 꽤 가까워졌습니다. 하지만 여전히 '우리'가 필요합니다.<br></p></figcaption></figure>
 * 버전 관리는 Git을 사용하며, 매일 아침 스탠드업 미팅을 통해 하루 작업을 설계하고 공유합니다. 내부 이슈 트래커를 통해 이슈를 등록하고 작업을 진행합니다. 그리고 이제는 AI가 코드 리뷰의 1차 관문을 담당하기도 합니다.&#x20;
 * 개발팀 내의 협업 방식은 계속해서 발전시켜 나가고 있습니다. 지금의 방식이 어느 정도 정착되기는 했지만 충분히 더 개선할 수 있다고 생각하고 꾸준히 시도하는 중입니다.&#x20;
 
-### Step 3 : 가완성본 그리고 배포
+# Step 3 : 가완성본 그리고 배포
 
 * 개발 서버에 가완성본을 올려 내부 공유를 합니다. 기획팀과 UI디자인팀의 내부 검수를 통해 고객사에 공유되며, 이후 QA 과정이 시작됩니다. 이 과정이 사이트의 디테일과 성능을 끌어올립니다.
 * QA 종료 후에는 배포에 앞서 부하테스트를 진행하고, 각 프로젝트별 배포 전략에 맞게 배포를 진행합니다.
@@ -162,11 +162,11 @@ AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희�
 바톤에서 만든 사이트 수 대비 유지보수 업무가 크지 않은 이유는, 제작 시 대부분 고객사에서 수정이 가능한 형태로 만드는 것을 우선하기 때문입니다. 어떤 면에서는 유지보수 수익이 줄어드는 단점도 있지만, 고객사는 편리해서 좋아하고 저희는 신규 개발에 더 집중할 수 있어 장기적으로 더 효율적입니다.
 {% endhint %}
 
-## 주로 사용하는 기술 <a href="#language" id="language"></a>
+# 주로 사용하는 기술
 
 팀 작업에서 주로 사용하는 기술과 이유를 간략하게 소개해보겠습니다.&#x20;
 
-### TypeScript + Next.js
+# TypeScript + Next.js
 
 <mark style="color:blue;">#typescript #next.js #react #node.js #SOLID etc..</mark>\
 \&#xNAN;***typescript is the new baseline.***
@@ -175,15 +175,15 @@ AI로 가속화된 온라인 생태계는 초효율을 지향합니다. 저희�
 
 그리고 저희는 이제 완전히 **Next.js를 기반**으로 작업합니다. 어떻게 하면 더 효율적이고 빠른 시스템을 만들 수 있을지 늘 시도하고 연구 중입니다. Server Components, App Router, Edge Runtime 등 Next.js가 제공하는 새로운 기능들을 적극적으로 활용하고 있고, SOLID 역시 이 생태계 위에서 만들어졌습니다.
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FZcb2L3SdS9odP34QN8hY%2Fimage.png?alt=media&#x26;token=13efd0cf-e3bd-48c7-a72b-00b3ee6af6de" alt="" width="563"><figcaption><p>결론은 여전히 리액트, 쿨하니까. 그리고 이제는 타입스크립트와 Next.js와 함께.</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FZcb2L3SdS9odP34QN8hY%2Fimage.png?alt=media&#x26;token=13efd0cf-e3bd-48c7-a72b-00b3ee6af6de" alt="" width="563"><figcaption><p>결론은 여전히 리액트, 쿨하니까. 그리고 이제는 타입스크립트와 Next.js와 함께.</p></figcaption></figure>
 
-### Flutter + Native
+# Flutter + Native
 
 2025년부터 본격적으로 모바일 앱 개발에 뛰어들면서 **Flutter**가 저희의 주요 기술 스택에 추가되었습니다. 크로스 플랫폼의 효율성과 네이티브에 가까운 성능, 그리고 무엇보다 아름다운 UI를 만들 수 있다는 점이 바톤과 잘 맞았습니다.
 
 물론 Flutter만으로 모든 것을 해결할 수는 없습니다. 디바이스의 깊은 기능에 접근해야 할 때는 Swift나 Kotlin으로 Native 코드를 작성하기도 합니다. *―웹에서 프론트와 백을 넘나들었듯이, 모바일에서는 Flutter와 Native를 넘나듭니다.*
 
-### Cafe24 System <a href="#cafe24" id="cafe24"></a>
+# Cafe24 System
 
 Cafe24 Eco-System은 여전히 중요합니다. 국내 이커머스 솔루션 업계에서 압도적인 점유율을 차지하고 있고, 저희가 작업하는 쇼핑몰의 대부분은 여전히 Cafe24 환경에서 작업됩니다.&#x20;
 
@@ -191,17 +191,17 @@ Cafe24 Eco-System은 여전히 중요합니다. 국내 이커머스 솔루션 �
 Cafe24는 국내 쇼핑몰 솔루션 중에서는 API를 가장 적극적으로 지원하고 있습니다. 그리고 바톤은 Cafe24 커스터마이징으로 제법 알려져 있습니다. 별도의 서버와 DB를 이용해 기본적으로 제공하는 Cafe24 스킨의 한계를 확장해 기능을 구현합니다. SOLID의 Cafe24 모듈은 이러한 경험이 집약된 결과물입니다.
 {% endhint %}
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FKq8KM1nxNpRx6CWGFB5O%2Fimage.png?alt=media&#x26;token=f5985010-799f-47a5-ab9d-e8661a69ad49" alt="" width="563"><figcaption><p>Cafe24 API Diagram</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FKq8KM1nxNpRx6CWGFB5O%2Fimage.png?alt=media&#x26;token=f5985010-799f-47a5-ab9d-e8661a69ad49" alt="" width="563"><figcaption><p>Cafe24 API Diagram</p></figcaption></figure>
 
-### 굳이 말하자면 우리는 여전히 사파? <a href="#we-are-sapa" id="we-are-sapa"></a>
+# 굳이 말하자면 우리는 여전히 사파?
 
 물론 하나의 언어만 사용하는 기업은 없겠습니다만, 적어도 자사 프로덕트가 있는 기업이라면 주가 되는 언어는 있기 마련입니다. ―*그것이 CTO의 취향이든 인력 구성의 영향이든―*  하지만 저희는 **프로젝트 주기가 상대적으로 짧고 포커스는 고객사**이기 때문에 특별히 **언어에 대한 고집이 없습니다.** 쉽게 말해 **이길 수 있다면 어떤 무공이든 상관없달까요.** 그런 면에서 개발 업계가 무림이라면 '에이전시 디벨로퍼'인 저희는 여전히 정파보다는 사파에 가깝습니다. *―다만 이제는 AI라는 강력한 아이템을 장착하고, 모바일이라는 새로운 전장까지 확보한 사파입니다.*
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FLYqVQu278Np57fFzAFIu%2Fimage.png?alt=media&#x26;token=87bedd5f-2de5-4d4e-b523-5ee348607eb7" alt=""><figcaption><p>무엇으로 만들었든지 잘 돌아가면 내가 토니 스타크</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FLYqVQu278Np57fFzAFIu%2Fimage.png?alt=media&#x26;token=87bedd5f-2de5-4d4e-b523-5ee348607eb7" alt=""><figcaption><p>무엇으로 만들었든지 잘 돌아가면 내가 토니 스타크</p></figcaption></figure>
 
-## 주로 하는 작업들 <a href="#common-tasks" id="common-tasks"></a>
+# 주로 하는 작업들
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FM5ChweYcrWh34LEdKoNa%2Fimage.png?alt=media&#x26;token=ccd744c6-ab86-4308-aa13-a8dcbf789c9d" alt=""><figcaption><p>에이전시의 가장 큰 매력은 다양한 분야의 전문가들과 함께 일하며 경험할 수 있다는 것</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FM5ChweYcrWh34LEdKoNa%2Fimage.png?alt=media&#x26;token=ccd744c6-ab86-4308-aa13-a8dcbf789c9d" alt=""><figcaption><p>에이전시의 가장 큰 매력은 다양한 분야의 전문가들과 함께 일하며 경험할 수 있다는 것</p></figcaption></figure>
 
 바톤의 [공식 사이트](https://ba-ton.kr) 또는 [인스타그램](https://www.instagram.com/studio.baton/)에 가시면 느끼시겠지만 감사하게도 정말 다양한 분야의 고객사가 찾아주셔서 특별히 어떤 분야, 작업을 주로 한다고 이야기하기가 어렵습니다.
 
@@ -209,7 +209,7 @@ Cafe24는 국내 쇼핑몰 솔루션 중에서는 API를 가장 적극적으로 
 
 물론, 모든 작업들이 그런 경험을 가져다 주지는 않습니다. 그리고 실제 업무도 언제나 이상적으로 흘러가지는 않습니다. 하지만 저희는 지금까지 멋진 고객사들과 함께 성장해왔고 앞으로 만나게 될 새로운 분야가 늘 기대됩니다.&#x20;
 
-## AI 시대의 바톤 개발자 <a href="#what-kind-of-developer-is-a-barton-developer" id="what-kind-of-developer-is-a-barton-developer"></a>
+# AI 시대의 바톤 개발자
 
 앞서 언급했듯이 저희는 풀-스택, **올-라운드 플레이어를 지향**합니다. *―여기까지 읽으신 분이라면 저희가 이야기하는 풀-스택이 어떤 의미인지 아시리라 믿습니다!―* 그리고 여기에 한 가지가 추가되었습니다. **AI와 효과적으로 협업할 수 있는 능력**입니다.
 
@@ -219,7 +219,7 @@ AI를 제대로 활용하려면 **기본기가 탄탄해야 합니다.** AI가 �
 
 그래서 역설적으로, **바톤의 개발자는 AI 시대에 더욱 CSS 전문가여야 하고, JavaScript의 기본 원리를 더 깊이 이해해야 합니다.**
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FhAx8GEjpuv6pYSNz4OVN%2Fimage.png?alt=media&#x26;token=8c1d9838-0c94-41fc-8517-9e603107abd2" alt="" width="563"><figcaption><p>물론, 개발을 '잘한다'에 정답은 없습니다. 하지만 조직마다 필요로 하는 기술과 그에 대한 접근 방식은 분명 정해져 있습니다.</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FhAx8GEjpuv6pYSNz4OVN%2Fimage.png?alt=media&#x26;token=8c1d9838-0c94-41fc-8517-9e603107abd2" alt="" width="563"><figcaption><p>물론, 개발을 '잘한다'에 정답은 없습니다. 하지만 조직마다 필요로 하는 기술과 그에 대한 접근 방식은 분명 정해져 있습니다.</p></figcaption></figure>
 
 웹 개발자의 근간을 논할 때, 가장 저평가되어있는 요소가 CSS라고 했던 말은 여전히 유효합니다. **CSS는 경험이 필요합니다. 문법의 구성 원리가 쉬운 만큼 자유롭고 그래서 방대합니다.** AI가 CSS를 생성해줄 수 있지만, 그것이 실제로 다양한 브라우저와 디바이스에서 어떻게 동작할지 예측하는 것은 여전히 인간의 몫입니다. 다양한 브라우저와 파편화된 모바일 디바이스, 윈도우와 맥, 같은 모양 다른 구현, "제 컴퓨터에서는 되는데요!?"의 대표적인 언어가 바로 CSS입니다.
 
@@ -229,9 +229,9 @@ AI를 제대로 활용하려면 **기본기가 탄탄해야 합니다.** AI가 �
 
 그렇다고 바톤의 개발자가 모두 기본기가 출중하고 어마어마한 풀-스택 개발자인가?! 물론 아닙니다. *―저 역시 매일 좌절하고 배우고 노력합니다. AI한테 "그건 아닌 것 같은데?"라고 말하다가 제가 틀린 걸 알게 될 때도 많습니다.* 하지만 **성장의 방점을 이렇게 설정하고 나아가고 있다!**고 봐주시면 될 것 같습니다.&#x20;
 
-## 실용주의 프로그래머와 성장
+# 실용주의 프로그래머와 성장
 
-<figure><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FavVJKm3xMwSb3WzAXZgu%2Fbb.png?alt=media&#x26;token=3682d374-16e9-4f58-96db-f4998d7758d7" alt="" width="563"><figcaption><p>실용주의 프로그래머의 북 커버가 지금은 바뀌었는데 개인적으로 이 커버(왼쪽)의 양장본이 내용과 더 잘 어울린다고 생각합니다.</p></figcaption></figure>
+<figure data-size="100%"><img src="https://1965209960-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FYCmT1UROHdlrS9OHM6sb%2Fuploads%2FavVJKm3xMwSb3WzAXZgu%2Fbb.png?alt=media&#x26;token=3682d374-16e9-4f58-96db-f4998d7758d7" alt="" width="563"><figcaption><p>실용주의 프로그래머의 북 커버가 지금은 바뀌었는데 개인적으로 이 커버(왼쪽)의 양장본이 내용과 더 잘 어울린다고 생각합니다.</p></figcaption></figure>
 
 저희 팀은 여전히 새로운 멤버가 합류하면 두 권의 책을 권합니다. 한 권은 앤드류 헌트와 데이비드 토마스의 "**실용주의 프로그래머(The Pragmatic Programmer)**"이고 다른 한 권은 김창준 님의 "**함께 자라기 : 애자일로 가는 길**"입니다. *―3년 전에도, 지금도, 아마 3년 후에도.*
 
@@ -241,7 +241,7 @@ AI를 제대로 활용하려면 **기본기가 탄탄해야 합니다.** AI가 �
 
 그리고 이 모든 것의 종점에는 각자의 행복이 있습니다. 하루 중 가장 많은 시간을 함께 한다는 것은 곧 1년 중 가장 많은 시간을 보내는 것과 같고, 그 시간들을 좋은 사람들과 재밌는 일을 하면서 보내기를 희망합니다. 즐겁게 개발하는 것, 저희 팀에서 가장 중요하게 생각하는 가치입니다. *―AI가 아무리 발전해도 이 부분만큼은 대체할 수 없을 것 같습니다.*
 
-## Next
+# Next
 
 이 긴 글을 여기까지 읽어주셔서 감사합니다. 3년 전 글과 비교해보면 달라진 것도 많고, 그대로인 것도 많습니다. 기술은 빠르게 변하지만, 좋은 개발자가 갖춰야 할 덕목은 크게 다르지 않다는 것을 새삼 느낍니다.
 

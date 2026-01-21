@@ -96,7 +96,7 @@ export function SidebarClient({
                       className={cn(
                         "block px-2 py-1.5 text-sm rounded-md transition-colors",
                         active
-                          ? "bg-primary/10 text-primary font-medium"
+                          ? "bg-key/10 text-key font-medium"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       )}
                     >

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Trash2, Loader2, ExternalLink } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Trash2, Loader2, ExternalLink, Pencil, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Task {
@@ -24,6 +25,9 @@ interface TaskListProps {
 export function TaskList({ tasks, onTaskUpdated, readOnly = false }: TaskListProps) {
   const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set());
   const [deletingTasks, setDeletingTasks] = useState<Set<string>>(new Set());
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const handleToggleComplete = async (task: Task) => {
     if (readOnly) return;
@@ -75,6 +79,41 @@ export function TaskList({ tasks, onTaskUpdated, readOnly = false }: TaskListPro
         next.delete(taskId);
         return next;
       });
+    }
+  };
+
+  const handleEdit = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditContent(task.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+    setEditContent("");
+  };
+
+  const handleSaveEdit = async (taskId: string) => {
+    if (!editContent.trim()) return;
+
+    setSavingEdit(true);
+    try {
+      const response = await fetch(`/api/console/standup/task/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: editContent.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update task");
+      }
+
+      setEditingTaskId(null);
+      setEditContent("");
+      onTaskUpdated();
+    } catch (error) {
+      console.error("Failed to update task:", error);
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -133,45 +172,99 @@ export function TaskList({ tasks, onTaskUpdated, readOnly = false }: TaskListPro
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
-            <p
-              className={cn(
-                "text-sm",
-                task.isCompleted && "line-through text-muted-foreground"
-              )}
-            >
-              {renderContent(task.content)}
-            </p>
-            {task.repository && (
-              <div className="mt-1">
-                <a
-                  href={`https://github.com/${task.repository}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+          {editingTaskId === task.id ? (
+            <div className="flex-1 min-w-0 space-y-2">
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="min-h-[60px] text-sm resize-none"
+                placeholder="할 일 내용을 입력하세요"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSaveEdit(task.id);
+                  }
+                  if (e.key === "Escape") {
+                    handleCancelEdit();
+                  }
+                }}
+              />
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  onClick={() => handleSaveEdit(task.id)}
+                  disabled={savingEdit || !editContent.trim()}
                 >
-                  <span className="px-1.5 py-0.5 bg-muted rounded">
-                    @{task.repository}
-                  </span>
-                </a>
+                  {savingEdit ? (
+                    <Loader2 className="size-4 animate-spin mr-1" />
+                  ) : (
+                    <Check className="size-4 mr-1" />
+                  )}
+                  저장
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={savingEdit}
+                >
+                  <X className="size-4 mr-1" />
+                  취소
+                </Button>
               </div>
-            )}
-          </div>
-
-          {!readOnly && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 text-muted-foreground hover:text-destructive"
-              onClick={() => handleDelete(task.id)}
-              disabled={deletingTasks.has(task.id)}
-            >
-              {deletingTasks.has(task.id) ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <Trash2 className="size-4" />
+            </div>
+          ) : (
+            <div className="flex-1 min-w-0">
+              <p
+                className={cn(
+                  "text-sm",
+                  task.isCompleted && "line-through text-muted-foreground"
+                )}
+              >
+                {renderContent(task.content)}
+              </p>
+              {task.repository && (
+                <div className="mt-1">
+                  <a
+                    href={`https://github.com/${task.repository}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary"
+                  >
+                    <span className="px-1.5 py-0.5 bg-muted rounded">
+                      @{task.repository}
+                    </span>
+                  </a>
+                </div>
               )}
-            </Button>
+            </div>
+          )}
+
+          {!readOnly && editingTaskId !== task.id && (
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground hover:text-primary"
+                onClick={() => handleEdit(task)}
+              >
+                <Pencil className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 text-muted-foreground hover:text-destructive"
+                onClick={() => handleDelete(task.id)}
+                disabled={deletingTasks.has(task.id)}
+              >
+                {deletingTasks.has(task.id) ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Trash2 className="size-4" />
+                )}
+              </Button>
+            </div>
           )}
         </div>
       ))}

@@ -24,17 +24,17 @@ const maxWidthClasses = {
  *
  * 좌측 사이드바: 288px (layout에서 처리)
  * 우측 위젯: 224px
- * 메인 콘텐츠: 남은 공간 전부 활용
+ * 메인 콘텐츠: 최대 768px (GitBook 스타일, 가독성 최적화)
  *
  * @param children - 메인 컨텐츠 영역
  * @param aside - 우측 위젯 영역 (TOC, 메타 정보 등) - xl 이상에서만 표시
- * @param maxWidth - 메인 컨텐츠의 최대 너비 (기본: full - 남은 공간 전부 사용)
+ * @param maxWidth - 메인 컨텐츠의 최대 너비 (기본: 3xl = 768px)
  * @param showAsideHeader - 우측 aside에 "On this page" 헤더 표시 여부 (기본: true)
  */
 export function ContentGrid({
   children,
   aside,
-  maxWidth = "full",
+  maxWidth = "3xl",
   className,
   showAsideHeader = true,
 }: ContentGridProps) {

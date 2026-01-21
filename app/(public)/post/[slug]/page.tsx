@@ -5,7 +5,8 @@ import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
 import { formatKST } from "@/lib/date-utils";
-import { getUniqueAuthors } from "@/lib/author-normalizer";
+import { getUniqueAuthors, getContributorsWithStats } from "@/lib/author-normalizer";
+import { PostAuthorSection } from "@/components/post/post-author-section";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import type { Metadata } from "next";
@@ -81,6 +82,18 @@ export default async function PostPage({ params }: PageProps) {
       publishedBy: {
         select: {
           name: true,
+          linkedMember: {
+            select: {
+              id: true,
+              name: true,
+              githubName: true,
+              avatarUrl: true,
+              profileImageUrl: true,
+              bio: true,
+              title: true,
+              role: true,
+            },
+          },
         },
       },
     },
@@ -117,6 +130,17 @@ export default async function PostPage({ params }: PageProps) {
       author: c.author,
       authorEmail: c.authorEmail,
       authorAvatar: c.authorAvatar,
+    }))
+  );
+
+  // 커밋 참여자 통계 (PostAuthorSection용)
+  const contributorsWithStats = await getContributorsWithStats(
+    maskedPost.commits.map((c) => ({
+      author: c.author,
+      authorEmail: c.authorEmail,
+      authorAvatar: c.authorAvatar,
+      additions: c.additions,
+      deletions: c.deletions,
     }))
   );
 
@@ -183,6 +207,13 @@ export default async function PostPage({ params }: PageProps) {
             className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
           />
         </Suspense>
+
+        {/* 작성자 정보 섹션 */}
+        <PostAuthorSection
+          postAuthor={post.publishedBy?.linkedMember || null}
+          contributors={post.type === "COMMIT_BASED" ? contributorsWithStats : []}
+        />
+
         {!isAuthenticated && (
           <p className="text-xs text-muted-foreground text-center mt-6">
             개발자 개인정보 및 고객사 정보 보호를 위해 프로젝트명과 일부 세부

@@ -37,6 +37,9 @@ interface Author {
   name: string | null
   email: string
   image: string | null
+  linkedMember?: {
+    avatarUrl: string | null
+  } | null
 }
 
 interface Post {
@@ -181,7 +184,10 @@ export default function PostsPage() {
                         {post.author ? (
                           <div className="flex items-center gap-2">
                             <Avatar className="h-6 w-6">
-                              <AvatarImage src={post.author.image || undefined} alt={post.author.name || ""} />
+                              <AvatarImage
+                                src={post.author.linkedMember?.avatarUrl || post.author.image || undefined}
+                                alt={post.author.name || ""}
+                              />
                               <AvatarFallback className="text-xs">
                                 {(post.author.name || post.author.email)[0].toUpperCase()}
                               </AvatarFallback>

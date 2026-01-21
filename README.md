@@ -192,6 +192,14 @@ Google OAuth를 사용하며, **@ba-ton.kr 도메인 계정만** 로그인할 �
 - **Editor**: Monaco Editor (마크다운 편집)
 - **Charts**: Recharts (통계 시각화)
 
+## 문서
+
+| 문서 | 설명 |
+|------|------|
+| [커밋 수집 및 글 생성 로직](docs/COMMIT_COLLECTION_LOGIC.md) | 커밋 수집, 글 생성, 데이터 모델 설계 |
+| [GitHub 토큰 설정](docs/GITHUB_TOKEN_SETUP.md) | GitHub Personal Access Token 설정 방법 |
+| [DB 마이그레이션](docs/DB_MIGRATION.md) | Prisma 마이그레이션 가이드 |
+
 ## 관리자 페이지
 
 | 경로               | 설명                           | 권한 |

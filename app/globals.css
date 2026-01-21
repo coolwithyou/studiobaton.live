@@ -307,7 +307,18 @@ body[data-overlayscrollbars-body] {
   z-index: 9999 !important;
 }
 
-/* Console 레이아웃 전용 다크모드 색상 */
+/* Console 레이아웃 전용 스타일 */
+/* Console 페이지 링크는 기본 텍스트 색상 사용 (키 컬러 미적용) */
+.console-layout a {
+  color: var(--foreground);
+}
+
+.console-layout a:hover {
+  color: var(--foreground);
+  opacity: 0.8;
+}
+
+/* Console 다크모드 색상 */
 .dark .console-layout {
   --sidebar: #181818;
   --card: #181818;

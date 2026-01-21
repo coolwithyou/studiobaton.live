@@ -138,14 +138,6 @@
   h1, h2, h3, h4, h5, h6 {
     letter-spacing: -0.02em;
   }
-  a {
-    color: var(--key-color);
-    text-decoration: none;
-    transition: color 0.2s ease;
-  }
-  a:hover {
-    color: var(--key-color-hover);
-  }
 }
 
 /* Shiki 코드 블록 스타일 */
@@ -305,17 +297,6 @@ body[data-overlayscrollbars-body] {
 /* 스크롤 영역 내부 컨테이너 스타일 */
 .os-scrollbar {
   z-index: 9999 !important;
-}
-
-/* Console 레이아웃 전용 스타일 */
-/* Console 페이지 링크는 기본 텍스트 색상 사용 (키 컬러 미적용) */
-.console-layout a {
-  color: var(--foreground);
-}
-
-.console-layout a:hover {
-  color: var(--foreground);
-  opacity: 0.8;
 }
 
 /* Console 다크모드 색상 */

@@ -328,9 +328,12 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
 
       {/* 내용 */}
       <div className="space-y-2">
-        <Label htmlFor="content">
-          내용 <span className="text-red-500">*</span>
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="content">
+            내용 <span className="text-red-500">*</span>
+          </Label>
+          <MarkdownGuideDialog />
+        </div>
         <MarkdownEditor
           value={content}
           onChange={setContent}

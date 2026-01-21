@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MarkdownEditor } from "@/components/markdown/markdown-editor";
+import { MarkdownGuideDialog } from "@/components/markdown/markdown-guide-dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -668,7 +669,10 @@ export default function PostEditPage({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="content">내용</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="content">내용</Label>
+                <MarkdownGuideDialog />
+              </div>
               <MarkdownEditor
                 value={content}
                 onChange={(val) => {

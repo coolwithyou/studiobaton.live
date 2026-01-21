@@ -182,7 +182,7 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                           <TooltipTrigger asChild>
                             <div
                               className={cn(
-                                "rounded-sm transition-colors cursor-default",
+                                "rounded-[2px] transition-colors cursor-default",
                                 isOutsideYear
                                   ? "bg-transparent"
                                   : isFuture
@@ -225,7 +225,7 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                 {intensityColors.map((color, idx) => (
                   <div
                     key={idx}
-                    className={cn("rounded-sm", color)}
+                    className={cn("rounded-[2px]", color)}
                     style={{ width: CELL_SIZE, height: CELL_SIZE }}
                   />
                 ))}

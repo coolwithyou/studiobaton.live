@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, RefreshCw, Eye, Pencil, GitCommit } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { PageHeader } from "@/components/admin/ui/page-header"
 
@@ -178,9 +179,17 @@ export default function PostsPage() {
                       </TableCell>
                       <TableCell>
                         {post.author ? (
-                          <span className="text-sm" title={post.author.email}>
-                            {post.author.name || post.author.email.split("@")[0]}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={post.author.image || undefined} alt={post.author.name || ""} />
+                              <AvatarFallback className="text-xs">
+                                {(post.author.name || post.author.email)[0].toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm" title={post.author.email}>
+                              {post.author.name || post.author.email.split("@")[0]}
+                            </span>
+                          </div>
                         ) : (
                           <span className="text-muted-foreground">-</span>
                         )}

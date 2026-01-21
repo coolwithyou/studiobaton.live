@@ -163,7 +163,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
         return;
       }
 
-      router.push("/console");
+      router.push("/console/posts");
       router.refresh();
     } catch (error) {
       console.error("Save error:", error);
@@ -188,7 +188,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
         return;
       }
 
-      router.push("/console");
+      router.push("/console/posts");
       router.refresh();
     } catch (error) {
       console.error("Delete error:", error);

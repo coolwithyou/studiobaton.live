@@ -38,7 +38,7 @@ export function DeletePostButton({ postId, postTitle }: DeletePostButtonProps) {
         return;
       }
 
-      router.push("/console");
+      router.push("/console/posts");
       router.refresh();
     } catch (error) {
       console.error("Delete error:", error);

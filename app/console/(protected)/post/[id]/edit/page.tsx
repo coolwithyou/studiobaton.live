@@ -302,7 +302,7 @@ export default function PostEditPage({
         return;
       }
 
-      router.push("/console");
+      router.push("/console/posts");
       router.refresh();
     } catch (error) {
       console.error("Delete error:", error);

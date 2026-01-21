@@ -153,54 +153,44 @@ function AuthorCard({ author }: { author: PostAuthor }) {
   );
 }
 
-/** 커밋 참여자 카드 (3:4 이미지 기반) */
+/** 커밋 참여자 미니카드 (글 작성자 카드의 축소 버전) */
 function ContributorMiniCard({
   contributor,
 }: {
   contributor: ContributorWithStats;
 }) {
   const CardContent = (
-    <div className="rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors overflow-hidden">
-      {/* 3:4 이미지 영역 */}
-      <div className="relative aspect-[3/4] bg-muted">
+    <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
+      {/* 3:4 미니 이미지 */}
+      <div className="relative w-14 aspect-[3/4] rounded overflow-hidden bg-muted shrink-0">
         {contributor.avatarUrl ? (
           <Image
             src={contributor.avatarUrl}
             alt={contributor.name}
             fill
             className="object-cover object-top"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            sizes="56px"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span className="text-4xl font-bold text-muted-foreground">
+            <span className="text-lg font-bold text-muted-foreground">
               {contributor.name.slice(0, 1).toUpperCase()}
             </span>
           </div>
         )}
-        {/* 하단 그라데이션 오버레이 */}
-        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background/90 to-transparent" />
-        {/* 커밋 통계 배지 */}
-        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-xs">
-          <span className="bg-green-600/90 text-white px-1.5 py-0.5 rounded">
-            +{contributor.additions}
-          </span>
-          <span className="bg-red-600/90 text-white px-1.5 py-0.5 rounded">
-            -{contributor.deletions}
-          </span>
-        </div>
       </div>
       {/* 정보 영역 */}
-      <div className="p-3 space-y-1">
+      <div className="flex-1 min-w-0 space-y-0.5">
         <p className="font-medium text-sm truncate">{contributor.name}</p>
-        <p className="text-xs text-muted-foreground truncate">
-          @{contributor.githubName}
-        </p>
-        {contributor.isMemberMatched && contributor.role && (
-          <Badge variant="secondary" className="text-xs">
+        {contributor.role && (
+          <p className="text-xs text-muted-foreground truncate">
             {contributor.role}
-          </Badge>
+          </p>
         )}
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-green-600">+{contributor.additions}</span>
+          <span className="text-red-600">-{contributor.deletions}</span>
+        </div>
       </div>
     </div>
   );

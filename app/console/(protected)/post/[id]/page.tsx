@@ -8,6 +8,7 @@ import { PageContainer } from "@/components/admin/ui/page-container";
 import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { ExternalLink, Pencil } from "lucide-react";
 import prisma from "@/lib/prisma";
+import { DeletePostButton } from "./_components/delete-post-button";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -112,6 +113,7 @@ export default async function PostViewPage({ params }: Props) {
               수정하기
             </Link>
           </Button>
+          <DeletePostButton postId={id} postTitle={post.title} />
         </div>
       </div>
 

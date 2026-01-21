@@ -60,6 +60,63 @@ export async function GET(
   }
 }
 
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await getServerSession();
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const post = await prisma.post.findUnique({
+      where: { id },
+    });
+
+    if (!post) {
+      return NextResponse.json(
+        { error: "포스트를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    // 관련 데이터와 함께 포스트 삭제 (Prisma cascade 또는 수동 삭제)
+    await prisma.$transaction(async (tx) => {
+      // PostVersion 삭제
+      await tx.postVersion.deleteMany({
+        where: { postId: id },
+      });
+
+      // Post-Commit 관계 해제 (커밋 자체는 삭제하지 않음)
+      await tx.post.update({
+        where: { id },
+        data: {
+          commits: {
+            set: [], // 관계만 해제
+          },
+        },
+      });
+
+      // 포스트 삭제
+      await tx.post.delete({
+        where: { id },
+      });
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Delete post error:", error);
+    return NextResponse.json(
+      { error: "포스트 삭제 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }

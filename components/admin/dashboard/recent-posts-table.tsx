@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,7 +15,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, ExternalLink } from "lucide-react"
+import { ArrowUpDown, ChevronDown, ExternalLink, MoreHorizontal, Trash2 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -23,8 +24,20 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import {
   Table,
@@ -44,7 +57,11 @@ export interface PostData {
   versionCount: number
 }
 
-const columns: ColumnDef<PostData>[] = [
+interface TableMeta {
+  onDeleteClick: (post: PostData) => void
+}
+
+const createColumns = (): ColumnDef<PostData>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -139,14 +156,33 @@ const columns: ColumnDef<PostData>[] = [
   {
     id: "actions",
     enableHiding: false,
-    cell: ({ row }) => {
+    cell: ({ row, table }) => {
       const post = row.original
+      const meta = table.options.meta as TableMeta | undefined
       return (
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={`/console/post/${post.id}`}>
-            <ExternalLink className="h-4 w-4" />
-          </Link>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href={`/console/post/${post.id}`}>
+                <ExternalLink className="mr-2 h-4 w-4" />
+                보기
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onClick={() => meta?.onDeleteClick(post)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              삭제
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       )
     },
   },
@@ -154,9 +190,11 @@ const columns: ColumnDef<PostData>[] = [
 
 interface RecentPostsTableProps {
   data: PostData[]
+  onRefresh?: () => void
 }
 
-export function RecentPostsTable({ data }: RecentPostsTableProps) {
+export function RecentPostsTable({ data, onRefresh }: RecentPostsTableProps) {
+  const router = useRouter()
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -164,6 +202,43 @@ export function RecentPostsTable({ data }: RecentPostsTableProps) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [postToDelete, setPostToDelete] = React.useState<PostData | null>(null)
+  const [deleting, setDeleting] = React.useState(false)
+
+  const columns = React.useMemo(() => createColumns(), [])
+
+  const handleDeleteClick = React.useCallback((post: PostData) => {
+    setPostToDelete(post)
+    setDeleteDialogOpen(true)
+  }, [])
+
+  const handleDeleteConfirm = async () => {
+    if (!postToDelete) return
+
+    setDeleting(true)
+    try {
+      const response = await fetch(`/api/console/posts/${postToDelete.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        alert(data.error || "삭제 중 오류가 발생했습니다.")
+        return
+      }
+
+      setDeleteDialogOpen(false)
+      setPostToDelete(null)
+      onRefresh?.()
+      router.refresh()
+    } catch (error) {
+      console.error("Delete error:", error)
+      alert("삭제 중 오류가 발생했습니다.")
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const table = useReactTable({
     data,
@@ -182,6 +257,9 @@ export function RecentPostsTable({ data }: RecentPostsTableProps) {
       columnVisibility,
       rowSelection,
     },
+    meta: {
+      onDeleteClick: handleDeleteClick,
+    } as TableMeta,
   })
 
   return (
@@ -306,6 +384,32 @@ export function RecentPostsTable({ data }: RecentPostsTableProps) {
           </Button>
         </div>
       </div>
+
+      {/* 삭제 확인 다이얼로그 */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>포스트 삭제</AlertDialogTitle>
+            <AlertDialogDescription>
+              {postToDelete?.title ? (
+                <>
+                  &quot;{postToDelete.title}&quot; 포스트를 삭제하시겠습니까?
+                </>
+              ) : (
+                "이 포스트를 삭제하시겠습니까?"
+              )}
+              <br />
+              이 작업은 되돌릴 수 없습니다.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} disabled={deleting}>
+              {deleting ? "삭제 중..." : "삭제"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

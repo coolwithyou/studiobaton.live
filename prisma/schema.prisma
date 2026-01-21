@@ -40,7 +40,8 @@ model Admin {
   linkedMemberId String?  @unique
   linkedMember   Member?  @relation(fields: [linkedMemberId], references: [id], onDelete: SetNull)
 
-  publishedPosts Post[]
+  authoredPosts  Post[]   @relation("PostAuthor")
+  publishedPosts Post[]   @relation("PostPublisher")
   accounts       Account[]
   sessions       Session[]
 }
@@ -102,8 +103,13 @@ model Post {
   versions      PostVersion[]
   commits       CommitLog[]
 
+  // 작성자
+  author        Admin?        @relation("PostAuthor", fields: [authorId], references: [id])
+  authorId      String?
+
+  // 발행자
   publishedAt   DateTime?
-  publishedBy   Admin?        @relation(fields: [publishedById], references: [id])
+  publishedBy   Admin?        @relation("PostPublisher", fields: [publishedById], references: [id])
   publishedById String?
 
   slug          String?       @unique
@@ -194,6 +200,8 @@ model Member {
   avatarUrl       String?  // 1:1 아바타 (포스트, 헤더, 멤버 카드)
   profileImageUrl String?  // 3:4 프로필 이미지 (프로필 페이지)
   bio             String?  @db.Text // 자기소개 (줄바꿈 지원)
+  title           String?  // 직함 (예: "시니어 개발자")
+  role            String?  // 역할 (예: "프론트엔드 리드")
   isActive        Boolean  @default(true) // 활성화 여부
   displayOrder    Int      @default(0) // 탭 표시 순서
 

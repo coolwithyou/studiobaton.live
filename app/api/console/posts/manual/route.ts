@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
         category,
         showInTimeline,
         status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
+        authorId: admin.id, // 작성자 기록
         publishedAt: status === "PUBLISHED" ? nowKST() : null,
         publishedById: status === "PUBLISHED" ? admin.id : null,
       },

@@ -27,6 +27,14 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
         include: {
+          author: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
+          },
           versions: {
             select: {
               id: true,

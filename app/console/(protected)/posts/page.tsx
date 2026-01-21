@@ -31,6 +31,13 @@ interface PostVersion {
   isSelected: boolean
 }
 
+interface Author {
+  id: string
+  name: string | null
+  email: string
+  image: string | null
+}
+
 interface Post {
   id: string
   slug: string
@@ -39,6 +46,7 @@ interface Post {
   targetDate: string
   createdAt: string
   updatedAt: string
+  author: Author | null
   versions: PostVersion[]
   _count: {
     commits: number
@@ -147,12 +155,12 @@ export default function PostsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[300px]">제목</TableHead>
+                  <TableHead className="w-[280px]">제목</TableHead>
+                  <TableHead>작성자</TableHead>
                   <TableHead>카테고리</TableHead>
                   <TableHead>상태</TableHead>
                   <TableHead>커밋</TableHead>
                   <TableHead>대상일</TableHead>
-                  <TableHead>생성일</TableHead>
                   <TableHead className="text-right">작업</TableHead>
                 </TableRow>
               </TableHeader>
@@ -164,9 +172,18 @@ export default function PostsPage() {
                   return (
                     <TableRow key={post.id}>
                       <TableCell className="font-medium">
-                        <div className="truncate max-w-[280px]" title={selectedVersion?.title || post.slug}>
+                        <div className="truncate max-w-[260px]" title={selectedVersion?.title || post.slug}>
                           {selectedVersion?.title || post.slug}
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {post.author ? (
+                          <span className="text-sm" title={post.author.email}>
+                            {post.author.name || post.author.email.split("@")[0]}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {post.category ? (
@@ -185,7 +202,6 @@ export default function PostsPage() {
                         </div>
                       </TableCell>
                       <TableCell>{formatDate(post.targetDate)}</TableCell>
-                      <TableCell>{formatDate(post.createdAt)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           {post.status === "PUBLISHED" && (

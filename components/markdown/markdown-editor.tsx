@@ -68,6 +68,11 @@ function ImageIcon() {
   );
 }
 
+// GIF 판별
+function isGifUrl(src: string): boolean {
+  return src.includes("giphy.com") || src.endsWith(".gif");
+}
+
 // 이미지를 p 태그에서 분리하는 rehype 플러그인
 // 마크다운의 ![alt](url) 형식 이미지가 <p><img /></p>로 변환되는데,
 // 커스텀 img 컴포넌트에서 <figure>를 반환하면 <p><figure>...</figure></p>가 되어
@@ -97,6 +102,45 @@ function rehypeUnwrapImages() {
         ) {
           // p 태그를 img로 교체 (unwrap)
           (parent.children as Element[])[index] = meaningfulChildren[0] as Element;
+        }
+      }
+    });
+  };
+}
+
+// HTML로 직접 작성된 figure/img 스타일 처리 플러그인
+// figure의 data-size 속성을 읽어 img에 max-width 인라인 스타일 적용
+function rehypeImageStyles() {
+  return (tree: Root) => {
+    visit(tree, "element", (node: Element) => {
+      if (node.tagName === "figure") {
+        // figure의 data-size 속성 읽기 (rehype는 data-* 속성을 dataSize로 camelCase 변환)
+        const dataSize = (node.properties?.dataSize ?? node.properties?.["data-size"]) as string | undefined;
+
+        // figure 내부의 img에 스타일 적용
+        for (const child of node.children) {
+          if (child.type === "element" && (child as Element).tagName === "img") {
+            const imgNode = child as Element;
+            const src = imgNode.properties?.src as string;
+            const isGifImage = Boolean(src && isGifUrl(src));
+
+            // data-size 우선, 없으면 GIF 여부에 따라 기본값 적용
+            const maxWidth = getMaxWidthValue(dataSize || null, isGifImage);
+
+            // 기존 className 유지하면서 마커 클래스 추가
+            const existingClass = imgNode.properties?.className;
+            const classArray: string[] = Array.isArray(existingClass)
+              ? existingClass.filter((c): c is string => typeof c === "string")
+              : typeof existingClass === "string"
+                ? [existingClass]
+                : [];
+
+            imgNode.properties = {
+              ...imgNode.properties,
+              className: [...classArray, "figure-processed"].join(" "),
+              style: `max-width: ${maxWidth}`,
+            };
+          }
         }
       }
     });
@@ -495,7 +539,7 @@ export function MarkdownEditor({
           extraCommands={[imageCommand, gifCommand]}
           previewOptions={{
             remarkPlugins: [remarkGithubAlerts],
-            rehypePlugins: [rehypeRaw, rehypeUnwrapImages],
+            rehypePlugins: [rehypeRaw, rehypeUnwrapImages, rehypeImageStyles],
             components: {
               // HTML figure 태그 지원 (data-size 속성으로 크기 조절)
               // 주의: MDEditor가 전달하는 props 중 유효하지 않은 DOM 속성이 있어 스프레드하지 않음
@@ -513,9 +557,24 @@ export function MarkdownEditor({
                 );
               },
               // 빈 src 이미지 경고 방지 및 크기 조절 지원
-              img: ({ src, alt, ...props }) => {
+              img: ({ src, alt, className, ...props }) => {
                 // src가 비어있거나 문자열이 아니면 렌더링하지 않음
                 if (!src || typeof src !== "string") return null;
+
+                const classStr = typeof className === "string" ? className : "";
+
+                // 이미 rehypeImageStyles에서 처리된 이미지 (HTML figure 내부)
+                if (classStr.includes("figure-processed")) {
+                  return (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={src}
+                      alt={alt || ""}
+                      className={`${classStr} inline-block h-auto`}
+                      {...props}
+                    />
+                  );
+                }
 
                 const isGif = src.includes("giphy.com") || src.endsWith(".gif");
                 const { altText, size } = parseImageSize(alt);

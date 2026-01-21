@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import { GiphyPickerDialog } from "@/components/giphy/giphy-picker-dialog";
 import { toast } from "sonner";
 import type { ICommand } from "@uiw/react-md-editor";
@@ -335,7 +336,23 @@ export function MarkdownEditor({
         <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
             components={{
+              // HTML figure 태그 지원 (data-size 속성으로 크기 조절)
+              figure: ({ children, node, ...props }) => {
+                // data-size 속성에서 크기 추출
+                const dataSize = (node?.properties?.dataSize as string) || null;
+                const sizeStyle = dataSize ? getSizeClass(dataSize, false) : "max-w-full";
+
+                return (
+                  <figure
+                    className={`text-center my-6 ${sizeStyle} mx-auto`}
+                    {...props}
+                  >
+                    {children}
+                  </figure>
+                );
+              },
               // p 태그 안에 figure가 중첩되지 않도록 처리
               // 이미지만 포함된 단락은 Fragment로 렌더링
               p: ({ children, ...props }) => {
@@ -437,7 +454,22 @@ export function MarkdownEditor({
           }}
           extraCommands={[imageCommand, gifCommand]}
           previewOptions={{
+            rehypePlugins: [rehypeRaw],
             components: {
+              // HTML figure 태그 지원 (data-size 속성으로 크기 조절)
+              figure: ({ children, node, ...props }) => {
+                const dataSize = (node?.properties?.dataSize as string) || null;
+                const sizeStyle = dataSize ? getSizeClass(dataSize, false) : "max-w-full";
+
+                return (
+                  <figure
+                    className={`text-center my-4 ${sizeStyle} mx-auto`}
+                    {...props}
+                  >
+                    {children}
+                  </figure>
+                );
+              },
               // 빈 src 이미지 경고 방지 및 크기 조절 지원
               img: ({ src, alt, ...props }) => {
                 // src가 비어있거나 문자열이 아니면 렌더링하지 않음

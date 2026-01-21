@@ -178,6 +178,35 @@ export async function PATCH(
       return NextResponse.json(updatedPost);
     } else {
       // 업데이트만 (저장)
+      // 이미 발행된 포스트의 경우 slug 변경도 처리
+      let slugToUpdate: string | undefined;
+      if (post.status === "PUBLISHED" && userSlug !== undefined) {
+        // 사용자 입력 slug 정제
+        const cleanSlug = userSlug
+          .toLowerCase()
+          .replace(/[^a-z0-9-]/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+
+        // 기존 slug와 다른 경우에만 중복 검사
+        if (cleanSlug !== post.slug) {
+          const existingPost = await prisma.post.findFirst({
+            where: {
+              slug: cleanSlug,
+              id: { not: id },
+            },
+          });
+
+          if (existingPost) {
+            return NextResponse.json(
+              { error: "이미 사용 중인 URL입니다. 다른 URL을 입력해주세요." },
+              { status: 400 }
+            );
+          }
+          slugToUpdate = cleanSlug;
+        }
+      }
+
       const updatedPost = await prisma.post.update({
         where: { id },
         data: {
@@ -186,6 +215,7 @@ export async function PATCH(
           summary,
           category: category || null,
           showInTimeline: showInTimeline ?? false,
+          ...(slugToUpdate !== undefined && { slug: slugToUpdate }),
         },
       });
 

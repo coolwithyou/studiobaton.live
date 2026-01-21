@@ -181,6 +181,7 @@ export default function PostEditPage({
           title,
           content,
           summary,
+          slug,
           category: finalCategory,
           showInTimeline,
         }),

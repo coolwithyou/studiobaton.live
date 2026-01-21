@@ -66,7 +66,7 @@ export function TimelineItem({ post, authors, isLatest }: TimelineItemProps) {
 
         {/* 제목 */}
         <Link href={`/post/${post.slug}`} className="block group mt-2">
-          <h2 className="text-lg font-semibold group-hover:text-primary transition-colors">
+          <h2 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
             {post.title}
           </h2>
         </Link>

@@ -50,7 +50,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-        <Link href="/" className="font-bold text-xl tracking-tight">
+        <Link href="/" className="font-bold text-xl tracking-tight !text-foreground">
           studiobaton log
           <span className="text-sm text-muted-foreground pl-2">
             //-- <ScrambleText loop={true} loopInterval={3000} texts={["스튜디오 바톤 개발팀의 일상 개발 로그", "데일리 스크럼을 위한 커밋 리뷰"]} />

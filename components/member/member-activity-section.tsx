@@ -143,8 +143,12 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
 
   return (
     <div className="space-y-6">
-      {/* 기여 히트맵 - 카드 없이 바로 표시 */}
-      <ContributionHeatmap data={heatmap} year={currentYear} />
+      {/* 기여 히트맵 */}
+      <Card>
+        <CardContent className="pt-4">
+          <ContributionHeatmap data={heatmap} year={currentYear} />
+        </CardContent>
+      </Card>
 
       {/* 스트릭 + 활동 통계 (컴팩트) */}
       <div className="space-y-3">

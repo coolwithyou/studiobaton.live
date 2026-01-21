@@ -126,8 +126,8 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
 
       <TooltipProvider delayDuration={100}>
         <div className="overflow-x-auto pb-2">
-          {/* 히트맵을 중앙 정렬하여 좌우 균형 유지 */}
-          <div className="flex justify-center">
+          {/* 히트맵 좌측 정렬 */}
+          <div className="flex justify-start">
             <div style={{ minWidth: heatmapWidth }}>
             {/* 월 라벨 */}
             <div

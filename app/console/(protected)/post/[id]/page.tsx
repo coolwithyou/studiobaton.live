@@ -47,8 +47,8 @@ async function getPost(id: string) {
   return post;
 }
 
-async function getRepositoryMappings() {
-  const mappings = await prisma.repositoryMapping.findMany({
+async function getProjectMappings() {
+  const mappings = await prisma.projectMapping.findMany({
     select: {
       repositoryName: true,
       displayName: true,
@@ -61,7 +61,7 @@ export default async function PostViewPage({ params }: Props) {
   const { id } = await params;
   const [post, repoDisplayNameMap] = await Promise.all([
     getPost(id),
-    getRepositoryMappings(),
+    getProjectMappings(),
   ]);
 
   if (!post) {

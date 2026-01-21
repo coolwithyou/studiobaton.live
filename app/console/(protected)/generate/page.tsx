@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { eachDayOfInterval } from "date-fns";
 import { formatKST } from "@/lib/date-utils";
-import { GenerateCalendar } from "./_components/generate-calendar";
+import { GenerateCalendar, CommitStat } from "./_components/generate-calendar";
 import { GenerationOptions } from "./_components/generation-options";
 import { GenerationProgress } from "./_components/generation-progress";
 import { ErrorDetailModal, ErrorDetails } from "./_components/error-detail-modal";
@@ -78,10 +78,15 @@ export default function GeneratePage() {
   } | null>(null);
   const [result, setResult] = useState<GenerationResult | null>(null);
 
-  // 선택된 날짜에 대해 커밋이 수집되었는지 확인
+  // 선택된 날짜의 기존 커밋 정보 (캘린더에서 전달받음)
+  const [existingCommitStat, setExistingCommitStat] = useState<CommitStat | null>(null);
+
+  // 선택된 날짜에 대해 글 생성이 가능한지 확인
+  // 1. 커밋 수집하기를 통해 수집된 경우
+  // 2. 이미 수집된 커밋이 있는 경우 (랩업/스탠드업 등 - Post 없어도 커밋만 있으면 가능)
   const canGeneratePost =
-    collectResult?.success === true &&
-    (collectResult.totalCommitsCount ?? 0) > 0;
+    (collectResult?.success === true && (collectResult.totalCommitsCount ?? 0) > 0) ||
+    (existingCommitStat?.commitCount != null && existingCommitStat.commitCount > 0);
 
   // 에러 모달 상태
   const [errorModalOpen, setErrorModalOpen] = useState(false);
@@ -91,17 +96,21 @@ export default function GeneratePage() {
   } | null>(null);
 
   const handleDateSelect = useCallback(
-    (date: Date) => {
+    (date: Date, stat?: CommitStat) => {
       if (selectionMode === "single") {
         setSelectedDates([date]);
         setRangeStart(null);
         setRangeEnd(null);
+        // 기존 커밋 정보 저장 (이미 수집된 커밋이 있으면 바로 글 생성 가능)
+        setExistingCommitStat(stat || null);
       } else {
         // range 모드에서 첫 번째 클릭은 시작점
         setRangeStart(date);
         setRangeEnd(null);
         setSelectedDates([]);
+        setExistingCommitStat(null);
       }
+      setCollectResult(null);
       setResult(null);
     },
     [selectionMode]
@@ -113,6 +122,8 @@ export default function GeneratePage() {
     // 범위 내 모든 날짜를 선택으로 표시
     const dates = eachDayOfInterval({ start, end });
     setSelectedDates(dates);
+    setExistingCommitStat(null); // 범위 선택 시 단일 날짜 stat 초기화
+    setCollectResult(null);
     setResult(null);
   }, []);
 
@@ -121,6 +132,8 @@ export default function GeneratePage() {
     setSelectedDates([]);
     setRangeStart(null);
     setRangeEnd(null);
+    setExistingCommitStat(null);
+    setCollectResult(null);
     setResult(null);
   }, []);
 
@@ -218,18 +231,52 @@ export default function GeneratePage() {
 
   // 글 생성 핸들러
   const handleGeneratePost = async () => {
-    if (!collectResult?.postId && !collectResult?.results?.length) {
+    // collectResult에서 postId를 가져오거나, 기존 커밋이 있는 경우 existingCommitStat에서 가져옴
+    let postId = collectResult?.postId || existingCommitStat?.postId;
+    const hasResults = collectResult?.results?.length;
+
+    // 아직 수집하지 않았고 커밋이 있으면 수집 필요
+    // (Post가 있어도 orphan 커밋이 연결되지 않았을 수 있음)
+    const needsCollect = !collectResult?.success &&
+      existingCommitStat?.commitCount != null &&
+      existingCommitStat.commitCount > 0;
+
+    if (!postId && !hasResults && !needsCollect) {
       return;
     }
 
-    setIsGenerating(true);
     setResult(null);
 
     try {
-      if (selectionMode === "single" && collectResult?.postId) {
+      // 아직 수집하지 않은 경우 → 먼저 커밋 수집으로 Post 생성/orphan 커밋 연결
+      if (needsCollect && selectionMode === "single" && selectedDates.length === 1) {
+        setIsCollecting(true);
+
+        const collectResponse = await fetch("/api/console/commits/collect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            date: formatKST(selectedDates[0], "yyyy-MM-dd"),
+          }),
+        });
+
+        const collectData = await collectResponse.json();
+
+        if (!collectResponse.ok || !collectData.success) {
+          throw new Error(collectData.error || "Post 생성에 실패했습니다.");
+        }
+
+        postId = collectData.postId;
+        setCollectResult(collectData);
+        setIsCollecting(false);
+      }
+
+      setIsGenerating(true);
+
+      if (selectionMode === "single" && postId) {
         // 단일 포스트 버전 생성 (PROFESSIONAL만)
         const response = await fetch(
-          `/api/console/posts/${collectResult.postId}/versions`,
+          `/api/console/posts/${postId}/versions`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -323,9 +370,10 @@ export default function GeneratePage() {
       console.error("Generation error:", error);
       setResult({
         success: false,
-        error: "글 생성 중 오류가 발생했습니다.",
+        error: error instanceof Error ? error.message : "글 생성 중 오류가 발생했습니다.",
       });
     } finally {
+      setIsCollecting(false);
       setIsGenerating(false);
     }
   };
@@ -335,6 +383,7 @@ export default function GeneratePage() {
     setRangeStart(null);
     setRangeEnd(null);
     setCollectResult(null);
+    setExistingCommitStat(null);
     setResult(null);
     setProgress(null);
   };
@@ -380,7 +429,8 @@ export default function GeneratePage() {
             isCollecting={isCollecting}
             isGenerating={isGenerating}
             canGeneratePost={canGeneratePost}
-            commitCount={collectResult?.totalCommitsCount ?? 0}
+            commitCount={collectResult?.totalCommitsCount ?? existingCommitStat?.commitCount ?? 0}
+            hasExistingPost={collectResult?.success || existingCommitStat?.hasPost || false}
           />
 
           <GenerationProgress

@@ -2,7 +2,7 @@ import { collectDailyCommits } from "./github";
 import { generateAllVersions, generatePostVersion, AIError, AIErrorDetails, AIModel, DEFAULT_MODEL } from "./ai";
 import prisma from "./prisma";
 import { VersionTone } from "@/app/generated/prisma";
-import { getKSTDayRange, startOfDayKST } from "@/lib/date-utils";
+import { getKSTDayRange } from "@/lib/date-utils";
 
 export interface GenerateResult {
   success: boolean;
@@ -34,8 +34,8 @@ export interface CollectCommitsResult {
 export async function collectCommitsForDate(
   targetDate: Date
 ): Promise<CollectCommitsResult> {
-  // KST 기준 하루 범위
-  const { start: startOfDay, end: endOfDay } = getKSTDayRange(targetDate);
+  // KST 기준 날짜
+  const { start: startOfDay } = getKSTDayRange(targetDate);
 
   // 1. GitHub에서 커밋 수집
   const commits = await collectDailyCommits(targetDate);
@@ -50,43 +50,47 @@ export async function collectCommitsForDate(
     };
   }
 
-  // 2. 기존 Post 확인 또는 생성
-  let existingPost = await prisma.post.findFirst({
-    where: {
-      targetDate: {
-        gte: startOfDay,
-        lt: endOfDay,
-      },
+  // 2. 항상 새 Post 생성 (COMMIT_BASED 타입)
+  // - 커밋 기반 포스트는 항상 새로 생성되어 일반 포스트와 독립적으로 존재
+  // - 하루에 여러 개의 포스트 생성 가능
+  const newPost = await prisma.post.create({
+    data: {
+      targetDate: startOfDay,
+      status: "DRAFT",
+      type: "COMMIT_BASED",
     },
-    include: { commits: true },
   });
+  const postId = newPost.id;
 
-  let postId: string;
-  let existingCommitsCount = 0;
+  // 3. 전체 DB에서 이미 존재하는 커밋 SHA 확인 (현재 Post뿐 아니라 전체)
+  const commitShas = commits.map((c) => c.sha);
+  const existingCommitsInDb = await prisma.commitLog.findMany({
+    where: { sha: { in: commitShas } },
+    select: { sha: true },
+  });
+  const existingShasInDb = new Set(existingCommitsInDb.map((c) => c.sha));
 
-  if (!existingPost) {
-    // 새 Post 생성 (버전 없이)
-    const newPost = await prisma.post.create({
-      data: {
-        targetDate: startOfDay,
-        status: "DRAFT",
+  // 4. DB에 없는 새 커밋만 필터링
+  const newCommits = commits.filter((c) => !existingShasInDb.has(c.sha));
+
+  // 4-1. 이미 DB에 있는 커밋을 현재 Post에 연결 (이동)
+  // - orphan 커밋(postId: null): 스탠드업/랩업에서 수집된 커밋
+  // - 다른 Post에 연결된 커밋: 이전 수집에서 생성된 커밋 → 새 Post로 이동
+  const existingShas = commits
+    .filter((c) => existingShasInDb.has(c.sha))
+    .map((c) => c.sha);
+
+  if (existingShas.length > 0) {
+    await prisma.commitLog.updateMany({
+      where: {
+        sha: { in: existingShas },
       },
+      data: { postId },
     });
-    postId = newPost.id;
-  } else {
-    postId = existingPost.id;
-    existingCommitsCount = existingPost.commits.length;
   }
 
-  // 3. 기존 커밋 SHA 목록
-  const existingShas = new Set(
-    existingPost?.commits.map((c) => c.sha) || []
-  );
-
-  // 4. 새 커밋만 필터링
-  const newCommits = commits.filter((c) => !existingShas.has(c.sha));
-
-  // 5. 새 커밋 저장 (트랜잭션으로 커밋과 파일을 함께 저장)
+  // 5. 새 커밋만 저장 (트랜잭션으로 커밋과 파일을 함께 저장)
+  // 이미 존재하는 커밋은 건너뜀 (스탠드업/랩업에서 이미 수집됨)
   for (const commit of newCommits) {
     await prisma.$transaction(async (tx) => {
       await tx.commitLog.create({
@@ -122,12 +126,17 @@ export async function collectCommitsForDate(
     });
   }
 
+  // 6. 최종 커밋 수 계산 (현재 Post에 연결된 커밋)
+  const finalCommitCount = await prisma.commitLog.count({
+    where: { postId },
+  });
+
   return {
     success: true,
     postId,
     newCommitsCount: newCommits.length,
-    existingCommitsCount,
-    totalCommitsCount: existingCommitsCount + newCommits.length,
+    existingCommitsCount: existingShasInDb.size,
+    totalCommitsCount: finalCommitCount,
   };
 }
 

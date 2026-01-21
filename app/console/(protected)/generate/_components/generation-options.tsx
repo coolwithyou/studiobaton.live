@@ -35,6 +35,7 @@ interface GenerationOptionsProps {
   isGenerating: boolean;
   canGeneratePost: boolean;
   commitCount?: number; // 수집된 커밋 수 (예상 요금 계산용)
+  hasExistingPost?: boolean; // 선택된 날짜에 이미 Post가 있는지 여부
 }
 
 export function GenerationOptions({
@@ -57,6 +58,7 @@ export function GenerationOptions({
   isGenerating,
   canGeneratePost,
   commitCount = 0,
+  hasExistingPost = false,
 }: GenerationOptionsProps) {
   const hasSelection =
     selectedDates.length > 0 || (rangeStart !== null && rangeEnd !== null);
@@ -230,6 +232,16 @@ export function GenerationOptions({
         {!canGeneratePost && hasSelection && (
           <p className="text-xs text-muted-foreground text-center">
             커밋을 먼저 수집해야 글을 생성할 수 있습니다.
+          </p>
+        )}
+        {canGeneratePost && hasExistingPost && commitCount > 0 && (
+          <p className="text-xs text-green-600 dark:text-green-400 text-center">
+            이미 수집된 커밋이 있습니다. 바로 글을 생성할 수 있습니다.
+          </p>
+        )}
+        {canGeneratePost && !hasExistingPost && commitCount > 0 && (
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 text-center">
+            커밋이 수집되어 있습니다. 글 생성 시 Post가 자동 생성됩니다.
           </p>
         )}
       </div>

@@ -23,6 +23,7 @@ interface CommitStat {
   date: string;
   commitCount: number;
   hasPost: boolean;
+  postId: string | null;
   postStatus: string | null;
   versionCount: number;
 }
@@ -34,12 +35,14 @@ interface Holiday {
 
 interface GenerateCalendarProps {
   selectedDates: Date[];
-  onDateSelect: (date: Date) => void;
+  onDateSelect: (date: Date, stat?: CommitStat) => void;
   onRangeSelect: (start: Date, end: Date) => void;
   selectionMode: "single" | "range";
   rangeStart: Date | null;
   rangeEnd: Date | null;
 }
+
+export type { CommitStat };
 
 export function GenerateCalendar({
   selectedDates,
@@ -134,10 +137,13 @@ export function GenerateCalendar({
     // 미래 날짜는 선택 불가
     if (isAfter(date, today)) return;
 
+    const dateKey = formatKST(date, "yyyy-MM-dd");
+    const stat = commitStats.get(dateKey);
+
     if (selectionMode === "range" || shiftPressed) {
       if (!rangeStart || (rangeStart && rangeEnd)) {
         // 새로운 범위 시작
-        onDateSelect(date);
+        onDateSelect(date, stat);
       } else {
         // 범위 완성
         if (date < rangeStart) {
@@ -147,7 +153,7 @@ export function GenerateCalendar({
         }
       }
     } else {
-      onDateSelect(date);
+      onDateSelect(date, stat);
     }
   };
 

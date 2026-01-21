@@ -497,7 +497,8 @@ export async function getContributorsWithStats(
   }
 
   // 변경량(additions + deletions) 기준 내림차순 정렬
-  return Array.from(contributorMap.values()).sort(
-    (a, b) => b.additions + b.deletions - (a.additions + a.deletions)
-  );
+  // 팀원(Member 테이블에 매칭된)만 반환 - 봇이나 외부 기여자 제외
+  return Array.from(contributorMap.values())
+    .filter((c) => c.isMemberMatched)
+    .sort((a, b) => b.additions + b.deletions - (a.additions + a.deletions));
 }

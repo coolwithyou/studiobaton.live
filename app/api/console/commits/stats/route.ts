@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
         },
       },
       select: {
+        id: true,
         targetDate: true,
         status: true,
         _count: {
@@ -81,11 +82,12 @@ export async function GET(request: NextRequest) {
     // Post 정보를 날짜별 맵으로 변환
     const postByDate = new Map<
       string,
-      { status: string; commitCount: number; versionCount: number }
+      { postId: string; status: string; commitCount: number; versionCount: number }
     >();
     for (const post of posts) {
       const dateKey = formatKST(post.targetDate, "yyyy-MM-dd");
       postByDate.set(dateKey, {
+        postId: post.id,
         status: post.status,
         commitCount: post._count.commits,
         versionCount: post._count.versions,
@@ -101,6 +103,7 @@ export async function GET(request: NextRequest) {
         date: dateKey,
         commitCount: postInfo?.commitCount || commitCountByDate.get(dateKey) || 0,
         hasPost: !!postInfo,
+        postId: postInfo?.postId || null,
         postStatus: postInfo?.status || null,
         versionCount: postInfo?.versionCount || 0,
       };

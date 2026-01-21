@@ -174,7 +174,7 @@ export function MemberActivitySection({ githubName }: MemberActivitySectionProps
             </h3>
             <TrophySummary trophies={trophies} />
           </div>
-          <TrophyShowcase trophies={trophies} size="md" columns={3} showEmpty={false} />
+          <TrophyShowcase trophies={trophies} size="md" columns={6} showEmpty={false} />
         </div>
       )}
 

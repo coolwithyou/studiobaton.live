@@ -100,6 +100,7 @@ export default function WrapUpPage() {
   const [fetching, setFetching] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [initialTabSet, setInitialTabSet] = useState(false);
 
   // 현재 사용자 정보 조회
   useEffect(() => {
@@ -138,6 +139,22 @@ export default function WrapUpPage() {
   useEffect(() => {
     fetchMembers();
   }, [fetchMembers]);
+
+  // 팀원인 경우 본인 탭으로 자동 이동 (최초 1회만)
+  useEffect(() => {
+    if (
+      !initialTabSet &&
+      userInfo?.role === "TEAM_MEMBER" &&
+      userInfo.linkedMemberId &&
+      members.length > 0
+    ) {
+      const myMember = members.find((m) => m.id === userInfo.linkedMemberId);
+      if (myMember) {
+        setSelectedMember(myMember.id);
+        setInitialTabSet(true);
+      }
+    }
+  }, [userInfo, members, initialTabSet]);
 
   // 커밋 새로고침 핸들러
   const handleRefreshCommits = async () => {

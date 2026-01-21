@@ -81,6 +81,8 @@ export interface ContributorWithStats {
   githubName: string;
   /** 아바타 URL */
   avatarUrl: string | null;
+  /** 역할 */
+  role: string | null;
   /** Member 테이블에서 매칭되었는지 여부 */
   isMemberMatched: boolean;
   /** 커밋 수 */
@@ -464,6 +466,7 @@ export async function getContributorsWithStats(
         name: match?.name || commit.author,
         githubName: match?.githubName || commit.author,
         avatarUrl: match?.avatarUrl || commit.authorAvatar || null,
+        role: match?.role || null,
         isMemberMatched: !!match,
         commits: 1,
         additions: commit.additions,

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -153,27 +153,54 @@ function AuthorCard({ author }: { author: PostAuthor }) {
   );
 }
 
-/** 커밋 참여자 미니카드 */
+/** 커밋 참여자 카드 (3:4 이미지 기반) */
 function ContributorMiniCard({
   contributor,
 }: {
   contributor: ContributorWithStats;
 }) {
   const CardContent = (
-    <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-      <Avatar className="w-8 h-8 shrink-0">
-        <AvatarImage src={contributor.avatarUrl || undefined} />
-        <AvatarFallback className="text-xs">
-          {contributor.name.slice(0, 1).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{contributor.name}</p>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="truncate">@{contributor.githubName}</span>
-          <span className="text-green-600 shrink-0">+{contributor.additions}</span>
-          <span className="text-red-600 shrink-0">-{contributor.deletions}</span>
+    <div className="rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors overflow-hidden">
+      {/* 3:4 이미지 영역 */}
+      <div className="relative aspect-[3/4] bg-muted">
+        {contributor.avatarUrl ? (
+          <Image
+            src={contributor.avatarUrl}
+            alt={contributor.name}
+            fill
+            className="object-cover object-top"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-4xl font-bold text-muted-foreground">
+              {contributor.name.slice(0, 1).toUpperCase()}
+            </span>
+          </div>
+        )}
+        {/* 하단 그라데이션 오버레이 */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-background/90 to-transparent" />
+        {/* 커밋 통계 배지 */}
+        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-xs">
+          <span className="bg-green-600/90 text-white px-1.5 py-0.5 rounded">
+            +{contributor.additions}
+          </span>
+          <span className="bg-red-600/90 text-white px-1.5 py-0.5 rounded">
+            -{contributor.deletions}
+          </span>
         </div>
+      </div>
+      {/* 정보 영역 */}
+      <div className="p-3 space-y-1">
+        <p className="font-medium text-sm truncate">{contributor.name}</p>
+        <p className="text-xs text-muted-foreground truncate">
+          @{contributor.githubName}
+        </p>
+        {contributor.isMemberMatched && contributor.role && (
+          <Badge variant="secondary" className="text-xs">
+            {contributor.role}
+          </Badge>
+        )}
       </div>
     </div>
   );

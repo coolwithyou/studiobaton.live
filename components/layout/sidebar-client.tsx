@@ -21,9 +21,14 @@ interface MenuSection {
 interface SidebarClientProps {
   sections: MenuSection[];
   className?: string;
+  onLinkClick?: () => void;
 }
 
-export function SidebarClient({ sections, className }: SidebarClientProps) {
+export function SidebarClient({
+  sections,
+  className,
+  onLinkClick,
+}: SidebarClientProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -70,6 +75,7 @@ export function SidebarClient({ sections, className }: SidebarClientProps) {
                         href={item.href}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={onLinkClick}
                         className={cn(
                           "flex items-center gap-1.5 px-2 py-1.5 text-sm rounded-md transition-colors",
                           "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -86,6 +92,7 @@ export function SidebarClient({ sections, className }: SidebarClientProps) {
                   <li key={item.id}>
                     <Link
                       href={item.href}
+                      onClick={onLinkClick}
                       className={cn(
                         "block px-2 py-1.5 text-sm rounded-md transition-colors",
                         active

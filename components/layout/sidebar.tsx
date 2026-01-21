@@ -1,7 +1,17 @@
-import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { SidebarClient } from "./sidebar-client";
+
+// SidebarClient에서 사용하는 메뉴 데이터 타입 (export)
+export interface MenuSection {
+  id: string;
+  title: string;
+  items: {
+    id: string;
+    title: string;
+    href: string;
+    isExternal: boolean;
+  }[];
+}
 
 interface SideMenuSection {
   id: string;
@@ -82,4 +92,27 @@ export async function Sidebar({ className }: SidebarProps) {
   }));
 
   return <SidebarClient sections={menuData} className={className} />;
+}
+
+/**
+ * 사이드메뉴 데이터를 가져오는 함수 (layout.tsx에서 사용)
+ * MobileNav와 Sidebar 컴포넌트 모두에 데이터를 전달하기 위해 export
+ */
+export async function getSideMenuSections(): Promise<MenuSection[]> {
+  const sections = await getSideMenu();
+
+  if (sections.length === 0) {
+    return [];
+  }
+
+  return sections.map((section) => ({
+    id: section.id,
+    title: section.title,
+    items: section.items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      href: getItemLink(item),
+      isExternal: item.linkType === "EXTERNAL",
+    })),
+  }));
 }

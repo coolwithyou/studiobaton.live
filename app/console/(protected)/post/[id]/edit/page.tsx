@@ -14,7 +14,18 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { formatKST } from "@/lib/date-utils";
-import { Loader2, Plus, RefreshCw } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { PageContainer } from "@/components/admin/ui/page-container";
 import {
   Select,
@@ -88,6 +99,7 @@ export default function PostEditPage({
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -277,6 +289,29 @@ export default function PostEditPage({
     }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const response = await fetch(`/api/console/posts/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        alert(data.error || "삭제 중 오류가 발생했습니다.");
+        return;
+      }
+
+      router.push("/console");
+      router.refresh();
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("삭제 중 오류가 발생했습니다.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const handleGenerateVersion = async (
     tone: "PROFESSIONAL" | "CASUAL" | "TECHNICAL",
     forceRegenerate: boolean = false
@@ -382,23 +417,87 @@ export default function PostEditPage({
         <div className="flex gap-2">
           {!isPublished && (
             <>
-              <Button variant="outline" onClick={handleCancel} disabled={saving}>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={saving || deleting}>
+                    {deleting ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="mr-2 h-4 w-4" />
+                    )}
+                    삭제
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>포스트 삭제</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {title ? (
+                        <>
+                          &quot;{title}&quot; 포스트를 삭제하시겠습니까?
+                        </>
+                      ) : (
+                        "이 포스트를 삭제하시겠습니까?"
+                      )}
+                      <br />
+                      이 작업은 되돌릴 수 없습니다.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>취소</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>삭제</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button variant="outline" onClick={handleCancel} disabled={saving || deleting}>
                 취소
               </Button>
-              <Button onClick={handlePublish} disabled={saving}>
+              <Button onClick={handlePublish} disabled={saving || deleting}>
                 {saving ? "발행 중..." : "발행하기"}
               </Button>
             </>
           )}
           {isPublished && (
             <>
-              <Button variant="outline" onClick={handleUnpublish} disabled={saving}>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" disabled={saving || deleting}>
+                    {deleting ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="mr-2 h-4 w-4" />
+                    )}
+                    삭제
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>포스트 삭제</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {title ? (
+                        <>
+                          &quot;{title}&quot; 포스트를 삭제하시겠습니까?
+                        </>
+                      ) : (
+                        "이 포스트를 삭제하시겠습니까?"
+                      )}
+                      <br />
+                      이 작업은 되돌릴 수 없습니다.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>취소</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>삭제</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <Button variant="outline" onClick={handleUnpublish} disabled={saving || deleting}>
                 발행 취소
               </Button>
-              <Button variant="outline" onClick={handleCancel} disabled={saving}>
+              <Button variant="outline" onClick={handleCancel} disabled={saving || deleting}>
                 취소
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving || deleting}>
                 {saving ? "저장 중..." : "저장하기"}
               </Button>
             </>

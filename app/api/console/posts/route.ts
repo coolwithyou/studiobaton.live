@@ -12,11 +12,32 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const search = searchParams.get("search");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const skip = (page - 1) * limit;
 
-    const where = status ? { status: status as "DRAFT" | "PUBLISHED" | "ARCHIVED" } : {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {};
+
+    if (status) {
+      where.status = status as "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    }
+
+    if (search) {
+      where.OR = [
+        { slug: { contains: search, mode: "insensitive" } },
+        { title: { contains: search, mode: "insensitive" } },
+        { category: { contains: search, mode: "insensitive" } },
+        {
+          versions: {
+            some: {
+              title: { contains: search, mode: "insensitive" },
+            },
+          },
+        },
+      ];
+    }
 
     const [posts, total] = await Promise.all([
       prisma.post.findMany({

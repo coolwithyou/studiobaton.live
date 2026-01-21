@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, RefreshCw, Eye, Pencil, GitCommit } from "lucide-react"
+import { Plus, RefreshCw, Eye, Pencil, GitCommit, Search, X } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { PageHeader } from "@/components/admin/ui/page-header"
@@ -70,12 +71,33 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
   ARCHIVED: { label: "보관됨", variant: "outline" },
 }
 
+// 디바운스 훅
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [value, delay])
+
+  return debouncedValue
+}
+
 export default function PostsPage() {
   const [posts, setPosts] = useState<Post[]>([])
   const [pagination, setPagination] = useState<Pagination | null>(null)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [searchInput, setSearchInput] = useState("")
   const [page, setPage] = useState(1)
+
+  // 검색어 디바운싱 (300ms)
+  const debouncedSearch = useDebounce(searchInput, 300)
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
@@ -85,6 +107,9 @@ export default function PostsPage() {
       params.set("limit", "20")
       if (statusFilter !== "all") {
         params.set("status", statusFilter)
+      }
+      if (debouncedSearch.trim()) {
+        params.set("search", debouncedSearch.trim())
       }
 
       const response = await fetch(`/api/console/posts?${params}`)
@@ -98,7 +123,7 @@ export default function PostsPage() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter])
+  }, [page, statusFilter, debouncedSearch])
 
   useEffect(() => {
     fetchPosts()
@@ -123,6 +148,25 @@ export default function PostsPage() {
         description="생성된 포스트를 관리합니다."
       >
         <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="제목, 슬러그, 카테고리 검색..."
+              value={searchInput}
+              onChange={(e) => { setSearchInput(e.target.value); setPage(1) }}
+              className="pl-8 w-[240px]"
+            />
+            {searchInput && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-2 hover:bg-transparent"
+                onClick={() => { setSearchInput(""); setPage(1) }}
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            )}
+          </div>
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="상태 필터" />
@@ -151,7 +195,9 @@ export default function PostsPage() {
         <div className="text-center py-12 text-muted-foreground">로딩 중...</div>
       ) : posts.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          포스트가 없습니다.
+          {debouncedSearch || statusFilter !== "all"
+            ? "검색 조건에 맞는 포스트가 없습니다."
+            : "포스트가 없습니다."}
         </div>
       ) : (
         <>
@@ -240,33 +286,38 @@ export default function PostsPage() {
             </Table>
           </div>
 
-          {pagination && pagination.totalPages > 1 && (
+          {pagination && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
-                총 {pagination.total}개 중 {(pagination.page - 1) * pagination.limit + 1}-
-                {Math.min(pagination.page * pagination.limit, pagination.total)}개
+                총 {pagination.total}개
+                {pagination.total > 0 && (
+                  <> 중 {(pagination.page - 1) * pagination.limit + 1}-
+                  {Math.min(pagination.page * pagination.limit, pagination.total)}개 표시</>
+                )}
               </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => p - 1)}
-                  disabled={page <= 1}
-                >
-                  이전
-                </Button>
-                <span className="text-sm">
-                  {pagination.page} / {pagination.totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page >= pagination.totalPages}
-                >
-                  다음
-                </Button>
-              </div>
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p - 1)}
+                    disabled={page <= 1}
+                  >
+                    이전
+                  </Button>
+                  <span className="text-sm">
+                    {pagination.page} / {pagination.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={page >= pagination.totalPages}
+                  >
+                    다음
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </>

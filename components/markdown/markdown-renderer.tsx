@@ -20,6 +20,28 @@ function isGif(src: string): boolean {
   return src.includes("giphy.com") || src.endsWith(".gif");
 }
 
+// 이미지 크기 파싱 유틸리티 (alt|크기 형식에서 크기 추출)
+// 예: "설명|100%" -> { altText: "설명", size: "100%" }
+// 예: "설명" -> { altText: "설명", size: null }
+function parseImageSize(alt: string | undefined): { altText: string; size: string | null } {
+  if (!alt) return { altText: "", size: null };
+
+  const match = alt.match(/^(.+?)\|(\d+%?)$/);
+  if (match) {
+    return { altText: match[1].trim(), size: match[2] };
+  }
+  return { altText: alt, size: null };
+}
+
+// 크기 값을 CSS max-width 값으로 변환 (인라인 스타일용)
+// Tailwind JIT는 동적 클래스를 스캔하지 못하므로 인라인 스타일 사용
+function getMaxWidthValue(size: string | null, isGifImage: boolean): string {
+  if (size) {
+    return size.endsWith("%") ? size : `${size}%`;
+  }
+  return isGifImage ? "50%" : "100%";
+}
+
 // 코드 블록 Shiki 처리 플러그인
 function rehypeShiki() {
   return async (tree: Root) => {
@@ -191,6 +213,10 @@ function createComponents() {
         );
       }
 
+      // 마크다운 ![alt|크기](url) 형식 파싱 - 크기 지정 지원
+      const { altText, size } = parseImageSize(alt);
+      const maxWidth = getMaxWidthValue(size, isGifImage);
+
       // 마크다운 ![alt](url) 형식 이미지 - figure로 감싸서 가운데 정렬 + 캡션
       // !important 적용으로 prose 스타일 덮어쓰기
       return (
@@ -198,12 +224,13 @@ function createComponents() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
-            alt={alt || ""}
-            className={`!inline-block !h-auto !m-0 ${isGifImage ? "!max-w-[50%]" : "!max-w-full"}`}
+            alt={altText || ""}
+            className="!inline-block !h-auto !m-0"
+            style={{ maxWidth }}
             {...props}
           />
-          {alt && alt !== "GIF" && alt.trim() !== "" && (
-            <figcaption className="!text-sm !opacity-70 !mt-2">{alt}</figcaption>
+          {altText && altText !== "GIF" && altText.trim() !== "" && (
+            <figcaption className="!text-sm !opacity-70 !mt-2">{altText}</figcaption>
           )}
         </figure>
       );

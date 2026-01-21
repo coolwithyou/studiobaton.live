@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import { visit } from "unist-util-visit";
+import type { Root, Element, Text, Parents } from "hast";
 import { GiphyPickerDialog } from "@/components/giphy/giphy-picker-dialog";
 import { toast } from "sonner";
 import type { ICommand } from "@uiw/react-md-editor";
@@ -65,6 +67,41 @@ function ImageIcon() {
   );
 }
 
+// 이미지를 p 태그에서 분리하는 rehype 플러그인
+// 마크다운의 ![alt](url) 형식 이미지가 <p><img /></p>로 변환되는데,
+// 커스텀 img 컴포넌트에서 <figure>를 반환하면 <p><figure>...</figure></p>가 되어
+// 잘못된 HTML 중첩이 발생함. 이를 방지하기 위해 단독 이미지를 p에서 분리함.
+function rehypeUnwrapImages() {
+  return (tree: Root) => {
+    visit(tree, "element", (node: Element, index, parent: Parents | undefined) => {
+      if (
+        node.tagName === "p" &&
+        parent &&
+        typeof index === "number" &&
+        "children" in parent
+      ) {
+        // p 태그의 자식 중 의미있는 노드만 필터링 (공백 텍스트 제외)
+        const meaningfulChildren = node.children.filter((child) => {
+          if (child.type === "text" && (child as Text).value.trim() === "") {
+            return false;
+          }
+          return true;
+        });
+
+        // p 태그가 단일 img 요소만 포함하는 경우
+        if (
+          meaningfulChildren.length === 1 &&
+          meaningfulChildren[0].type === "element" &&
+          (meaningfulChildren[0] as Element).tagName === "img"
+        ) {
+          // p 태그를 img로 교체 (unwrap)
+          (parent.children as Element[])[index] = meaningfulChildren[0] as Element;
+        }
+      }
+    });
+  };
+}
+
 // 이미지 크기 파싱 유틸리티 (alt|크기 형식에서 크기 추출)
 // 예: "설명|100%" -> { altText: "설명", size: "100%" }
 // 예: "설명" -> { altText: "설명", size: null }
@@ -78,15 +115,15 @@ function parseImageSize(alt: string | undefined): { altText: string; size: strin
   return { altText: alt, size: null };
 }
 
-// 크기 값을 CSS max-width로 변환
-function getSizeClass(size: string | null, isGif: boolean): string {
+// 크기 값을 CSS max-width 값으로 변환 (인라인 스타일용)
+// Tailwind JIT는 동적 클래스를 스캔하지 못하므로 인라인 스타일 사용
+function getMaxWidthValue(size: string | null, isGif: boolean): string {
   if (size) {
     // 숫자만 있으면 %로 변환
-    const sizeValue = size.endsWith("%") ? size : `${size}%`;
-    return `max-w-[${sizeValue}]`;
+    return size.endsWith("%") ? size : `${size}%`;
   }
   // 기본값: GIF는 50%, 일반 이미지는 100%
-  return isGif ? "max-w-[50%]" : "max-w-full";
+  return isGif ? "50%" : "100%";
 }
 
 // GIF 이미지 마크다운 생성 (data-gif 속성으로 구분)
@@ -342,11 +379,12 @@ export function MarkdownEditor({
               figure: ({ children, node, ...props }) => {
                 // data-size 속성에서 크기 추출
                 const dataSize = (node?.properties?.dataSize as string) || null;
-                const sizeStyle = dataSize ? getSizeClass(dataSize, false) : "max-w-full";
+                const maxWidth = dataSize ? getMaxWidthValue(dataSize, false) : "100%";
 
                 return (
                   <figure
-                    className={`text-center my-6 ${sizeStyle} mx-auto`}
+                    className="text-center my-6 mx-auto"
+                    style={{ maxWidth }}
                     {...props}
                   >
                     {children}
@@ -377,7 +415,7 @@ export function MarkdownEditor({
 
                 const isGif = srcStr.includes("giphy.com") || srcStr.endsWith(".gif");
                 const { altText, size } = parseImageSize(alt);
-                const sizeStyle = getSizeClass(size, isGif);
+                const maxWidth = getMaxWidthValue(size, isGif);
 
                 // GIF 또는 크기가 지정된 이미지는 figure로 감싸서 중앙 정렬
                 if (isGif || size) {
@@ -387,7 +425,8 @@ export function MarkdownEditor({
                       <img
                         src={src}
                         alt={altText || (isGif ? "GIF" : "image")}
-                        className={`inline-block ${sizeStyle} h-auto`}
+                        className="inline-block h-auto"
+                        style={{ maxWidth }}
                       />
                       {altText && altText !== "GIF" && (
                         <figcaption className="text-sm opacity-70 mt-2">
@@ -454,16 +493,17 @@ export function MarkdownEditor({
           }}
           extraCommands={[imageCommand, gifCommand]}
           previewOptions={{
-            rehypePlugins: [rehypeRaw],
+            rehypePlugins: [rehypeRaw, rehypeUnwrapImages],
             components: {
               // HTML figure 태그 지원 (data-size 속성으로 크기 조절)
               figure: ({ children, node, ...props }) => {
                 const dataSize = (node?.properties?.dataSize as string) || null;
-                const sizeStyle = dataSize ? getSizeClass(dataSize, false) : "max-w-full";
+                const maxWidth = dataSize ? getMaxWidthValue(dataSize, false) : "100%";
 
                 return (
                   <figure
-                    className={`text-center my-4 ${sizeStyle} mx-auto`}
+                    className="text-center my-4 mx-auto"
+                    style={{ maxWidth }}
                     {...props}
                   >
                     {children}
@@ -477,7 +517,7 @@ export function MarkdownEditor({
 
                 const isGif = src.includes("giphy.com") || src.endsWith(".gif");
                 const { altText, size } = parseImageSize(alt);
-                const sizeStyle = getSizeClass(size, isGif);
+                const maxWidth = getMaxWidthValue(size, isGif);
 
                 // GIF 또는 크기가 지정된 이미지는 figure로 감싸서 중앙 정렬
                 if (isGif || size) {
@@ -487,7 +527,8 @@ export function MarkdownEditor({
                       <img
                         src={src}
                         alt={altText || (isGif ? "GIF" : "image")}
-                        className={`inline-block ${sizeStyle} h-auto`}
+                        className="inline-block h-auto"
+                        style={{ maxWidth }}
                         {...props}
                       />
                       {altText && altText !== "GIF" && (

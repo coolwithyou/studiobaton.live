@@ -280,7 +280,7 @@ interface TrophyShowcaseProps {
   /** 크기 */
   size?: "sm" | "md" | "lg";
   /** 컬럼 수 */
-  columns?: 2 | 4;
+  columns?: 2 | 3 | 4 | 6;
   /** 빈 상태 표시 여부 */
   showEmpty?: boolean;
 }
@@ -291,7 +291,7 @@ interface TrophyShowcaseProps {
 export function TrophyShowcase({
   trophies,
   size = "md",
-  columns = 4,
+  columns = 3,
   showEmpty = true,
 }: TrophyShowcaseProps) {
   // 유효한 트로피만 필터링 (UNKNOWN 제외)
@@ -310,7 +310,14 @@ export function TrophyShowcase({
     return null;
   }
 
-  const gridCols = columns === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4";
+  // 반응형 그리드 컬럼 설정
+  const gridColsMap: Record<number, string> = {
+    2: "grid-cols-2",
+    3: "grid-cols-2 sm:grid-cols-3",
+    4: "grid-cols-2 sm:grid-cols-4",
+    6: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
+  };
+  const gridCols = gridColsMap[columns] || gridColsMap[3];
 
   return (
     <div className={cn("grid gap-3", gridCols)}>

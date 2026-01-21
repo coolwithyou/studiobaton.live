@@ -8,7 +8,7 @@
 
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
-import { getMemberProfileStats } from "@/lib/profile-stats";
+import { getMemberProfileStats, getRepoDistribution } from "@/lib/profile-stats";
 import { calculateTrophies, TrophyStats } from "@/lib/trophies";
 import {
   generateTrophyCardSVG,
@@ -82,12 +82,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const noFrame = noFrameParam === "true";
     const noBackground = noBackgroundParam === "true";
 
+    // 저장소 수 조회 (트로피 계산에 필요)
+    const repos = await getRepoDistribution(member.id);
+
     // TrophyStats 구성
     const trophyStats: TrophyStats = {
       totalCommits: stats.totalCommits,
       longestStreak: stats.longestStreak,
       activeDays: stats.activeDays,
       totalAdditions: stats.totalAdditions,
+      totalDeletions: stats.totalDeletions,
+      repositoryCount: repos.length,
     };
 
     // 트로피 계산

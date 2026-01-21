@@ -2,7 +2,7 @@
  * 트로피 시스템 - github-profile-trophy 스타일 랭크 기반 트로피
  *
  * 8단계 랭크: C → B → A → AA → AAA → S → SS → SSS
- * 4개 트로피 카테고리: Commits, Streak, Active Days, Lines
+ * 6개 트로피 카테고리: Commits, Streak, Active Days, Lines, Deletions, Repositories
  */
 
 // 랭크 정의 (낮은 순서대로)
@@ -19,7 +19,7 @@ export const TROPHY_RANKS = [
 
 export type TrophyRank = (typeof TROPHY_RANKS)[number] | "UNKNOWN";
 
-export type TrophyCategory = "commits" | "streak" | "activeDays" | "lines";
+export type TrophyCategory = "commits" | "streak" | "activeDays" | "lines" | "deletions" | "repositories";
 
 export interface TrophyDefinition {
   id: TrophyCategory;
@@ -47,6 +47,8 @@ export interface TrophyStats {
   longestStreak: number;
   activeDays: number;
   totalAdditions: number;
+  totalDeletions: number;
+  repositoryCount: number;
 }
 
 /**
@@ -123,6 +125,42 @@ export const TROPHY_DEFINITIONS: TrophyDefinition[] = [
       S: 50000,
       SS: 100000,
       SSS: 200000,
+    },
+  },
+  {
+    id: "deletions",
+    name: "Deletions",
+    nameKo: "삭제 라인",
+    description: "Total lines deleted (refactoring)",
+    unit: "lines",
+    unitKo: "줄",
+    thresholds: {
+      C: 50,
+      B: 500,
+      A: 2000,
+      AA: 5000,
+      AAA: 15000,
+      S: 30000,
+      SS: 60000,
+      SSS: 100000,
+    },
+  },
+  {
+    id: "repositories",
+    name: "Repositories",
+    nameKo: "프로젝트",
+    description: "Number of repositories contributed",
+    unit: "repos",
+    unitKo: "개",
+    thresholds: {
+      C: 1,
+      B: 2,
+      A: 3,
+      AA: 5,
+      AAA: 8,
+      S: 12,
+      SS: 18,
+      SSS: 25,
     },
   },
 ];
@@ -220,6 +258,8 @@ export function calculateTrophies(stats: TrophyStats): Trophy[] {
     streak: stats.longestStreak,
     activeDays: stats.activeDays,
     lines: stats.totalAdditions,
+    deletions: stats.totalDeletions,
+    repositories: stats.repositoryCount,
   };
 
   return TROPHY_DEFINITIONS.map((def) => {

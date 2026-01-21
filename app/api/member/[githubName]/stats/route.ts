@@ -83,22 +83,24 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const badgeIds = (stats.badges as string[]) || [];
     const badges = getBadgeDetails(badgeIds);
 
-    // 트로피 계산
+    // 추가 데이터 조회 (repos는 트로피 계산에 필요하므로 항상 조회)
+    const [heatmap, trend, commitTypes, repos] = await Promise.all([
+      includeHeatmap ? getHeatmapData(member.id) : [],
+      includeTrend ? getWeeklyTrendData(member.id) : [],
+      includeTypes ? getCommitTypeDistribution(member.id) : null,
+      getRepoDistribution(member.id), // 트로피 계산에 필요
+    ]);
+
+    // 트로피 계산 (repos 데이터 이후에 실행)
     const trophyStats: TrophyStats = {
       totalCommits: stats.totalCommits,
       longestStreak: stats.longestStreak,
       activeDays: stats.activeDays,
       totalAdditions: stats.totalAdditions,
+      totalDeletions: stats.totalDeletions,
+      repositoryCount: repos.length,
     };
     const trophies = calculateTrophies(trophyStats);
-
-    // 추가 데이터 조회 (필요한 것만)
-    const [heatmap, trend, commitTypes, repos] = await Promise.all([
-      includeHeatmap ? getHeatmapData(member.id) : [],
-      includeTrend ? getWeeklyTrendData(member.id) : [],
-      includeTypes ? getCommitTypeDistribution(member.id) : null,
-      includeRepos ? getRepoDistribution(member.id) : [],
-    ]);
 
     return Response.json({
       member: {
@@ -123,7 +125,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       heatmap,
       trend,
       commitTypes,
-      repos,
+      repos: includeRepos ? repos : [],
       badges,
       trophies,
     });

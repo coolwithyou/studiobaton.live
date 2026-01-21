@@ -47,11 +47,11 @@ const intensityColors = [
 export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
   const currentYear = year ?? new Date().getFullYear();
 
-  const { weeks, monthLabels, totalContributions } = useMemo(() => {
+  const { weeks, monthLabels, totalContributions, today } = useMemo(() => {
     const today = new Date();
-    // 현재 연도의 1월 1일부터 오늘까지만 표시
+    // 연도 전체를 표시 (1월 1일 ~ 12월 31일)
     const yearStart = startOfYear(new Date(currentYear, 0, 1));
-    const endDate = currentYear === today.getFullYear() ? today : new Date(currentYear, 11, 31);
+    const endDate = new Date(currentYear, 11, 31);
 
     // 연도 시작일이 속한 주의 시작(일요일)부터 시작
     const startDate = startOfWeek(yearStart, { weekStartsOn: 0 });
@@ -65,15 +65,16 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
     });
 
     // 주 단위로 그룹화
-    const weeks: Array<Array<{ date: Date; count: number; isCurrentYear: boolean }>> = [];
-    let currentWeek: Array<{ date: Date; count: number; isCurrentYear: boolean }> = [];
+    const weeks: Array<Array<{ date: Date; count: number; isCurrentYear: boolean; isFuture: boolean }>> = [];
+    let currentWeek: Array<{ date: Date; count: number; isCurrentYear: boolean; isFuture: boolean }> = [];
 
     allDays.forEach((date, index) => {
       const dateStr = format(date, "yyyy-MM-dd");
       const count = dataMap.get(dateStr) || 0;
       const isCurrentYear = date.getFullYear() === currentYear;
+      const isFuture = date > today;
 
-      currentWeek.push({ date, count, isCurrentYear });
+      currentWeek.push({ date, count, isCurrentYear, isFuture });
 
       if (date.getDay() === 6 || index === allDays.length - 1) {
         weeks.push(currentWeek);
@@ -105,7 +106,7 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
       .filter(d => d.date.startsWith(`${currentYear}-`))
       .reduce((sum, d) => sum + d.count, 0);
 
-    return { weeks, monthLabels, totalContributions };
+    return { weeks, monthLabels, totalContributions, today };
   }, [data, currentYear]);
 
   // 히트맵 전체 너비 계산
@@ -171,9 +172,10 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                   >
                     {week.map((day, dayIdx) => {
                       const level = getIntensityLevel(day.count);
-                      const isToday = isSameDay(day.date, new Date());
+                      const isToday = isSameDay(day.date, today);
                       // 현재 연도가 아닌 날짜는 흐리게 표시
                       const isOutsideYear = !day.isCurrentYear;
+                      const isFuture = day.isFuture;
 
                       return (
                         <Tooltip key={dayIdx}>
@@ -183,7 +185,9 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                                 "rounded-sm transition-colors cursor-default",
                                 isOutsideYear
                                   ? "bg-transparent"
-                                  : intensityColors[level],
+                                  : isFuture
+                                    ? "bg-muted/50"
+                                    : intensityColors[level],
                                 isToday && "ring-1 ring-foreground ring-offset-1 ring-offset-background"
                               )}
                               style={{
@@ -195,9 +199,11 @@ export function ContributionHeatmap({ data, year }: ContributionHeatmapProps) {
                           {!isOutsideYear && (
                             <TooltipContent side="top" className="text-xs">
                               <p className="font-semibold">
-                                {day.count > 0
-                                  ? `${day.count}개 커밋`
-                                  : "커밋 없음"}
+                                {isFuture
+                                  ? "예정"
+                                  : day.count > 0
+                                    ? `${day.count}개 커밋`
+                                    : "커밋 없음"}
                               </p>
                               <p className="text-muted-foreground">
                                 {format(day.date, "M월 d일 (eee)", { locale: ko })}

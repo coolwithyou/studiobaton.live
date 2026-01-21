@@ -157,7 +157,7 @@ export function StandupChecklist({
             {isCarryover && daysAgo && (
               <Badge
                 variant="outline"
-                className="ml-1 text-xs font-normal text-orange-600 border-orange-300 bg-orange-50"
+                className="ml-1 text-xs font-normal text-orange-600 dark:text-orange-400 border-orange-300 dark:border-orange-700 bg-orange-50 dark:bg-orange-950"
               >
                 <Clock className="size-3 mr-1" />
                 {daysAgo}일 전
@@ -176,7 +176,7 @@ export function StandupChecklist({
         <span className="text-muted-foreground">
           전체 할 일
           {localCarryoverTasks.length > 0 && (
-            <span className="text-orange-600 ml-1">
+            <span className="text-orange-600 dark:text-orange-400 ml-1">
               (미완료 {localCarryoverTasks.length}개 포함)
             </span>
           )}
@@ -184,7 +184,7 @@ export function StandupChecklist({
         <span
           className={cn(
             "font-medium",
-            allCompleted ? "text-green-600" : "text-orange-600"
+            allCompleted ? "text-green-600 dark:text-green-400" : "text-orange-600 dark:text-orange-400"
           )}
         >
           {completedCount}/{totalCount} 완료
@@ -206,7 +206,7 @@ export function StandupChecklist({
       {/* 미완료 캐리오버 태스크 목록 */}
       {localCarryoverTasks.length > 0 && (
         <div className="space-y-1">
-          <span className="text-xs text-orange-600 font-medium flex items-center gap-1">
+          <span className="text-xs text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
             <Clock className="size-3" />
             미완료 할 일
           </span>

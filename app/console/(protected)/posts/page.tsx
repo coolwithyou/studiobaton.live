@@ -212,7 +212,7 @@ export default function PostsPage() {
                             </Button>
                           )}
                           <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/console/posts/${post.id}`}>
+                            <Link href={`/console/post/${post.id}`}>
                               <Pencil className="h-4 w-4" />
                             </Link>
                           </Button>

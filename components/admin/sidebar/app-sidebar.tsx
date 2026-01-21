@@ -35,12 +35,12 @@ export async function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <span className="text-sm font-bold">SB</span>
+            <span className="text-sm font-bold">DEV</span>
           </div>
           <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="truncate font-semibold">Studio Baton</span>
+            <span className="truncate font-semibold">studiobaton</span>
             <span className="truncate text-xs text-muted-foreground">
-              Admin Dashboard
+              Console
             </span>
           </div>
         </div>

@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
-import { Github, GitCommit, FolderGit2 } from "lucide-react";
+import { Github, GitCommit, FolderGit2, RefreshCw, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EditProfileDialog } from "./edit-profile-dialog";
+import { toast } from "sonner";
 
 interface MemberProfileSidebarProps {
   member: {
@@ -33,6 +35,39 @@ export function MemberProfileSidebar({
   canEdit = false,
   isAdmin = false,
 }: MemberProfileSidebarProps) {
+  const [isAggregating, setIsAggregating] = useState(false);
+
+  const handleReaggregate = async () => {
+    if (isAggregating) return;
+
+    setIsAggregating(true);
+    try {
+      const response = await fetch("/api/console/profile-commits/aggregate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "member", memberId: member.id }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast.success("통계 재집계 완료", {
+          description: `${member.name}의 통계가 성공적으로 업데이트되었습니다.`,
+        });
+        // 페이지 새로고침하여 최신 데이터 반영
+        window.location.reload();
+      } else {
+        throw new Error(result.error || "재집계 중 오류가 발생했습니다.");
+      }
+    } catch (error) {
+      toast.error("재집계 실패", {
+        description: error instanceof Error ? error.message : "오류가 발생했습니다.",
+      });
+    } finally {
+      setIsAggregating(false);
+    }
+  };
+
   return (
     <aside className="w-full lg:w-[280px] lg:shrink-0 space-y-4">
       {/* 3:4 프로필 이미지 */}
@@ -128,6 +163,24 @@ export function MemberProfileSidebar({
           GitHub 프로필
         </a>
       </Button>
+
+      {/* 관리자 전용: 통계 재집계 버튼 */}
+      {isAdmin && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full text-muted-foreground hover:text-foreground"
+          onClick={handleReaggregate}
+          disabled={isAggregating}
+        >
+          {isAggregating ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <RefreshCw className="w-4 h-4 mr-2" />
+          )}
+          {isAggregating ? "재집계 중..." : "통계 재집계"}
+        </Button>
+      )}
     </aside>
   );
 }

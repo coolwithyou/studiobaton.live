@@ -179,7 +179,12 @@ export async function normalizeAuthor(
   author: string,
   authorEmail?: string | null,
   members?: MemberData[]
-): Promise<{ normalizedId: string; displayName: string; avatarUrl: string | null }> {
+): Promise<{
+  normalizedId: string;
+  displayName: string;
+  githubName: string | null;
+  avatarUrl: string | null;
+}> {
   const memberList = members ?? (await getMembers());
   const authorLower = author.toLowerCase();
   const emailLower = authorEmail?.toLowerCase();
@@ -215,7 +220,8 @@ export async function normalizeAuthor(
   if (match) {
     return {
       normalizedId: match.githubName,
-      displayName: match.githubName,
+      displayName: match.name,
+      githubName: match.githubName,
       avatarUrl: match.avatarUrl,
     };
   }
@@ -224,25 +230,30 @@ export async function normalizeAuthor(
   return {
     normalizedId: author,
     displayName: author,
+    githubName: null,
     avatarUrl: null,
   };
 }
 
 /**
  * 커밋 배열에서 고유한 저자 목록 추출 (정규화 적용)
+ * 변경한 코드양(additions + deletions) 기준 내림차순 정렬
  *
  * @param commits - 커밋 배열
- * @returns 정규화된 고유 저자 목록
+ * @returns 정규화된 고유 저자 목록 (변경량 순)
  */
 export async function getUniqueAuthors(
   commits: Array<{
     author: string;
     authorEmail?: string | null;
     authorAvatar?: string | null;
+    additions?: number;
+    deletions?: number;
   }>
 ): Promise<
   Array<{
     name: string;
+    githubName: string | null;
     avatar: string | null;
     originalAuthors: string[];
   }>
@@ -252,8 +263,10 @@ export async function getUniqueAuthors(
     string,
     {
       name: string;
+      githubName: string | null;
       avatar: string | null;
       originalAuthors: Set<string>;
+      totalChanges: number;
     }
   >();
 
@@ -264,9 +277,11 @@ export async function getUniqueAuthors(
       members
     );
 
+    const changes = (commit.additions || 0) + (commit.deletions || 0);
     const existing = authorMap.get(normalized.normalizedId);
     if (existing) {
       existing.originalAuthors.add(commit.author);
+      existing.totalChanges += changes;
       // 아바타가 없으면 커밋의 아바타 사용
       if (!existing.avatar && commit.authorAvatar) {
         existing.avatar = commit.authorAvatar;
@@ -274,17 +289,23 @@ export async function getUniqueAuthors(
     } else {
       authorMap.set(normalized.normalizedId, {
         name: normalized.displayName,
+        githubName: normalized.githubName,
         avatar: normalized.avatarUrl || commit.authorAvatar || null,
         originalAuthors: new Set([commit.author]),
+        totalChanges: changes,
       });
     }
   }
 
-  return Array.from(authorMap.values()).map((author) => ({
-    name: author.name,
-    avatar: author.avatar,
-    originalAuthors: Array.from(author.originalAuthors),
-  }));
+  // 변경량(additions + deletions) 기준 내림차순 정렬
+  return Array.from(authorMap.values())
+    .sort((a, b) => b.totalChanges - a.totalChanges)
+    .map((author) => ({
+      name: author.name,
+      githubName: author.githubName,
+      avatar: author.avatar,
+      originalAuthors: Array.from(author.originalAuthors),
+    }));
 }
 
 /**
@@ -475,8 +496,8 @@ export async function getContributorsWithStats(
     }
   }
 
-  // 커밋 수 기준 내림차순 정렬
+  // 변경량(additions + deletions) 기준 내림차순 정렬
   return Array.from(contributorMap.values()).sort(
-    (a, b) => b.commits - a.commits
+    (a, b) => b.additions + b.deletions - (a.additions + a.deletions)
   );
 }

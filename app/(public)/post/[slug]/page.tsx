@@ -125,11 +125,14 @@ export default async function PostPage({ params }: PageProps) {
 
   // 고유한 저자 목록 (Member 테이블 기반 정규화 적용)
   // GitHub username과 Git config name이 다른 경우에도 동일인으로 통합
+  // 변경한 코드양 기준 내림차순 정렬
   const authors = await getUniqueAuthors(
     maskedPost.commits.map((c) => ({
       author: c.author,
       authorEmail: c.authorEmail,
       authorAvatar: c.authorAvatar,
+      additions: c.additions,
+      deletions: c.deletions,
     }))
   );
 
@@ -185,17 +188,48 @@ export default async function PostPage({ params }: PageProps) {
 
           <div className="flex items-center gap-3 mt-4">
             <div className="flex -space-x-2">
-              {authors.slice(0, 5).map((author, i) => (
-                <Avatar key={i} className="w-8 h-8 border-2 border-background">
-                  <AvatarImage src={author.avatar || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {author.name.slice(0, 1).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
+              {authors.slice(0, 5).map((author, i) =>
+                author.githubName ? (
+                  <Link
+                    key={i}
+                    href={`/member/${author.githubName}`}
+                    className="hover:z-10 transition-transform hover:scale-110"
+                  >
+                    <Avatar className="w-8 h-8 border-2 border-background">
+                      <AvatarImage src={author.avatar || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {author.name.slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                ) : (
+                  <Avatar key={i} className="w-8 h-8 border-2 border-background">
+                    <AvatarImage src={author.avatar || undefined} />
+                    <AvatarFallback className="text-xs">
+                      {author.name.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                )
+              )}
             </div>
             <span className="text-sm text-muted-foreground">
-              {authors.map((a) => a.name).join(", ")}
+              {authors.map((a, i) =>
+                a.githubName ? (
+                  <Link
+                    key={i}
+                    href={`/member/${a.githubName}`}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {a.name}
+                    {i < authors.length - 1 && ", "}
+                  </Link>
+                ) : (
+                  <span key={i}>
+                    {a.name}
+                    {i < authors.length - 1 && ", "}
+                  </span>
+                )
+              )}
             </span>
           </div>
         </header>

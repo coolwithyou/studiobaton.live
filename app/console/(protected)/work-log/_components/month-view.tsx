@@ -67,16 +67,67 @@ export function MonthView({ memberId, memberGithubName, date }: MonthViewProps) 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      const dateStr = formatKST(date, "yyyy-MM-dd");
+
+      // 캐시된 통계 API 먼저 시도
+      const cacheRes = await fetch(
+        `/api/console/worklog-stats?memberId=${memberId}&type=month&date=${dateStr}`
+      );
+
+      if (cacheRes.ok) {
+        const cacheData = await cacheRes.json();
+
+        // 캐시 데이터가 있으면 사용
+        if (cacheData.days && cacheData.days.length > 0) {
+          const days = cacheData.days;
+
+          // 월간 요약 계산
+          let totalTasks = 0;
+          let completedTasks = 0;
+          let totalCommits = 0;
+          let totalAdditions = 0;
+          let totalDeletions = 0;
+          let activeDays = 0;
+
+          days.forEach((day: DaySummary) => {
+            totalTasks += day.totalTasks;
+            completedTasks += day.completedTasks;
+            totalCommits += day.totalCommits;
+            totalAdditions += day.totalAdditions || 0;
+            totalDeletions += day.totalDeletions || 0;
+            if (day.totalTasks > 0 || day.totalCommits > 0) {
+              activeDays++;
+            }
+          });
+
+          setData({
+            days,
+            summary: {
+              totalTasks,
+              completedTasks,
+              totalCommits,
+              totalAdditions,
+              totalDeletions,
+              activeDays,
+            },
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 캐시가 없으면 기존 로직으로 폴백
       const now = new Date();
+      const monthStartDate = startOfMonth(date);
+      const monthEndDate = endOfMonth(date);
+      const daysToFetch = eachDayOfInterval({ start: monthStartDate, end: monthEndDate });
 
-      // 각 날짜별 요약 데이터 병렬 요청
-      const dayPromises = monthDays.map(async (day) => {
-        const dateStr = formatKST(day, "yyyy-MM-dd");
+      const dayPromises = daysToFetch.map(async (day) => {
+        const dayStr = formatKST(day, "yyyy-MM-dd");
 
-        // 미래 날짜는 스킵
         if (day > now) {
           return {
-            date: dateStr,
+            date: dayStr,
             totalTasks: 0,
             completedTasks: 0,
             totalCommits: 0,
@@ -86,8 +137,8 @@ export function MonthView({ memberId, memberGithubName, date }: MonthViewProps) 
         }
 
         const [standupRes, reviewRes] = await Promise.all([
-          fetch(`/api/console/standup?date=${dateStr}&memberId=${memberId}`),
-          fetch(`/api/console/review?date=${dateStr}&memberId=${memberId}`),
+          fetch(`/api/console/standup?date=${dayStr}&memberId=${memberId}`),
+          fetch(`/api/console/review?date=${dayStr}&memberId=${memberId}`),
         ]);
 
         const [standupJson, reviewJson] = await Promise.all([
@@ -101,7 +152,7 @@ export function MonthView({ memberId, memberGithubName, date }: MonthViewProps) 
         ];
 
         return {
-          date: dateStr,
+          date: dayStr,
           totalTasks: tasks.length,
           completedTasks: tasks.filter((t: { isCompleted: boolean }) => t.isCompleted).length,
           totalCommits: reviewJson.summary?.totalCommits || 0,
@@ -112,7 +163,6 @@ export function MonthView({ memberId, memberGithubName, date }: MonthViewProps) 
 
       const days = await Promise.all(dayPromises);
 
-      // 월간 요약 계산
       let totalTasks = 0;
       let completedTasks = 0;
       let totalCommits = 0;
@@ -148,7 +198,7 @@ export function MonthView({ memberId, memberGithubName, date }: MonthViewProps) 
     } finally {
       setLoading(false);
     }
-  }, [date, memberId, monthDays]);
+  }, [date, memberId]);
 
   useEffect(() => {
     fetchData();

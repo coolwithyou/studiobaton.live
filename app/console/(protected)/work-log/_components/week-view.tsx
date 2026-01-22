@@ -91,8 +91,13 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      // 주간 날짜 계산 (useCallback 내부에서 계산하여 의존성 배열 문제 해결)
+      const weekStartDate = startOfWeek(date, { weekStartsOn: 1 });
+      const weekEndDate = endOfWeek(date, { weekStartsOn: 1 });
+      const weekDays = eachDayOfInterval({ start: weekStartDate, end: weekEndDate });
+
       // 각 날짜별 데이터 병렬 요청
-      const dayPromises = daysOfWeek.map(async (day) => {
+      const dayPromises = weekDays.map(async (day) => {
         const dateStr = formatKST(day, "yyyy-MM-dd");
         const now = new Date();
 
@@ -161,7 +166,7 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
     } finally {
       setLoading(false);
     }
-  }, [date, memberId, daysOfWeek]);
+  }, [date, memberId]);
 
   useEffect(() => {
     fetchData();

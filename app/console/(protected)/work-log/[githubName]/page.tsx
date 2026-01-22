@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { PageContainer } from "@/components/admin/ui/page-container";
 import { PageHeader } from "@/components/admin/ui/page-header";
-import { MemberTabs } from "../../standup/_components/member-tabs";
-import { WorkLogContent } from "../_components/work-log-content";
+import { WorkLogLayout } from "../_components/work-log-layout";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +40,7 @@ async function WorkLogPageContent({ githubName }: { githubName: string }) {
     notFound();
   }
 
-  // MemberTabs용 데이터
+  // 멤버 데이터 변환
   const membersWithLink = members.map((m) => ({
     id: m.id,
     name: m.name,
@@ -51,25 +50,20 @@ async function WorkLogPageContent({ githubName }: { githubName: string }) {
   }));
 
   return (
-    <PageContainer maxWidth="xl">
+    <PageContainer maxWidth="2xl">
       <PageHeader
         title="업무일지"
         description="일별 할 일과 커밋 기록을 확인하고, AI 주간 요약을 볼 수 있습니다."
       />
 
-      <MemberTabs
+      <WorkLogLayout
         members={membersWithLink}
-        currentGithubName={githubName}
-        basePath="/console/work-log"
+        currentMember={{
+          id: member.id,
+          name: member.name,
+          githubName: member.githubName,
+        }}
       />
-
-      <div className="mt-6">
-        <WorkLogContent
-          memberId={member.id}
-          memberName={member.name}
-          memberGithubName={member.githubName}
-        />
-      </div>
     </PageContainer>
   );
 }

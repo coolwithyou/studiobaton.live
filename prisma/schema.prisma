@@ -423,6 +423,33 @@ model MemberProfileStats {
   updatedAt DateTime @updatedAt
 }
 
+// 업무일지 일일 통계 캐시 (주간/월간/연간 뷰 성능 최적화)
+model WorkLogDailyStats {
+  id       String   @id @default(cuid())
+  memberId String
+  date     DateTime @db.Date
+
+  // 할 일 통계
+  totalTasks     Int @default(0)
+  completedTasks Int @default(0)
+
+  // 커밋 통계
+  totalCommits   Int @default(0)
+  totalAdditions Int @default(0)
+  totalDeletions Int @default(0)
+
+  // 집계 시점
+  aggregatedAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([memberId, date])
+  @@index([memberId])
+  @@index([date])
+  @@index([memberId, date])
+}
+
 // 커밋 수집 로그 (레포+월 단위 수집 추적)
 model CommitCollectionLog {
   id           String   @id @default(cuid())

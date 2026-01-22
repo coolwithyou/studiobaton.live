@@ -12,6 +12,7 @@ import {
   getDay,
   isSameDay,
   startOfWeek,
+  endOfWeek,
 } from "date-fns";
 import { ko } from "date-fns/locale";
 import { formatKST } from "@/lib/date-utils";
@@ -67,18 +68,39 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const now = new Date();
-      const yearDays = eachDayOfInterval({
-        start: yearStart,
-        end: now < yearEnd ? now : yearEnd,
-      });
+      const dateStr = formatKST(date, "yyyy-MM-dd");
 
-      // 월별로 배치 요청 (성능 최적화)
+      // 캐시된 통계 API 먼저 시도
+      const cacheRes = await fetch(
+        `/api/console/worklog-stats?memberId=${memberId}&type=year&date=${dateStr}`
+      );
+
+      if (cacheRes.ok) {
+        const cacheData = await cacheRes.json();
+
+        // 캐시 데이터가 있으면 사용
+        if (cacheData.days && cacheData.days.length > 0) {
+          setData({
+            days: cacheData.days,
+            months: cacheData.months,
+            summary: cacheData.summary,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
+      // 캐시가 없으면 기존 로직으로 폴백 (초기 데이터 수집용)
+      const now = new Date();
+      const yearStartDate = startOfYear(date);
+      const yearEndDate = endOfYear(date);
+      const monthsInYear = eachMonthOfInterval({ start: yearStartDate, end: yearEndDate });
+
       const allDays: DaySummary[] = [];
 
       // 12개월을 3개월씩 4번으로 나눠서 요청
-      for (let i = 0; i < months.length; i += 3) {
-        const batchMonths = months.slice(i, i + 3);
+      for (let i = 0; i < monthsInYear.length; i += 3) {
+        const batchMonths = monthsInYear.slice(i, i + 3);
         const batchPromises = batchMonths.flatMap((month) => {
           const monthStart = startOfMonth(month);
           const monthEnd = endOfMonth(month);
@@ -88,12 +110,12 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
           }).filter((d) => d <= now);
 
           return monthDays.map(async (day) => {
-            const dateStr = formatKST(day, "yyyy-MM-dd");
+            const dayStr = formatKST(day, "yyyy-MM-dd");
 
             try {
               const [standupRes, reviewRes] = await Promise.all([
-                fetch(`/api/console/standup?date=${dateStr}&memberId=${memberId}`),
-                fetch(`/api/console/review?date=${dateStr}&memberId=${memberId}`),
+                fetch(`/api/console/standup?date=${dayStr}&memberId=${memberId}`),
+                fetch(`/api/console/review?date=${dayStr}&memberId=${memberId}`),
               ]);
 
               const [standupJson, reviewJson] = await Promise.all([
@@ -107,7 +129,7 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
               ];
 
               return {
-                date: dateStr,
+                date: dayStr,
                 totalTasks: tasks.length,
                 completedTasks: tasks.filter(
                   (t: { isCompleted: boolean }) => t.isCompleted
@@ -116,7 +138,7 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
               };
             } catch {
               return {
-                date: dateStr,
+                date: dayStr,
                 totalTasks: 0,
                 completedTasks: 0,
                 totalCommits: 0,
@@ -130,7 +152,7 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
       }
 
       // 월별 요약 계산
-      const monthSummaries: MonthSummary[] = months.map((month, index) => {
+      const monthSummaries: MonthSummary[] = monthsInYear.map((month, index) => {
         const monthDays = allDays.filter((d) => {
           const dayDate = new Date(d.date);
           return dayDate.getMonth() === index && dayDate.getFullYear() === date.getFullYear();
@@ -154,12 +176,11 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
       let currentStreak = 0;
       let tempStreak = 0;
 
-      // 날짜순 정렬
       const sortedDays = [...allDays].sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
       );
 
-      sortedDays.forEach((day, index) => {
+      sortedDays.forEach((day) => {
         totalTasks += day.totalTasks;
         completedTasks += day.completedTasks;
         totalCommits += day.totalCommits;
@@ -174,7 +195,6 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
         }
       });
 
-      // 현재 스트릭 계산 (오늘부터 거슬러 올라가며)
       for (let i = sortedDays.length - 1; i >= 0; i--) {
         const day = sortedDays[i];
         if (day.totalTasks > 0 || day.totalCommits > 0) {
@@ -202,7 +222,7 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
     } finally {
       setLoading(false);
     }
-  }, [date, memberId, months, yearEnd, yearStart]);
+  }, [date, memberId]);
 
   useEffect(() => {
     fetchData();
@@ -214,23 +234,26 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
     return new Map(data.days.map((d) => [d.date, d]));
   }, [data]);
 
-  // GitHub 스타일 히트맵 생성
+  // GitHub 스타일 히트맵 생성 (미래 일자 포함)
   const generateHeatmapData = useMemo(() => {
-    const weeks: { date: Date; data: DaySummary | null }[][] = [];
+    const weeks: { date: Date; data: DaySummary | null; isFuture: boolean; isInYear: boolean }[][] = [];
     const yearStartWeek = startOfWeek(yearStart, { weekStartsOn: 0 });
+    const yearEndWeek = endOfWeek(yearEnd, { weekStartsOn: 0 });
     const now = new Date();
 
     let currentDate = yearStartWeek;
-    let currentWeek: { date: Date; data: DaySummary | null }[] = [];
+    let currentWeek: { date: Date; data: DaySummary | null; isFuture: boolean; isInYear: boolean }[] = [];
 
-    while (currentDate <= yearEnd) {
+    while (currentDate <= yearEndWeek) {
       const dateStr = formatKST(currentDate, "yyyy-MM-dd");
-      const isInYear =
-        currentDate >= yearStart && currentDate <= yearEnd && currentDate <= now;
+      const isInYear = currentDate >= yearStart && currentDate <= yearEnd;
+      const isFuture = currentDate > now;
 
       currentWeek.push({
         date: currentDate,
-        data: isInYear ? dayDataMap.get(dateStr) || null : null,
+        data: isInYear && !isFuture ? dayDataMap.get(dateStr) || null : null,
+        isFuture,
+        isInYear,
       });
 
       if (getDay(currentDate) === 6) {
@@ -258,12 +281,14 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
   };
 
   const heatmapColors = [
-    "bg-muted",
+    "bg-muted/50",
     "bg-green-200 dark:bg-green-900",
     "bg-green-300 dark:bg-green-700",
     "bg-green-400 dark:bg-green-600",
     "bg-green-500 dark:bg-green-500",
   ];
+
+  const futureColor = "bg-muted/30";
 
   if (loading) {
     return (
@@ -416,26 +441,25 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
 
             {/* 주별 컬럼 */}
             {generateHeatmapData.map((week, weekIndex) => (
-              <div key={weekIndex} className="flex flex-col gap-0.5">
+              <div key={weekIndex} className="flex flex-col gap-[3px]">
                 {week.map((day, dayIndex) => {
                   const dateStr = formatKST(day.date, "yyyy-MM-dd");
                   const level = day.data ? getHeatmapLevel(day.data.totalCommits) : 0;
-                  const isInYear =
-                    day.date >= yearStart &&
-                    day.date <= yearEnd &&
-                    day.date <= new Date();
                   const isToday = isSameDay(day.date, new Date());
+                  const canHover = day.isInYear && !day.isFuture;
 
                   return (
                     <div
                       key={dayIndex}
                       className={cn(
-                        "size-3 rounded-sm transition-all",
-                        isInYear ? heatmapColors[level] : "bg-transparent",
-                        isInYear && "hover:ring-1 hover:ring-primary cursor-pointer",
+                        "size-[11px] rounded-[2px] transition-all",
+                        !day.isInYear && "bg-transparent",
+                        day.isInYear && day.isFuture && futureColor,
+                        day.isInYear && !day.isFuture && heatmapColors[level],
+                        canHover && "hover:ring-1 hover:ring-primary cursor-pointer",
                         isToday && "ring-1 ring-primary"
                       )}
-                      onMouseEnter={() => isInYear && setHoveredDate(dateStr)}
+                      onMouseEnter={() => canHover && setHoveredDate(dateStr)}
                       onMouseLeave={() => setHoveredDate(null)}
                     />
                   );
@@ -447,9 +471,9 @@ export function YearView({ memberId, memberGithubName, date }: YearViewProps) {
           {/* 범례 */}
           <div className="flex items-center justify-end gap-2 mt-4 text-xs text-muted-foreground">
             <span>적음</span>
-            <div className="flex gap-0.5">
+            <div className="flex gap-[3px]">
               {heatmapColors.map((color, i) => (
-                <div key={i} className={cn("size-3 rounded-sm", color)} />
+                <div key={i} className={cn("size-[11px] rounded-[2px]", color)} />
               ))}
             </div>
             <span>많음</span>

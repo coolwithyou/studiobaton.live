@@ -22,6 +22,7 @@ import {
   HelpCircle,
   FileText,
   Newspaper,
+  ClipboardList,
   type LucideIcon,
 } from "lucide-react"
 import Link from "next/link"
@@ -59,6 +60,7 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   HelpCircle,
   FileText,
   Newspaper,
+  ClipboardList,
 }
 
 interface NavMainProps {

@@ -23,6 +23,7 @@ export type IconName =
   | "HelpCircle"
   | "FileText"
   | "Newspaper"
+  | "ClipboardList"
 
 export interface NavItem {
   title: string
@@ -92,6 +93,7 @@ export const NAV_MAIN: NavGroup[] = [
         items: [
           { title: "스탠드업", url: "/console/standup" },
           { title: "랩업", url: "/console/wrap-up" },
+          { title: "업무일지", url: "/console/work-log" },
           // { title: "커밋 리뷰", url: "/console/review" },
         ],
       },

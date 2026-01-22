@@ -61,6 +61,12 @@ export async function GET(request: NextRequest) {
               },
             },
           },
+          contentType: {
+            select: {
+              slug: true,
+              pluralSlug: true,
+            },
+          },
           versions: {
             select: {
               id: true,

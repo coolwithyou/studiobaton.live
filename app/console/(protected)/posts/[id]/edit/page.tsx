@@ -20,7 +20,7 @@ async function getPost(id: string) {
       content: true,
       summary: true,
       slug: true,
-      category: true,
+      contentTypeId: true,
       status: true,
       showInTimeline: true,
     },
@@ -29,20 +29,16 @@ async function getPost(id: string) {
   return post;
 }
 
-async function getCategories() {
-  const posts = await prisma.post.findMany({
-    where: {
-      category: { not: null },
-    },
+async function getContentTypes() {
+  return prisma.contentType.findMany({
+    where: { isActive: true },
     select: {
-      category: true,
+      id: true,
+      slug: true,
+      displayName: true,
     },
-    distinct: ["category"],
+    orderBy: { displayOrder: "asc" },
   });
-
-  return posts
-    .map((p) => p.category)
-    .filter((c): c is string => c !== null);
 }
 
 interface Props {
@@ -51,9 +47,9 @@ interface Props {
 
 export default async function EditPostPage({ params }: Props) {
   const { id } = await params;
-  const [post, categories] = await Promise.all([
+  const [post, contentTypes] = await Promise.all([
     getPost(id),
-    getCategories(),
+    getContentTypes(),
   ]);
 
   if (!post) {
@@ -72,7 +68,7 @@ export default async function EditPostPage({ params }: Props) {
         description="마크다운 포스트를 수정합니다."
       />
 
-      <ManualPostForm post={post} categories={categories} />
+      <ManualPostForm post={post} contentTypes={contentTypes} />
     </PageContainer>
   );
 }

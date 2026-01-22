@@ -32,11 +32,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: true,
       targetDate: true,
       publishedAt: true,
+      contentType: {
+        select: {
+          pluralSlug: true,
+        },
+      },
     },
   });
 
-  // COMMIT_BASED는 /log에서 처리
-  if (!post || post.type === "COMMIT_BASED") {
+  // COMMIT_BASED는 /log에서 처리, ContentType이 있는 포스트는 해당 경로로
+  if (!post || post.type === "COMMIT_BASED" || post.contentType?.pluralSlug) {
     return {
       title: "포스트를 찾을 수 없습니다",
     };
@@ -72,6 +77,12 @@ export default async function PostPage({ params }: PageProps) {
   const post = await prisma.post.findUnique({
     where: { slug },
     include: {
+      contentType: {
+        select: {
+          slug: true,
+          pluralSlug: true,
+        },
+      },
       publishedBy: {
         select: {
           name: true,
@@ -99,6 +110,11 @@ export default async function PostPage({ params }: PageProps) {
   // COMMIT_BASED 타입은 /log로 리다이렉트 (301 Permanent)
   if (post.type === "COMMIT_BASED") {
     redirect(`/log/${slug}`);
+  }
+
+  // ContentType이 있는 포스트는 해당 타입의 URL로 리다이렉트
+  if (post.contentType?.pluralSlug) {
+    redirect(`/${post.contentType.pluralSlug}/${slug}`);
   }
 
   // 마크다운에서 헤딩 추출 (TOC용)

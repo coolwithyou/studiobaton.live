@@ -9,24 +9,20 @@ export const metadata: Metadata = {
   description: "새 마크다운 포스트를 작성합니다.",
 };
 
-async function getCategories() {
-  const posts = await prisma.post.findMany({
-    where: {
-      category: { not: null },
-    },
+async function getContentTypes() {
+  return prisma.contentType.findMany({
+    where: { isActive: true },
     select: {
-      category: true,
+      id: true,
+      slug: true,
+      displayName: true,
     },
-    distinct: ["category"],
+    orderBy: { displayOrder: "asc" },
   });
-
-  return posts
-    .map((p) => p.category)
-    .filter((c): c is string => c !== null);
 }
 
 export default async function NewPostPage() {
-  const categories = await getCategories();
+  const contentTypes = await getContentTypes();
 
   return (
     <PageContainer maxWidth="xl">
@@ -35,7 +31,7 @@ export default async function NewPostPage() {
         description="마크다운으로 새 포스트를 작성합니다. 커밋 기반 포스트와 달리 자유롭게 내용을 작성할 수 있습니다."
       />
 
-      <ManualPostForm categories={categories} />
+      <ManualPostForm contentTypes={contentTypes} />
     </PageContainer>
   );
 }

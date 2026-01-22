@@ -30,6 +30,12 @@ export async function GET(
             committedAt: "asc",
           },
         },
+        contentType: {
+          select: {
+            slug: true,
+            pluralSlug: true,
+          },
+        },
       },
     });
 

@@ -68,6 +68,12 @@ async function PostList({
     },
     take: 50,
     include: {
+      contentType: {
+        select: {
+          slug: true,
+          pluralSlug: true,
+        },
+      },
       commits: {
         select: {
           id: true,
@@ -137,6 +143,7 @@ async function PostList({
             publishedAt: post.publishedAt?.toISOString() || null,
             commits: post.commits,
             type: post.type,
+            contentType: post.contentType,
           }}
           authors={authors}
           isLatest={index === 0}

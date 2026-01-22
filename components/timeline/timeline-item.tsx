@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatKST, formatDistanceToNowKST } from "@/lib/date-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stripMarkdown } from "@/lib/strip-markdown";
+import { getPostUrl } from "@/lib/post-url";
 
 interface Commit {
   id: string;
@@ -29,6 +30,10 @@ interface TimelineItemProps {
     publishedAt: string | null;
     commits: Commit[];
     type: "COMMIT_BASED" | "MANUAL";
+    contentType?: {
+      slug?: string;
+      pluralSlug?: string;
+    } | null;
   };
   /** 정규화된 저자 목록 (서버에서 계산) */
   authors: Author[];
@@ -67,7 +72,7 @@ export function TimelineItem({ post, authors, isLatest }: TimelineItemProps) {
 
         {/* 제목 */}
         <Link
-          href={post.type === "COMMIT_BASED" ? `/log/${post.slug}` : `/post/${post.slug}`}
+          href={getPostUrl(post)}
           className="block group mt-2"
         >
           <h2 className="text-lg font-semibold group-hover:text-primary transition-colors">

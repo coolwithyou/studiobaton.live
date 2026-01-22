@@ -1,68 +1,39 @@
-"use client";
+import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/auth-helpers";
+import prisma from "@/lib/prisma";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+export default async function WorkLogRedirectPage() {
+  const session = await getServerSession();
 
-interface Member {
-  id: string;
-  name: string;
-  githubName: string;
-}
-
-export default function WorkLogPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const response = await fetch("/api/me");
-        if (!response.ok) {
-          router.push("/console/login");
-          return;
-        }
-
-        const user = await response.json();
-
-        // linkedMember가 있으면 해당 멤버의 work-log로 이동
-        if (user.linkedMember?.githubName) {
-          router.replace(`/console/work-log/${user.linkedMember.githubName}`);
-          return;
-        }
-
-        // 없으면 첫 번째 멤버의 work-log로 이동
-        const membersResponse = await fetch("/api/console/members");
-        if (membersResponse.ok) {
-          const members: Member[] = await membersResponse.json();
-          if (members.length > 0) {
-            router.replace(`/console/work-log/${members[0].githubName}`);
-            return;
-          }
-        }
-
-        // 멤버가 없는 경우
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-        router.push("/console/login");
-      }
-    };
-
-    fetchCurrentUser();
-  }, [router]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+  if (!session?.user) {
+    redirect("/console/login");
   }
 
-  return (
-    <div className="flex items-center justify-center h-[60vh]">
-      <p className="text-muted-foreground">등록된 멤버가 없습니다.</p>
-    </div>
-  );
+  // Admin 정보 조회 (linkedMember의 githubName 포함)
+  const admin = await prisma.admin.findUnique({
+    where: { id: session.user.id },
+    select: {
+      role: true,
+      linkedMember: { select: { githubName: true } },
+    },
+  });
+
+  // TEAM_MEMBER → 본인 페이지로 리다이렉트
+  if (admin?.role === "TEAM_MEMBER" && admin.linkedMember?.githubName) {
+    redirect(`/console/work-log/${admin.linkedMember.githubName}`);
+  }
+
+  // ADMIN 또는 linkedMember 없는 경우 → 첫 번째 팀원 페이지로 리다이렉트
+  const firstMember = await prisma.member.findFirst({
+    where: { isActive: true },
+    orderBy: { displayOrder: "asc" },
+    select: { githubName: true },
+  });
+
+  if (firstMember) {
+    redirect(`/console/work-log/${firstMember.githubName}`);
+  }
+
+  // 팀원이 없는 경우 → 팀원 관리 페이지로
+  redirect("/console/members");
 }

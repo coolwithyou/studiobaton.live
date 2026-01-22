@@ -56,7 +56,8 @@ export const manualPostCreateSchema = z.object({
   content: z.string().min(1, "내용을 입력해주세요.").max(100000),
   summary: z.string().max(500).optional(),
   slug: slugSchema,
-  category: z.string().max(50).optional(),
+  category: z.string().max(50).optional(), // @deprecated: contentTypeId로 마이그레이션 예정
+  contentTypeId: z.string().cuid().optional(), // ContentType 연결
   status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
   showInTimeline: z.boolean().default(false), // 타임라인 노출 여부 (기본: 표시 안 함)
 });

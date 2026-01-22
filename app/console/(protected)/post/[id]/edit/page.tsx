@@ -72,6 +72,7 @@ interface Post {
   id: string;
   targetDate: string;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  type: "COMMIT_BASED" | "MANUAL";
   title: string | null;
   content: string | null;
   summary: string | null;
@@ -81,6 +82,10 @@ interface Post {
   versions: PostVersion[];
   commits: Commit[];
   repositoryMappings: RepositoryMapping[];
+  contentType?: {
+    slug: string;
+    pluralSlug: string;
+  } | null;
 }
 
 const TONE_LABELS: Record<string, string> = {
@@ -698,7 +703,13 @@ export default function PostEditPage({
                 <Label htmlFor="slug">URL Slug</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground whitespace-nowrap">
-                    /post/
+                    {post.type === "COMMIT_BASED"
+                      ? "/log/"
+                      : post.contentType?.pluralSlug
+                        ? `/${post.contentType.pluralSlug}/`
+                        : post.contentType?.slug
+                          ? `/${post.contentType.slug}/`
+                          : "/post/"}
                   </span>
                   <Input
                     id="slug"

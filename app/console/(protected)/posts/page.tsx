@@ -24,6 +24,7 @@ import { Plus, RefreshCw, Eye, Pencil, GitCommit, Search, X } from "lucide-react
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PageContainer } from "@/components/admin/ui/page-container"
 import { PageHeader } from "@/components/admin/ui/page-header"
+import { getPostUrl } from "@/lib/post-url"
 
 interface PostVersion {
   id: string
@@ -47,6 +48,7 @@ interface Post {
   id: string
   slug: string
   title: string | null // MANUAL 타입 포스트의 제목
+  type: "COMMIT_BASED" | "MANUAL"
   category: string | null
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED"
   targetDate: string
@@ -54,6 +56,10 @@ interface Post {
   updatedAt: string
   author: Author | null
   versions: PostVersion[]
+  contentType?: {
+    slug: string
+    pluralSlug: string
+  } | null
   _count: {
     commits: number
   }
@@ -268,7 +274,7 @@ export default function PostsPage() {
                         <div className="flex items-center justify-end gap-1">
                           {post.status === "PUBLISHED" && (
                             <Button variant="ghost" size="icon" asChild>
-                              <Link href={`/post/${post.slug}`} target="_blank">
+                              <Link href={getPostUrl(post)} target="_blank">
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>

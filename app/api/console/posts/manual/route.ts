@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, content, summary, slug, category, status, showInTimeline } = validation.data;
+    const { title, content, summary, slug, category, contentTypeId, status, showInTimeline } = validation.data;
 
     // slug 중복 검사
     const existingPost = await prisma.post.findUnique({
@@ -59,6 +59,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // contentTypeId 사용 시 존재 확인
+    if (contentTypeId) {
+      const contentType = await prisma.contentType.findUnique({
+        where: { id: contentTypeId },
+      });
+      if (!contentType) {
+        return NextResponse.json(
+          { error: "콘텐츠 타입을 찾을 수 없습니다." },
+          { status: 404 }
+        );
+      }
+    }
+
     // 수동 포스트 생성
     const post = await prisma.post.create({
       data: {
@@ -68,7 +81,9 @@ export async function POST(request: NextRequest) {
         content,
         summary,
         slug,
-        category,
+        // contentTypeId가 있으면 사용, 없으면 기존 category 사용 (하위 호환)
+        contentTypeId: contentTypeId || null,
+        category: contentTypeId ? null : category,
         showInTimeline,
         status: status === "PUBLISHED" ? "PUBLISHED" : "DRAFT",
         authorId: admin.id, // 작성자 기록
@@ -148,6 +163,19 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // contentTypeId 사용 시 존재 확인
+    if (updateData.contentTypeId) {
+      const contentType = await prisma.contentType.findUnique({
+        where: { id: updateData.contentTypeId },
+      });
+      if (!contentType) {
+        return NextResponse.json(
+          { error: "콘텐츠 타입을 찾을 수 없습니다." },
+          { status: 404 }
+        );
+      }
+    }
+
     // 현재 사용자 조회 (발행 시 필요)
     const admin = await prisma.admin.findUnique({
       where: { email: session.user.email! },
@@ -163,11 +191,18 @@ export async function PUT(request: NextRequest) {
       publishUpdate.publishedById = null;
     }
 
+    // contentTypeId가 설정되면 category를 null로 변경 (하위 호환)
+    const contentTypeUpdate: Record<string, unknown> = {};
+    if (updateData.contentTypeId) {
+      contentTypeUpdate.category = null;
+    }
+
     const post = await prisma.post.update({
       where: { id },
       data: {
         ...updateData,
         ...publishUpdate,
+        ...contentTypeUpdate,
       },
     });
 

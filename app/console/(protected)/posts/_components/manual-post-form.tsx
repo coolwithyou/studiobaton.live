@@ -19,8 +19,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Save, Send, Trash2, Zap } from "lucide-react";
 import { MarkdownGuideDialog } from "@/components/markdown/markdown-guide-dialog";
 
-const CATEGORY_NONE = "__none__";
-const CATEGORY_CUSTOM = "__custom__";
+const CONTENT_TYPE_NONE = "__none__";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +32,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+interface ContentTypeOption {
+  id: string;
+  slug: string;
+  displayName: string;
+}
+
 interface ManualPostFormProps {
   post?: {
     id: string;
@@ -40,11 +45,11 @@ interface ManualPostFormProps {
     content: string | null;
     summary: string | null;
     slug: string | null;
-    category: string | null;
+    contentTypeId: string | null;
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     showInTimeline: boolean;
   };
-  categories?: string[];
+  contentTypes?: ContentTypeOption[];
 }
 
 function generateSlug(title: string): string {
@@ -58,7 +63,7 @@ function generateSlug(title: string): string {
     .slice(0, 50);
 }
 
-export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
+export function ManualPostForm({ post, contentTypes = [] }: ManualPostFormProps) {
   const router = useRouter();
   const isEditMode = !!post;
   const selectId = useId();
@@ -67,8 +72,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
   const [content, setContent] = useState(post?.content || "");
   const [summary, setSummary] = useState(post?.summary || "");
   const [slug, setSlug] = useState(post?.slug || "");
-  const [category, setCategory] = useState(post?.category || CATEGORY_NONE);
-  const [customCategory, setCustomCategory] = useState("");
+  const [contentTypeId, setContentTypeId] = useState(post?.contentTypeId || CONTENT_TYPE_NONE);
   const [showInTimeline, setShowInTimeline] = useState(post?.showInTimeline ?? false);
   const [mounted, setMounted] = useState(false);
 
@@ -122,11 +126,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
 
     setSaving(true);
     try {
-      const finalCategory = category === CATEGORY_CUSTOM
-        ? customCategory
-        : category === CATEGORY_NONE
-          ? undefined
-          : category;
+      const finalContentTypeId = contentTypeId === CONTENT_TYPE_NONE ? undefined : contentTypeId;
 
       const endpoint = "/api/console/posts/manual";
       const method = isEditMode ? "PUT" : "POST";
@@ -137,7 +137,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
             content: content.trim(),
             summary: summary.trim() || undefined,
             slug: slug.trim(),
-            category: finalCategory || undefined,
+            contentTypeId: finalContentTypeId,
             status: publishStatus,
             showInTimeline,
           }
@@ -146,7 +146,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
             content: content.trim(),
             summary: summary.trim() || undefined,
             slug: slug.trim(),
-            category: finalCategory || undefined,
+            contentTypeId: finalContentTypeId,
             status: publishStatus,
             showInTimeline,
           };
@@ -193,11 +193,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
 
     setQuickSaving(true);
     try {
-      const finalCategory = category === CATEGORY_CUSTOM
-        ? customCategory
-        : category === CATEGORY_NONE
-          ? undefined
-          : category;
+      const finalContentTypeId = contentTypeId === CONTENT_TYPE_NONE ? undefined : contentTypeId;
 
       const endpoint = "/api/console/posts/manual";
       const method = isEditMode ? "PUT" : "POST";
@@ -208,7 +204,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
             content: content.trim(),
             summary: summary.trim() || undefined,
             slug: slug.trim(),
-            category: finalCategory || undefined,
+            contentTypeId: finalContentTypeId,
             status,
             showInTimeline,
           }
@@ -217,7 +213,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
             content: content.trim(),
             summary: summary.trim() || undefined,
             slug: slug.trim(),
-            category: finalCategory || undefined,
+            contentTypeId: finalContentTypeId,
             status,
             showInTimeline,
           };
@@ -274,10 +270,8 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
     }
   };
 
-  const allCategories = [...new Set([
-    ...categories,
-    ...(category && category !== CATEGORY_CUSTOM && category !== CATEGORY_NONE ? [category] : [])
-  ])];
+  // 현재 선택된 콘텐츠 타입 찾기 (URL 미리보기용)
+  const selectedContentType = contentTypes.find((ct) => ct.id === contentTypeId);
 
   return (
     <div className="space-y-6">
@@ -313,7 +307,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
           </Label>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground whitespace-nowrap">
-              /post/
+              /{selectedContentType?.slug ?? "post"}/
             </span>
             <Input
               id="slug"
@@ -328,39 +322,32 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
           </p>
         </div>
 
-        {/* 카테고리 */}
+        {/* 콘텐츠 타입 */}
         <div className="space-y-2">
-          <Label htmlFor="category">카테고리</Label>
+          <Label htmlFor="contentType">콘텐츠 타입</Label>
           <div className="flex gap-2">
             {mounted ? (
-              <Select key={selectId} value={category} onValueChange={setCategory}>
+              <Select key={selectId} value={contentTypeId} onValueChange={setContentTypeId}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="카테고리 선택" />
+                  <SelectValue placeholder="콘텐츠 타입 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={CATEGORY_NONE}>없음</SelectItem>
-                  {allCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
+                  <SelectItem value={CONTENT_TYPE_NONE}>없음</SelectItem>
+                  {contentTypes.map((ct) => (
+                    <SelectItem key={ct.id} value={ct.id}>
+                      {ct.displayName}
                     </SelectItem>
                   ))}
-                  <SelectItem value={CATEGORY_CUSTOM}>+ 새 카테고리</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
               <div className="w-full h-10 rounded-md border bg-background" />
             )}
           </div>
-          {category === CATEGORY_CUSTOM && (
-            <Input
-              value={customCategory}
-              onChange={(e) => setCustomCategory(e.target.value)}
-              placeholder="새 카테고리명"
-              className="mt-2"
-            />
-          )}
           <p className="text-xs text-muted-foreground">
-            사이드 메뉴와 연동하여 카테고리별로 분류합니다.
+            {selectedContentType
+              ? `"${selectedContentType.displayName}" 목록에 표시됩니다.`
+              : "선택하지 않으면 /post/ 경로에 표시됩니다."}
           </p>
         </div>
       </div>

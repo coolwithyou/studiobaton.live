@@ -9,6 +9,7 @@ import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
 import { ExternalLink, Pencil } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { DeletePostButton } from "./_components/delete-post-button";
+import { getPostUrl } from "@/lib/post-url";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -21,12 +22,19 @@ async function getPost(id: string) {
       id: true,
       targetDate: true,
       status: true,
+      type: true,
       title: true,
       content: true,
       summary: true,
       slug: true,
       category: true,
       showInTimeline: true,
+      contentType: {
+        select: {
+          slug: true,
+          pluralSlug: true,
+        },
+      },
       commits: {
         select: {
           id: true,
@@ -101,7 +109,7 @@ export default async function PostViewPage({ params }: Props) {
         <div className="flex gap-2">
           {post.slug && (
             <Button variant="outline" asChild>
-              <a href={`/post/${post.slug}`} target="_blank" rel="noopener noreferrer">
+              <a href={getPostUrl(post)} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="mr-2 h-4 w-4" />
                 공개 페이지
               </a>
@@ -134,7 +142,7 @@ export default async function PostViewPage({ params }: Props) {
             <div className="p-4 border rounded-lg bg-muted/30">
               <h3 className="font-semibold mb-2">URL</h3>
               <code className="text-sm text-muted-foreground">
-                /post/{post.slug}
+                {getPostUrl(post)}
               </code>
             </div>
           )}

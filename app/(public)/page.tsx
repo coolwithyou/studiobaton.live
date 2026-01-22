@@ -42,6 +42,12 @@ async function Timeline() {
     },
     take: 20,
     include: {
+      contentType: {
+        select: {
+          slug: true,
+          pluralSlug: true,
+        },
+      },
       commits: {
         select: {
           id: true,
@@ -107,6 +113,7 @@ async function Timeline() {
             publishedAt: post.publishedAt?.toISOString() || null,
             commits: post.commits,
             type: post.type,
+            contentType: post.contentType,
           }}
           authors={authors}
           isLatest={index === 0}

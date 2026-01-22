@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -149,7 +147,7 @@ export function StatsDashboard() {
     return null;
   }
 
-  const { summary, trend, repositories } = data;
+  const { summary, repositories } = data;
 
   return (
     <div className="space-y-6">
@@ -189,47 +187,6 @@ export function StatsDashboard() {
           value={`+${summary.totalAdditions.toLocaleString()}`}
           subValue={`-${summary.totalDeletions.toLocaleString()}`}
         />
-      </div>
-
-      {/* Trend Chart */}
-      <div className="border rounded-md p-4">
-        <h3 className="text-sm font-medium mb-4">최근 7일 커밋 활동</h3>
-        <div className="h-48">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={trend}>
-              <XAxis
-                dataKey="label"
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                axisLine={false}
-                tickLine={false}
-                width={30}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "6px",
-                  fontSize: "12px",
-                }}
-                labelFormatter={(label) => `${label}요일`}
-                formatter={(value) => [`${value} 커밋`, ""]}
-              />
-              <Line
-                type="monotone"
-                dataKey="commits"
-                stroke="hsl(var(--foreground))"
-                strokeWidth={2}
-                dot={{ fill: "hsl(var(--foreground))", strokeWidth: 0, r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
       </div>
 
       {/* Team Commits Area Chart */}

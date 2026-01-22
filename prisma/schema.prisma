@@ -195,7 +195,7 @@ model ProjectMapping {
 model Member {
   id              String   @id @default(cuid())
   name            String   // 팀원 이름 (예: "홍길동")
-  githubName      String   // GitHub 사용자명
+  githubName      String   @unique // GitHub 사용자명
   email           String   @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
   avatarUrl       String?  // 1:1 아바타 (포스트, 헤더, 멤버 카드)
   profileImageUrl String?  // 3:4 프로필 이미지 (프로필 페이지)

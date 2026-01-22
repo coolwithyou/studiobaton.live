@@ -9,26 +9,29 @@ export default async function StandupRedirectPage() {
     redirect("/console/login");
   }
 
-  // Admin 정보 조회 (linkedMemberId 포함)
+  // Admin 정보 조회 (linkedMember의 githubName 포함)
   const admin = await prisma.admin.findUnique({
     where: { id: session.user.id },
-    select: { role: true, linkedMemberId: true },
+    select: {
+      role: true,
+      linkedMember: { select: { githubName: true } },
+    },
   });
 
   // TEAM_MEMBER → 본인 페이지로 리다이렉트
-  if (admin?.role === "TEAM_MEMBER" && admin.linkedMemberId) {
-    redirect(`/console/standup/${admin.linkedMemberId}`);
+  if (admin?.role === "TEAM_MEMBER" && admin.linkedMember?.githubName) {
+    redirect(`/console/standup/${admin.linkedMember.githubName}`);
   }
 
-  // ADMIN 또는 linkedMemberId 없는 경우 → 첫 번째 팀원 페이지로 리다이렉트
+  // ADMIN 또는 linkedMember 없는 경우 → 첫 번째 팀원 페이지로 리다이렉트
   const firstMember = await prisma.member.findFirst({
     where: { isActive: true },
     orderBy: { displayOrder: "asc" },
-    select: { id: true },
+    select: { githubName: true },
   });
 
   if (firstMember) {
-    redirect(`/console/standup/${firstMember.id}`);
+    redirect(`/console/standup/${firstMember.githubName}`);
   }
 
   // 팀원이 없는 경우 → 팀원 관리 페이지로

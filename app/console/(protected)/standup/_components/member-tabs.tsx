@@ -9,27 +9,28 @@ interface Member {
   id: string;
   name: string;
   avatarUrl: string | null;
+  githubName: string;
   isLinked: boolean;
 }
 
 interface MemberTabsProps {
   members: Member[];
-  currentMemberId: string;
+  currentGithubName: string;
   basePath: string; // "/console/standup" 또는 "/console/wrap-up"
 }
 
-export function MemberTabs({ members, currentMemberId, basePath }: MemberTabsProps) {
+export function MemberTabs({ members, currentGithubName, basePath }: MemberTabsProps) {
   const router = useRouter();
 
-  const handleMemberChange = (memberId: string) => {
-    router.push(`${basePath}/${memberId}`);
+  const handleMemberChange = (githubName: string) => {
+    router.push(`${basePath}/${githubName}`);
   };
 
   return (
-    <Tabs value={currentMemberId} onValueChange={handleMemberChange}>
+    <Tabs value={currentGithubName} onValueChange={handleMemberChange}>
       <TabsList className="w-full justify-start">
         {members.map((member) => (
-          <TabsTrigger key={member.id} value={member.id} className="gap-2">
+          <TabsTrigger key={member.id} value={member.githubName} className="gap-2">
             <Avatar className="size-5">
               <AvatarImage src={member.avatarUrl || undefined} />
               <AvatarFallback>{member.name[0]}</AvatarFallback>

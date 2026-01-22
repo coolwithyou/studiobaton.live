@@ -48,7 +48,7 @@ export function ContentGrid({
 
         {/* 우측 위젯 영역 - xl 이상에서만 표시 (224px = w-56) */}
         {aside && (
-          <aside className="hidden xl:flex xl:flex-col w-56 shrink-0">
+          <aside className="hidden xl:flex xl:flex-col w-56 shrink-0 pl-6">
             <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
               {showAsideHeader && (
                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">

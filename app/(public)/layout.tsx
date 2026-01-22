@@ -7,6 +7,9 @@ import { getSideMenuSections } from "@/components/layout/sidebar";
 
 // 공개 페이지 다크 모드 강제 적용을 위한 CSS 변수
 const darkModeStyles = {
+  // 텍스트 색상 직접 설정 (상속을 위해)
+  color: "oklch(0.985 0 0)",
+  // CSS 변수들
   "--key-color": "#ffd970",
   "--key-color-hover": "#ffe59c",
   "--background": "oklch(0.178 0 0)",

@@ -82,7 +82,8 @@ interface WeekViewProps {
 export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
   const [data, setData] = useState<WeekData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  // 모든 일자가 펼쳐진 상태를 추적 (Set에 포함되면 접힌 상태)
+  const [collapsedDays, setCollapsedDays] = useState<Set<number>>(new Set());
 
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
@@ -310,7 +311,8 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
               ];
               const completedCount = tasks.filter((t) => t.isCompleted).length;
               const hasData = tasks.length > 0 || day.commits.summary.totalCommits > 0;
-              const isExpanded = selectedDayIndex === index;
+              // 기본적으로 펼침 상태, collapsedDays에 포함되면 접힘
+              const isExpanded = hasData && !collapsedDays.has(index);
 
               return (
                 <div
@@ -323,7 +325,19 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                 >
                   {/* 일별 헤더 */}
                   <button
-                    onClick={() => setSelectedDayIndex(isExpanded ? null : index)}
+                    onClick={() => {
+                      if (isExpanded) {
+                        // 펼침 → 접힘: collapsedDays에 추가
+                        setCollapsedDays((prev) => new Set([...prev, index]));
+                      } else {
+                        // 접힘 → 펼침: collapsedDays에서 제거
+                        setCollapsedDays((prev) => {
+                          const next = new Set(prev);
+                          next.delete(index);
+                          return next;
+                        });
+                      }
+                    }}
                     className="w-full p-3 flex items-center justify-between text-left hover:bg-muted/50 transition-colors rounded-lg"
                   >
                     <div className="flex items-center gap-3">

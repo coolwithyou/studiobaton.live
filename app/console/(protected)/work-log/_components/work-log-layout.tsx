@@ -14,6 +14,7 @@ import {
 import { formatKST } from "@/lib/date-utils";
 import { SidebarMemberCard } from "./sidebar-member-card";
 import { SidebarPeriodCard } from "./sidebar-period-card";
+import { SidebarCacheCard } from "./sidebar-cache-card";
 import { ViewMode } from "./view-mode-toggle";
 import { DayView } from "./day-view";
 import { WeekView } from "./week-view";
@@ -131,6 +132,7 @@ export function WorkLogLayout({ members, currentMember }: WorkLogLayoutProps) {
           onDateChange={setSelectedDate}
           onViewModeChange={setViewMode}
         />
+        <SidebarCacheCard memberId={currentMember.id} />
       </aside>
 
       {/* 메인 콘텐츠 */}
@@ -147,6 +149,7 @@ export function WorkLogLayout({ members, currentMember }: WorkLogLayoutProps) {
             onDateChange={setSelectedDate}
             onViewModeChange={setViewMode}
           />
+          <SidebarCacheCard memberId={currentMember.id} />
         </div>
 
         {/* 뷰 콘텐츠 */}

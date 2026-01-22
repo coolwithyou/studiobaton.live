@@ -33,7 +33,7 @@ interface PluralSlugPageProps {
 }
 
 type PageSource =
-  | { type: "contentType"; data: { id: string; displayName: string; description: string | null; pluralSlug: string } }
+  | { type: "contentType"; data: { id: string; displayName: string; description: string | null; pluralSlug: string; hideTimeline: boolean } }
   | { type: "menuItem"; data: { id: string; title: string; postCategory: string } };
 
 async function getPageSource(slug: string): Promise<PageSource | null> {
@@ -52,6 +52,7 @@ async function getPageSource(slug: string): Promise<PageSource | null> {
         displayName: contentType.displayName,
         description: contentType.description,
         pluralSlug: contentType.pluralSlug,
+        hideTimeline: contentType.hideTimeline,
       },
     };
   }
@@ -138,6 +139,7 @@ async function PostList({
         select: {
           slug: true,
           pluralSlug: true,
+          hideTimeline: true,
         },
       },
       commits: {
@@ -196,6 +198,9 @@ async function PostList({
     })
   );
 
+  // hideTimeline 설정 확인 (contentType에서 또는 source에서)
+  const hideTimeline = source.type === "contentType" ? source.data.hideTimeline : false;
+
   return (
     <div className="py-8">
       {postsWithAuthors.map(({ post, authors }, index) => (
@@ -211,10 +216,12 @@ async function PostList({
             publishedAt: post.publishedAt?.toISOString() || null,
             commits: post.commits,
             type: post.type,
+            thumbnailUrl: post.thumbnailUrl,
             contentType: post.contentType,
           }}
           authors={authors}
           isLatest={index === 0}
+          hideTimeline={hideTimeline}
         />
       ))}
     </div>

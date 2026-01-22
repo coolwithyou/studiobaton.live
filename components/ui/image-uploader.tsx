@@ -125,15 +125,25 @@ export function ImageUploader({
   const handleFileSelect = useCallback(
     (file: File) => {
       // 파일 타입 검증
-      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+      const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
       if (!allowedTypes.includes(file.type)) {
-        onError?.("JPG, PNG, WebP 형식만 업로드 가능합니다.");
+        onError?.("JPG, PNG, WebP, GIF 형식만 업로드 가능합니다.");
         return;
       }
 
-      // 파일 크기 검증 (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        onError?.("파일 크기는 5MB 이하여야 합니다.");
+      // 파일 크기 검증 (GIF는 10MB, 그 외 5MB)
+      const maxSize = file.type === "image/gif" ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        onError?.(file.type === "image/gif"
+          ? "GIF 파일 크기는 10MB 이하여야 합니다."
+          : "파일 크기는 5MB 이하여야 합니다."
+        );
+        return;
+      }
+
+      // GIF는 크롭 없이 바로 업로드 (애니메이션 유지)
+      if (file.type === "image/gif") {
+        handleUpload(file);
         return;
       }
 
@@ -241,7 +251,7 @@ export function ImageUploader({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,image/gif"
           onChange={handleFileChange}
           className="hidden"
           disabled={disabled || isUploading}
@@ -310,7 +320,7 @@ export function ImageUploader({
                 <>
                   <Upload className="w-8 h-8" />
                   <span className="text-sm">{placeholder}</span>
-                  <span className="text-xs">JPG, PNG, WebP (최대 5MB)</span>
+                  <span className="text-xs">JPG, PNG, WebP, GIF (최대 10MB)</span>
                 </>
               )}
             </button>

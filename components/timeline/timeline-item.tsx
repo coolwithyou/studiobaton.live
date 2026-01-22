@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { formatKST, formatDistanceToNowKST } from "@/lib/date-utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { stripMarkdown } from "@/lib/strip-markdown";
@@ -30,6 +31,7 @@ interface TimelineItemProps {
     publishedAt: string | null;
     commits: Commit[];
     type: "COMMIT_BASED" | "MANUAL";
+    thumbnailUrl?: string | null;
     contentType?: {
       slug?: string;
       pluralSlug?: string;
@@ -38,30 +40,58 @@ interface TimelineItemProps {
   /** 정규화된 저자 목록 (서버에서 계산) */
   authors: Author[];
   isLatest?: boolean;
+  /** 타임라인 라인/도트 숨김 여부 */
+  hideTimeline?: boolean;
 }
 
-export function TimelineItem({ post, authors, isLatest }: TimelineItemProps) {
+export function TimelineItem({ post, authors, isLatest, hideTimeline = false }: TimelineItemProps) {
   // 고유한 레포지토리 목록
   const repos = [...new Set(post.commits.map((c) => c.repository))];
+
+  // GIF 이미지 여부 확인 (애니메이션 유지를 위해 unoptimized 필요)
+  const isGif = post.thumbnailUrl?.toLowerCase().endsWith(".gif");
 
   // 총 변경량
   const totalAdditions = post.commits.reduce((sum, c) => sum + c.additions, 0);
   const totalDeletions = post.commits.reduce((sum, c) => sum + c.deletions, 0);
 
   return (
-    <article className="relative pl-8 pb-8">
+    <article className={`relative pb-8 ${hideTimeline ? "" : "pl-8"}`}>
       {/* 타임라인 라인 */}
-      <div className="absolute left-[5px] top-4 bottom-0 w-px bg-border" />
+      {!hideTimeline && (
+        <div className="absolute left-[5px] top-4 bottom-0 w-px bg-border" />
+      )}
 
       {/* 타임라인 도트 */}
-      <div
-        className={`absolute left-[3px] top-1.5 w-[7px] h-[7px] rounded-full ${
-          isLatest ? "bg-foreground" : "bg-muted-foreground/40"
-        }`}
-      />
+      {!hideTimeline && (
+        <div
+          className={`absolute left-[3px] top-1.5 w-[7px] h-[7px] rounded-full ${
+            isLatest ? "bg-foreground" : "bg-muted-foreground/40"
+          }`}
+        />
+      )}
 
       {/* 컨텐츠 */}
-      <div className="ml-4">
+      <div className={hideTimeline ? "" : "ml-4"}>
+        {/* 썸네일 이미지 */}
+        {post.thumbnailUrl && (
+          <Link
+            href={getPostUrl(post)}
+            className="block group mb-4"
+          >
+            <div className="relative aspect-video overflow-hidden rounded-lg">
+              <Image
+                src={post.thumbnailUrl}
+                alt={post.title}
+                fill
+                unoptimized={isGif}
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              />
+            </div>
+          </Link>
+        )}
+
         {/* 날짜 */}
         <time className="text-sm text-muted-foreground flex items-center gap-2">
           <span>{formatKST(post.targetDate, "M월 d일 (EEEE)")}</span>

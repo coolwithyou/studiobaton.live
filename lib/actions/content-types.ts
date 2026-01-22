@@ -14,6 +14,7 @@ export const getContentTypeByPluralSlug = cache(async (pluralSlug: string) => {
       displayName: true,
       description: true,
       isActive: true,
+      hideTimeline: true,
     },
   });
 });

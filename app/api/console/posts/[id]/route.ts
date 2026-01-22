@@ -141,7 +141,7 @@ export async function PATCH(
     const title = body.title ? sanitizeMarkdown(body.title) : undefined;
     const content = body.content ? sanitizeMarkdown(body.content) : undefined;
     const summary = body.summary ? sanitizeMarkdown(body.summary) : undefined;
-    const { action, versionId, slug: userSlug, category, showInTimeline } = body;
+    const { action, versionId, slug: userSlug, category, showInTimeline, thumbnailUrl } = body;
 
     const post = await prisma.post.findUnique({
       where: { id },
@@ -197,6 +197,7 @@ export async function PATCH(
           slug,
           category: category || null,
           showInTimeline: showInTimeline ?? false,
+          ...(thumbnailUrl !== undefined && { thumbnailUrl: thumbnailUrl || null }),
           status: "PUBLISHED",
           publishedAt: new Date(),
           publishedById: session.user.id,
@@ -278,6 +279,7 @@ export async function PATCH(
           summary,
           category: category || null,
           showInTimeline: showInTimeline ?? false,
+          ...(thumbnailUrl !== undefined && { thumbnailUrl: thumbnailUrl || null }),
           ...(slugToUpdate !== undefined && { slug: slugToUpdate }),
         },
       });

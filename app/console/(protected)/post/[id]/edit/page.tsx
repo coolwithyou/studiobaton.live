@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { formatKST } from "@/lib/date-utils";
-import { Loader2, Plus, RefreshCw, Trash2, Zap } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Trash2, Zap, ImageIcon } from "lucide-react";
+import { ImageUploader } from "@/components/ui/image-uploader";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -79,6 +80,7 @@ interface Post {
   slug: string | null;
   category: string | null;
   showInTimeline: boolean;
+  thumbnailUrl: string | null;
   versions: PostVersion[];
   commits: Commit[];
   repositoryMappings: RepositoryMapping[];
@@ -117,6 +119,7 @@ export default function PostEditPage({
   const [category, setCategory] = useState<string>(CATEGORY_NONE);
   const [customCategory, setCustomCategory] = useState("");
   const [showInTimeline, setShowInTimeline] = useState(false);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
@@ -144,6 +147,7 @@ export default function PostEditPage({
       setPost(data);
 
       // 기본값 설정
+      setThumbnailUrl(data.thumbnailUrl || null);
       if (data.status === "PUBLISHED") {
         setTitle(data.title || "");
         setContent(data.content || "");
@@ -763,6 +767,29 @@ export default function PostEditPage({
                   사이드 메뉴와 연동하여 카테고리별로 분류합니다.
                 </p>
               </div>
+            </div>
+
+            {/* 썸네일 이미지 */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4" />
+                목록 썸네일 이미지
+              </Label>
+              <ImageUploader
+                currentImageUrl={thumbnailUrl}
+                uploadEndpoint="/api/upload/post-thumbnail"
+                deleteEndpoint="/api/upload/post-thumbnail"
+                uploadData={{ postId: id }}
+                aspectRatio="16:9"
+                onUploadSuccess={(url) => setThumbnailUrl(url)}
+                onDeleteSuccess={() => setThumbnailUrl(null)}
+                onError={(message) => alert(message)}
+                placeholder="썸네일 이미지 업로드 (16:9)"
+                className="max-w-md"
+              />
+              <p className="text-xs text-muted-foreground">
+                목록 페이지에 표시될 대표 이미지입니다. (권장: 1200x675px)
+              </p>
             </div>
 
             {/* 요약 + 타임라인 노출 (2열 레이아웃) */}

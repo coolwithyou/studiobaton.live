@@ -60,6 +60,7 @@ export const manualPostCreateSchema = z.object({
   contentTypeId: z.string().cuid().optional(), // ContentType 연결
   status: z.enum(["DRAFT", "PUBLISHED"]).default("DRAFT"),
   showInTimeline: z.boolean().default(false), // 타임라인 노출 여부 (기본: 표시 안 함)
+  thumbnailUrl: z.string().url().nullable().optional(), // 목록 썸네일 이미지 URL
 });
 
 export const manualPostUpdateSchema = manualPostCreateSchema.partial().extend({

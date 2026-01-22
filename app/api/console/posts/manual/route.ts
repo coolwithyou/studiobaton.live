@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { title, content, summary, slug, category, contentTypeId, status, showInTimeline } = validation.data;
+    const { title, content, summary, slug, category, contentTypeId, status, showInTimeline, thumbnailUrl } = validation.data;
 
     // slug 중복 검사
     const existingPost = await prisma.post.findUnique({
@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         content,
         summary,
         slug,
+        thumbnailUrl: thumbnailUrl || null,
         // contentTypeId가 있으면 사용, 없으면 기존 category 사용 (하위 호환)
         contentTypeId: contentTypeId || null,
         category: contentTypeId ? null : category,

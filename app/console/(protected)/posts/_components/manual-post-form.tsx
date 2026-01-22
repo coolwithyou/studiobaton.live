@@ -16,8 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Save, Send, Trash2, Zap } from "lucide-react";
+import { Loader2, Save, Send, Trash2, Zap, ImageIcon } from "lucide-react";
 import { MarkdownGuideDialog } from "@/components/markdown/markdown-guide-dialog";
+import { ImageUploader } from "@/components/ui/image-uploader";
 
 const CONTENT_TYPE_NONE = "__none__";
 import {
@@ -48,6 +49,7 @@ interface ManualPostFormProps {
     contentTypeId: string | null;
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     showInTimeline: boolean;
+    thumbnailUrl: string | null;
   };
   contentTypes?: ContentTypeOption[];
 }
@@ -74,6 +76,7 @@ export function ManualPostForm({ post, contentTypes = [] }: ManualPostFormProps)
   const [slug, setSlug] = useState(post?.slug || "");
   const [contentTypeId, setContentTypeId] = useState(post?.contentTypeId || CONTENT_TYPE_NONE);
   const [showInTimeline, setShowInTimeline] = useState(post?.showInTimeline ?? false);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(post?.thumbnailUrl || null);
   const [mounted, setMounted] = useState(false);
 
   // Hydration 오류 방지를 위해 클라이언트에서만 Select 렌더링
@@ -350,6 +353,37 @@ export function ManualPostForm({ post, contentTypes = [] }: ManualPostFormProps)
               : "선택하지 않으면 /post/ 경로에 표시됩니다."}
           </p>
         </div>
+      </div>
+
+      {/* 썸네일 이미지 */}
+      <div className="space-y-2">
+        <Label className="flex items-center gap-2">
+          <ImageIcon className="h-4 w-4" />
+          목록 썸네일 이미지
+        </Label>
+        {isEditMode ? (
+          <ImageUploader
+            currentImageUrl={thumbnailUrl}
+            uploadEndpoint="/api/upload/post-thumbnail"
+            deleteEndpoint="/api/upload/post-thumbnail"
+            uploadData={{ postId: post!.id }}
+            aspectRatio="16:9"
+            onUploadSuccess={(url) => setThumbnailUrl(url)}
+            onDeleteSuccess={() => setThumbnailUrl(null)}
+            onError={(message) => alert(message)}
+            placeholder="썸네일 이미지 업로드 (16:9)"
+            className="max-w-md"
+          />
+        ) : (
+          <div className="max-w-md aspect-video rounded-lg border-2 border-dashed border-muted-foreground/25 flex items-center justify-center">
+            <p className="text-sm text-muted-foreground text-center px-4">
+              포스트를 먼저 저장한 후 썸네일을 업로드할 수 있습니다.
+            </p>
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground">
+          목록 페이지에 표시될 대표 이미지입니다. (권장: 1200x675px)
+        </p>
       </div>
 
       {/* 요약 + 타임라인 노출 (2열 레이아웃) */}

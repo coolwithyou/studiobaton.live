@@ -11,6 +11,7 @@ interface MenuItem {
   href: string;
   isExternal: boolean;
   activePattern?: string | null;
+  hasNewPosts?: boolean;
 }
 
 interface MenuSection {
@@ -108,13 +109,19 @@ export function SidebarClient({
                       href={item.href}
                       onClick={onLinkClick}
                       className={cn(
-                        "block px-2 py-1.5 text-sm rounded-md transition-colors",
+                        "flex items-center gap-1.5 px-2 py-1.5 text-sm rounded-md transition-colors",
                         active
                           ? "bg-key/10 text-key font-medium"
                           : "text-muted-foreground hover:text-foreground hover:bg-muted"
                       )}
                     >
                       {item.title}
+                      {item.hasNewPosts && (
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-key shrink-0"
+                          aria-label="새 게시물"
+                        />
+                      )}
                     </Link>
                   </li>
                 );

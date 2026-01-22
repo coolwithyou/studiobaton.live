@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { cache, CACHE_KEYS, CACHE_TTL } from "@/lib/cache";
 import { SidebarClient } from "./sidebar-client";
 
 // SidebarClient에서 사용하는 메뉴 데이터 타입 (export)
@@ -11,6 +12,7 @@ export interface MenuSection {
     href: string;
     isExternal: boolean;
     activePattern?: string | null;
+    hasNewPosts?: boolean;
   }[];
 }
 
@@ -94,6 +96,38 @@ function getItemLink(item: SideMenuSection["items"][0]): string {
   }
 }
 
+/**
+ * 24시간 이내 새 게시물이 있는 ContentType ID 목록 조회
+ */
+async function getContentTypesWithNewPosts(
+  contentTypeIds: string[]
+): Promise<Set<string>> {
+  if (contentTypeIds.length === 0) return new Set();
+
+  return cache.getOrSet(
+    CACHE_KEYS.SIDE_MENU_NEW_POSTS,
+    async () => {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const results = await prisma.post.groupBy({
+        by: ["contentTypeId"],
+        where: {
+          contentTypeId: { in: contentTypeIds },
+          status: "PUBLISHED",
+          publishedAt: { gte: twentyFourHoursAgo },
+        },
+      });
+
+      return new Set(
+        results
+          .map((r) => r.contentTypeId)
+          .filter((id): id is string => id !== null)
+      );
+    },
+    CACHE_TTL.LONG
+  );
+}
+
 interface SidebarProps {
   className?: string;
 }
@@ -105,6 +139,15 @@ export async function Sidebar({ className }: SidebarProps) {
     return null;
   }
 
+  // POST_CATEGORY 아이템의 contentTypeId 수집
+  const contentTypeIds = sections
+    .flatMap((s) => s.items)
+    .filter((item) => item.linkType === "POST_CATEGORY" && item.contentTypeId)
+    .map((item) => item.contentTypeId!);
+
+  // 24시간 이내 새 게시물이 있는 contentTypeId 조회
+  const newPostsSet = await getContentTypesWithNewPosts(contentTypeIds);
+
   // 클라이언트 컴포넌트에 데이터 전달
   const menuData = sections.map((section) => ({
     id: section.id,
@@ -115,6 +158,10 @@ export async function Sidebar({ className }: SidebarProps) {
       href: getItemLink(item),
       isExternal: item.linkType === "EXTERNAL",
       activePattern: item.activePattern,
+      hasNewPosts:
+        item.linkType === "POST_CATEGORY" &&
+        item.contentTypeId !== null &&
+        newPostsSet.has(item.contentTypeId),
     })),
   }));
 
@@ -132,6 +179,15 @@ export async function getSideMenuSections(): Promise<MenuSection[]> {
     return [];
   }
 
+  // POST_CATEGORY 아이템의 contentTypeId 수집
+  const contentTypeIds = sections
+    .flatMap((s) => s.items)
+    .filter((item) => item.linkType === "POST_CATEGORY" && item.contentTypeId)
+    .map((item) => item.contentTypeId!);
+
+  // 24시간 이내 새 게시물이 있는 contentTypeId 조회
+  const newPostsSet = await getContentTypesWithNewPosts(contentTypeIds);
+
   return sections.map((section) => ({
     id: section.id,
     title: section.title,
@@ -141,6 +197,10 @@ export async function getSideMenuSections(): Promise<MenuSection[]> {
       href: getItemLink(item),
       isExternal: item.linkType === "EXTERNAL",
       activePattern: item.activePattern,
+      hasNewPosts:
+        item.linkType === "POST_CATEGORY" &&
+        item.contentTypeId !== null &&
+        newPostsSet.has(item.contentTypeId),
     })),
   }));
 }

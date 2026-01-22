@@ -123,6 +123,7 @@ export const CACHE_KEYS = {
   POST_DETAIL: (slug: string) => `posts:detail:${slug}`,
   STATS: (startDate: string, endDate: string) =>
     `stats:${startDate}:${endDate}`,
+  SIDE_MENU_NEW_POSTS: "side-menu:new-posts",
 } as const;
 
 // TTL 상수

@@ -85,48 +85,50 @@ export function TimelineItem({ post, authors, isLatest }: TimelineItemProps) {
           {stripMarkdown(post.summary || post.content || "").slice(0, 200)}
         </p>
 
-        {/* 메타 정보 */}
-        <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-          {/* 저자 아바타들 */}
-          {authors.length > 0 && (
-            <div className="flex -space-x-2">
-              {authors.map((author, i) => (
-                <Avatar key={i} className="w-6 h-6 border-2 border-background">
-                  <AvatarImage src={author.avatar || undefined} />
-                  <AvatarFallback className="text-xs">
-                    {author.name.slice(0, 1).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-            </div>
-          )}
+        {/* 메타 정보 - COMMIT_BASED 타입에서만 커밋 관련 정보 표시 */}
+        {post.type === "COMMIT_BASED" && (
+          <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+            {/* 저자 아바타들 */}
+            {authors.length > 0 && (
+              <div className="flex -space-x-2">
+                {authors.map((author, i) => (
+                  <Avatar key={i} className="w-6 h-6 border-2 border-background">
+                    <AvatarImage src={author.avatar || undefined} />
+                    <AvatarFallback className="text-xs">
+                      {author.name.slice(0, 1).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </div>
+            )}
 
-          {/* 레포지토리 태그 (커밋이 있는 경우만 표시) */}
-          {repos.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {repos.slice(0, 2).map((repo) => (
-                <span
-                  key={repo}
-                  className="text-xs"
-                >
-                  {repo}
-                </span>
-              ))}
-              {repos.length > 2 && (
-                <span className="text-xs">외 {repos.length - 2}개</span>
-              )}
-            </div>
-          )}
+            {/* 레포지토리 태그 (커밋이 있는 경우만 표시) */}
+            {repos.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {repos.slice(0, 2).map((repo) => (
+                  <span
+                    key={repo}
+                    className="text-xs"
+                  >
+                    {repo}
+                  </span>
+                ))}
+                {repos.length > 2 && (
+                  <span className="text-xs">외 {repos.length - 2}개</span>
+                )}
+              </div>
+            )}
 
-          {/* 변경량 (커밋이 있는 경우만 표시) */}
-          {post.commits.length > 0 && (
-            <div className="flex items-center gap-1 ml-auto">
-              <span className="text-green-600">+{totalAdditions}</span>
-              <span>/</span>
-              <span className="text-red-600">-{totalDeletions}</span>
-            </div>
-          )}
-        </div>
+            {/* 변경량 (커밋이 있는 경우만 표시) */}
+            {post.commits.length > 0 && (
+              <div className="flex items-center gap-1 ml-auto">
+                <span className="text-green-600">+{totalAdditions}</span>
+                <span>/</span>
+                <span className="text-red-600">-{totalDeletions}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );

@@ -295,6 +295,9 @@ export const sideMenuSectionUpdateSchema = sideMenuSectionCreateSchema.partial()
   id: z.string().cuid(),
 });
 
+// 예약된 경로 (customSlug로 사용 불가)
+const RESERVED_SLUGS = ["posts", "post", "log", "members", "member", "api", "console"];
+
 export const sideMenuItemCreateSchema = z.object({
   sectionId: z.string().cuid("유효한 섹션 ID를 선택해주세요."),
   title: z.string().min(1, "메뉴 제목을 입력해주세요.").max(50),
@@ -304,6 +307,13 @@ export const sideMenuItemCreateSchema = z.object({
   internalPath: z.string().max(200).optional(),
   externalUrl: z.string().url("유효한 URL을 입력해주세요.").optional(),
   postCategory: z.string().max(50).optional(),
+  customSlug: z.string()
+    .max(50, "슬러그는 50자 이내여야 합니다.")
+    .regex(/^[a-z0-9-]*$/, "영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.")
+    .refine((val) => !val || !RESERVED_SLUGS.includes(val), {
+      message: "예약된 경로는 사용할 수 없습니다.",
+    })
+    .optional(),
   activePattern: z.string().max(500).optional(), // 활성화 URL 정규표현식
 }).refine(
   (data) => {
@@ -334,6 +344,14 @@ export const sideMenuItemUpdateSchema = z.object({
   internalPath: z.string().max(200).nullable().optional(),
   externalUrl: z.string().url().nullable().optional(),
   postCategory: z.string().max(50).nullable().optional(),
+  customSlug: z.string()
+    .max(50)
+    .regex(/^[a-z0-9-]*$/, "영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.")
+    .refine((val) => !val || !RESERVED_SLUGS.includes(val), {
+      message: "예약된 경로는 사용할 수 없습니다.",
+    })
+    .nullable()
+    .optional(),
   activePattern: z.string().max(500).nullable().optional(), // 활성화 URL 정규표현식
 });
 

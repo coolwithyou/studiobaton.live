@@ -40,6 +40,7 @@ interface Item {
   internalPath: string | null;
   externalUrl: string | null;
   postCategory: string | null;
+  customSlug: string | null;
   activePattern: string | null;
 }
 

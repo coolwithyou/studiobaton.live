@@ -32,6 +32,7 @@ interface Item {
   internalPath: string | null;
   externalUrl: string | null;
   postCategory: string | null;
+  customSlug: string | null;
   activePattern: string | null;
 }
 
@@ -64,6 +65,9 @@ function getLinkDisplay(item: Item): string {
     case "EXTERNAL":
       return item.externalUrl || "-";
     case "POST_CATEGORY":
+      if (item.customSlug) {
+        return `/${item.customSlug} (${item.postCategory})`;
+      }
       return item.postCategory || "-";
     default:
       return "-";

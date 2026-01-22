@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       internalPath,
       externalUrl,
       postCategory,
+      customSlug,
       activePattern,
     } = validation.data;
 
@@ -66,6 +67,7 @@ export async function POST(request: NextRequest) {
         internalPath: linkType === "INTERNAL" ? internalPath : null,
         externalUrl: linkType === "EXTERNAL" ? externalUrl : null,
         postCategory: linkType === "POST_CATEGORY" ? postCategory : null,
+        customSlug: linkType === "POST_CATEGORY" ? customSlug : null,
         activePattern: linkType === "INTERNAL" ? activePattern : null,
       },
     });
@@ -144,6 +146,7 @@ export async function PUT(request: NextRequest) {
       }
       if (updateData.linkType !== "POST_CATEGORY") {
         finalUpdateData.postCategory = null;
+        finalUpdateData.customSlug = null;
       }
     }
 

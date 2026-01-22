@@ -24,6 +24,7 @@ interface SideMenuSection {
     internalPath: string | null;
     externalUrl: string | null;
     postCategory: string | null;
+    customSlug: string | null;
     activePattern: string | null;
   }[];
 }
@@ -44,6 +45,7 @@ async function getSideMenu(): Promise<SideMenuSection[]> {
             internalPath: true,
             externalUrl: true,
             postCategory: true,
+            customSlug: true,
             activePattern: true,
           },
         },
@@ -65,6 +67,10 @@ function getItemLink(item: SideMenuSection["items"][0]): string {
     case "EXTERNAL":
       return item.externalUrl || "#";
     case "POST_CATEGORY":
+      // customSlug가 있으면 해당 경로 사용, 없으면 기존 방식
+      if (item.customSlug) {
+        return `/${item.customSlug}`;
+      }
       return `/posts?category=${encodeURIComponent(item.postCategory || "")}`;
     default:
       return "/";

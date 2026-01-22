@@ -51,7 +51,7 @@ export function Header() {
       <div className="container mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-bold text-xl tracking-tight">
           studiobaton log
-          <span className="text-sm text-muted-foreground pl-2">
+          <span className="text-sm text-muted-foreground pl-2 hidden md:inline">
             //-- <ScrambleText loop={true} loopInterval={3000} texts={["스튜디오 바톤 개발팀의 일상 개발 로그", "데일리 스크럼을 위한 커밋 리뷰"]} />
           </span>
         </Link>

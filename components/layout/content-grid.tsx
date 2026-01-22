@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 interface ContentGridProps {
   children: React.ReactNode;
   aside?: React.ReactNode;
+  /** 모바일에서 표시할 TOC (xl 미만에서 콘텐츠 상단에 표시) */
+  mobileToc?: React.ReactNode;
   maxWidth?: "2xl" | "3xl" | "4xl" | "5xl" | "full";
   className?: string;
   /** 우측 aside에 "On this page" 헤더를 표시할지 여부 */
@@ -34,6 +36,7 @@ const maxWidthClasses = {
 export function ContentGrid({
   children,
   aside,
+  mobileToc,
   maxWidth = "3xl",
   className,
   showAsideHeader = true,
@@ -43,6 +46,8 @@ export function ContentGrid({
       <div className="flex gap-8">
         {/* 메인 컨텐츠 영역 */}
         <div className={cn("flex-1 min-w-0", maxWidthClasses[maxWidth])}>
+          {/* 모바일 TOC - xl 미만에서 콘텐츠 상단에 표시 */}
+          {mobileToc}
           {children}
         </div>
 

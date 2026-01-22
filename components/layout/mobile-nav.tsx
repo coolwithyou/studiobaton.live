@@ -29,7 +29,7 @@ export function MobileNav({ sections }: MobileNavProps) {
       <div className="container mx-auto px-4 py-2">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-2 min-h-[44px] min-w-[44px]">
               <Menu className="h-5 w-5" />
               <span>메뉴</span>
             </Button>

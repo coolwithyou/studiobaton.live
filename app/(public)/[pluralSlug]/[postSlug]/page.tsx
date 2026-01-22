@@ -16,6 +16,7 @@ import { SITE_URL, SITE_NAME } from "@/lib/config";
 import { stripMarkdown } from "@/lib/strip-markdown";
 import { extractHeadings } from "@/lib/extract-headings";
 import { TableOfContents } from "@/components/toc/table-of-contents";
+import { MobileToc } from "@/components/toc/mobile-toc";
 import {
   getContentTypeByPluralSlug,
   getPostByContentTypeAndSlug,
@@ -209,6 +210,7 @@ export default async function ContentDetailPage({ params }: PageProps) {
     return (
       <ContentGrid
         aside={headings.length > 0 ? <TableOfContents headings={headings} /> : undefined}
+        mobileToc={headings.length > 0 ? <MobileToc headings={headings} /> : undefined}
       >
         <Link
           href={`/${contentType.pluralSlug}`}
@@ -221,7 +223,7 @@ export default async function ContentDetailPage({ params }: PageProps) {
             <time className="text-sm text-muted-foreground">
               {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
             </time>
-            <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
+            <h1 className="text-xl md:text-2xl font-bold mt-2">{post.title}</h1>
 
             <div className="flex items-center gap-3 mt-4">
               <div className="flex -space-x-2">
@@ -406,6 +408,7 @@ export default async function ContentDetailPage({ params }: PageProps) {
   return (
     <ContentGrid
       aside={headings.length > 0 ? <TableOfContents headings={headings} /> : undefined}
+      mobileToc={headings.length > 0 ? <MobileToc headings={headings} /> : undefined}
     >
       <Link
         href={`/${contentType.pluralSlug}`}
@@ -418,7 +421,7 @@ export default async function ContentDetailPage({ params }: PageProps) {
           <time className="text-sm text-muted-foreground">
             {formatKST(post.targetDate, "yyyy년 M월 d일 (EEEE)")}
           </time>
-          <h1 className="text-2xl font-bold mt-2">{post.title}</h1>
+          <h1 className="text-xl md:text-2xl font-bold mt-2">{post.title}</h1>
         </header>
         <Suspense
           fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}

@@ -23,6 +23,7 @@ async function getPost(id: string) {
       contentTypeId: true,
       status: true,
       showInTimeline: true,
+      thumbnailUrl: true,
     },
   });
 

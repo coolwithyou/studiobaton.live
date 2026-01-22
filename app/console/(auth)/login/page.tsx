@@ -30,7 +30,7 @@ function LoginContent() {
   const handleGoogleLogin = async () => {
     try {
       await signIn("google", {
-        callbackUrl: "/console",
+        callbackUrl: "/console/entry",
         redirect: true,
       });
     } catch (error) {

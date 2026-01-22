@@ -24,6 +24,9 @@ export type IconName =
   | "FileText"
   | "Newspaper"
   | "ClipboardList"
+  | "Sun"
+  | "Sunset"
+  | "CalendarDays"
 
 export interface NavItem {
   title: string
@@ -34,6 +37,7 @@ export interface NavItem {
   items?: {
     title: string
     url: string
+    icon?: IconName
   }[]
 }
 
@@ -91,10 +95,10 @@ export const NAV_MAIN: NavGroup[] = [
         url: "#",
         icon: "Users",
         items: [
-          { title: "스탠드업", url: "/console/standup" },
-          { title: "랩업", url: "/console/wrap-up" },
-          { title: "업무일지", url: "/console/work-log" },
-          // { title: "커밋 리뷰", url: "/console/review" },
+          { title: "스탠드업", url: "/console/standup", icon: "Sun" },
+          { title: "랩업", url: "/console/wrap-up", icon: "Sunset" },
+          { title: "업무일지", url: "/console/work-log", icon: "CalendarDays" },
+          { title: "활동 통계", url: "/console/stats", icon: "BarChart3" },
         ],
       },
     ],

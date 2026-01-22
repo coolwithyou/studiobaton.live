@@ -68,6 +68,16 @@ interface NavSecondaryProps {
   className?: string
 }
 
+/**
+ * 경로 활성화 여부 판단
+ * - 하위 경로도 활성화 (예: /console/projects/123 → /console/projects 메뉴 활성화)
+ */
+function isPathActive(pathname: string, menuUrl: string): boolean {
+  if (pathname === menuUrl) return true
+  // 하위 경로 매칭: menuUrl로 시작하고 그 다음이 / 또는 끝인 경우
+  return new RegExp(`^${menuUrl}(/|$)`).test(pathname)
+}
+
 export function NavSecondary({ items, className }: NavSecondaryProps) {
   const pathname = usePathname()
 
@@ -83,7 +93,7 @@ export function NavSecondary({ items, className }: NavSecondaryProps) {
                 <SidebarMenuButton
                   asChild
                   size="sm"
-                  isActive={pathname === item.url}
+                  isActive={isPathActive(pathname, item.url)}
                   tooltip={item.title}
                 >
                   {item.external ? (

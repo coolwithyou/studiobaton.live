@@ -35,7 +35,7 @@ export function WorkLogContent({
   memberName,
   memberGithubName,
 }: WorkLogContentProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 

@@ -1,20 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Cell,
-  PieChart,
-  Pie,
-} from "recharts";
 import { Loader2, ChevronDown, ChevronUp, User, GitCommit, FileCode, Calendar } from "lucide-react";
+import { DeveloperDailyChart } from "./developer-daily-chart";
+import { DeveloperReposChart } from "./developer-repos-chart";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
@@ -174,42 +163,7 @@ function DeveloperCard({
           {/* Daily Activity Chart */}
           <div className="bg-background rounded-md p-3">
             <h4 className="text-sm font-medium mb-3">일별 커밋 활동</h4>
-            <div className="h-32">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyActivity}>
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 10 }}
-                    tickFormatter={(value) => value.slice(5)}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                    width={25}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "hsl(var(--background))",
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "6px",
-                      fontSize: "11px",
-                    }}
-                    formatter={(value) => [`${value} 커밋`, ""]}
-                    labelFormatter={(label) => label}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="commits"
-                    stroke="hsl(var(--foreground))"
-                    strokeWidth={2}
-                    dot={{ fill: "hsl(var(--foreground))", r: 2 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <DeveloperDailyChart dailyActivity={dailyActivity} />
           </div>
 
           {/* Hourly Heatmap */}
@@ -238,22 +192,7 @@ function DeveloperCard({
           {repositories.length > 0 && (
             <div className="bg-background rounded-md p-3">
               <h4 className="text-sm font-medium mb-3">프로젝트별 분포</h4>
-              <div className="space-y-2">
-                {repositories.slice(0, 5).map((repo) => (
-                  <div key={repo.name} className="flex items-center gap-2">
-                    <div className="w-24 truncate text-xs font-mono">{repo.name}</div>
-                    <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                      <div
-                        className="h-full bg-foreground rounded-full"
-                        style={{ width: `${repo.percentage}%` }}
-                      />
-                    </div>
-                    <div className="text-xs text-muted-foreground w-16 text-right">
-                      {repo.commits} ({repo.percentage}%)
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <DeveloperReposChart repositories={repositories} />
             </div>
           )}
         </div>

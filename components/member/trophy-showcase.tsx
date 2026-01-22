@@ -150,33 +150,33 @@ export function TrophyCard({ trophy, size = "md" }: TrophyCardProps) {
 
   const sizeStyles = {
     sm: {
-      card: "w-24 h-30 p-2",
-      iconContainer: "w-14 h-14",
-      icon: 28,
-      laurel: 56,
+      card: "w-full h-32 p-2",
+      iconContainer: "w-12 h-12",
+      icon: 24,
+      laurel: 48,
       title: "text-xs",
       rank: "text-[10px] px-1.5 py-0.5",
       value: "text-sm",
       progress: "h-1",
     },
     md: {
-      card: "w-28 h-36 p-3",
-      iconContainer: "w-16 h-16",
-      icon: 36,
-      laurel: 64,
+      card: "w-full h-40 p-3",
+      iconContainer: "w-14 h-14",
+      icon: 32,
+      laurel: 56,
       title: "text-xs",
       rank: "text-xs px-2 py-0.5",
-      value: "text-base",
+      value: "text-lg font-bold",
       progress: "h-1.5",
     },
     lg: {
-      card: "w-32 h-40 p-4",
-      iconContainer: "w-20 h-20",
-      icon: 44,
-      laurel: 80,
+      card: "w-full h-44 p-4",
+      iconContainer: "w-16 h-16",
+      icon: 40,
+      laurel: 64,
       title: "text-sm",
       rank: "text-sm px-2.5 py-1",
-      value: "text-lg",
+      value: "text-xl font-bold",
       progress: "h-2",
     },
   };
@@ -189,8 +189,8 @@ export function TrophyCard({ trophy, size = "md" }: TrophyCardProps) {
         <TooltipTrigger asChild>
           <div
             className={cn(
-              "flex flex-col items-center justify-between rounded-lg border bg-card",
-              "hover:bg-muted/50 transition-colors cursor-default",
+              "flex flex-col items-center justify-between rounded-lg border border-border/50 bg-card/60",
+              "hover:bg-card/80 transition-colors cursor-default",
               styles.card
             )}
           >

@@ -33,12 +33,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${member.name} (@${member.githubName}) | ${SITE_NAME}`,
     description: `${member.name}의 개발 활동과 최근 커밋을 확인하세요.`,
     alternates: {
-      canonical: `${SITE_URL}/member/${githubName}`,
+      canonical: `${SITE_URL}/members/${githubName}`,
     },
     openGraph: {
       title: `${member.name} (@${member.githubName}) | ${SITE_NAME}`,
       description: `${member.name}의 개발 활동과 최근 커밋을 확인하세요.`,
-      url: `${SITE_URL}/member/${githubName}`,
+      url: `${SITE_URL}/members/${githubName}`,
       siteName: SITE_NAME,
       type: "profile",
     },

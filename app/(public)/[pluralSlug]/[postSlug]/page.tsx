@@ -229,7 +229,7 @@ export default async function ContentDetailPage({ params }: PageProps) {
                   author.githubName ? (
                     <Link
                       key={i}
-                      href={`/member/${author.githubName}`}
+                      href={`/members/${author.githubName}`}
                       className="hover:z-10 transition-transform hover:scale-110"
                     >
                       <Avatar className="w-8 h-8 border-2 border-background">
@@ -254,7 +254,7 @@ export default async function ContentDetailPage({ params }: PageProps) {
                   a.githubName ? (
                     <Link
                       key={i}
-                      href={`/member/${a.githubName}`}
+                      href={`/members/${a.githubName}`}
                       className="hover:text-foreground transition-colors"
                     >
                       {a.name}

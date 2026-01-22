@@ -78,7 +78,7 @@ function AuthorCard({ author }: { author: PostAuthor }) {
       <div className="flex flex-col sm:flex-row gap-5">
         {/* 3:4 이미지 영역 */}
         <Link
-          href={`/member/${author.githubName}`}
+          href={`/members/${author.githubName}`}
           className="shrink-0 self-center sm:self-start"
         >
           <div className="relative w-28 sm:w-32 aspect-[3/4] rounded-lg overflow-hidden bg-muted hover:opacity-90 transition-opacity">
@@ -141,7 +141,7 @@ function AuthorCard({ author }: { author: PostAuthor }) {
               className="text-muted-foreground hover:text-foreground"
               asChild
             >
-              <Link href={`/member/${author.githubName}`}>
+              <Link href={`/members/${author.githubName}`}>
                 프로필 보기
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
@@ -199,7 +199,7 @@ function ContributorMiniCard({
   if (contributor.isMemberMatched) {
     return (
       <Link
-        href={`/member/${contributor.githubName}`}
+        href={`/members/${contributor.githubName}`}
         className="block hover:no-underline"
       >
         {CardContent}

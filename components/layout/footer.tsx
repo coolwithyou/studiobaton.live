@@ -12,7 +12,7 @@ export function Footer() {
           <span>
             Built by{" "}
             <Link
-              href="/member/coolwithyou"
+              href="/members/coolwithyou"
               className="hover:text-foreground transition-colors"
             >
               @coolwithyou

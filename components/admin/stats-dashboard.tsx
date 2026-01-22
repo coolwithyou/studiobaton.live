@@ -1,18 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-} from "recharts";
 import { formatKST, nowKST, subDaysKST } from "@/lib/date-utils";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TeamCommitsAreaChart } from "./team-commits-area-chart";
+import { ProjectActivityChart } from "./project-activity-chart";
 
 interface StatsData {
   summary: {
@@ -193,59 +186,7 @@ export function StatsDashboard() {
       <TeamCommitsAreaChart developers={developers} />
 
       {/* Repository Stats */}
-      <div className="border rounded-md p-4">
-        <h3 className="text-sm font-medium mb-4">프로젝트별 활동</h3>
-        {repositories.length > 0 ? (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={repositories} layout="vertical">
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 12 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  tick={{ fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={120}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--background))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "6px",
-                    fontSize: "12px",
-                  }}
-                  formatter={(value, name) => {
-                    const labels: Record<string, string> = {
-                      commits: "커밋",
-                      additions: "추가",
-                      deletions: "삭제",
-                    };
-                    return [
-                      typeof value === "number" ? value.toLocaleString() : value,
-                      labels[String(name)] || String(name),
-                    ];
-                  }}
-                />
-                <Bar
-                  dataKey="commits"
-                  fill="hsl(var(--foreground))"
-                  radius={[0, 2, 2, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground text-center py-8">
-            데이터가 없습니다.
-          </p>
-        )}
-      </div>
+      <ProjectActivityChart repositories={repositories} />
 
       {/* Detailed Repository Table */}
       {repositories.length > 0 && (

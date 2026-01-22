@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -37,6 +38,9 @@ export function MobileNav({ sections }: MobileNavProps) {
           <SheetContent side="left" className="w-72 p-0">
             <SheetHeader className="p-4 border-b">
               <SheetTitle>메뉴</SheetTitle>
+              <SheetDescription className="sr-only">
+                사이트 탐색 메뉴
+              </SheetDescription>
             </SheetHeader>
             <div className="overflow-y-auto h-[calc(100vh-60px)]">
               <SidebarClient

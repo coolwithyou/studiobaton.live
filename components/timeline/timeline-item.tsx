@@ -56,23 +56,23 @@ export function TimelineItem({ post, authors, isLatest, hideTimeline = false }: 
   const totalDeletions = post.commits.reduce((sum, c) => sum + c.deletions, 0);
 
   return (
-    <article className={`relative pb-8 ${hideTimeline ? "" : "pl-8"}`}>
-      {/* 타임라인 라인 */}
+    <article className={`relative pb-8 ${hideTimeline ? "" : "md:pl-8"}`}>
+      {/* 타임라인 라인 - 모바일에서 숨김 */}
       {!hideTimeline && (
-        <div className="absolute left-[5px] top-4 bottom-0 w-px bg-border" />
+        <div className="hidden md:block absolute left-[5px] top-4 bottom-0 w-px bg-border" />
       )}
 
-      {/* 타임라인 도트 */}
+      {/* 타임라인 도트 - 모바일에서 숨김 */}
       {!hideTimeline && (
         <div
-          className={`absolute left-[3px] top-1.5 w-[7px] h-[7px] rounded-full ${
+          className={`hidden md:block absolute left-[3px] top-1.5 w-[7px] h-[7px] rounded-full ${
             isLatest ? "bg-foreground" : "bg-muted-foreground/40"
           }`}
         />
       )}
 
       {/* 컨텐츠 */}
-      <div className={hideTimeline ? "" : "ml-4"}>
+      <div className={hideTimeline ? "" : "md:ml-4"}>
         {/* 썸네일 이미지 */}
         {post.thumbnailUrl && (
           <Link

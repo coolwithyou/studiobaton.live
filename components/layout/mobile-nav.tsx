@@ -42,7 +42,7 @@ export function MobileNav({ sections }: MobileNavProps) {
                 사이트 탐색 메뉴
               </SheetDescription>
             </SheetHeader>
-            <div className="overflow-y-auto h-[calc(100vh-60px)]">
+            <div className="overflow-y-auto h-[calc(100vh-60px)] px-4">
               <SidebarClient
                 sections={sections}
                 onLinkClick={() => setOpen(false)}

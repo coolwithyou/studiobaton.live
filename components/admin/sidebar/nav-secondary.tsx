@@ -23,6 +23,9 @@ import {
   FileText,
   Newspaper,
   ClipboardList,
+  Sun,
+  Sunset,
+  CalendarDays,
   type LucideIcon,
 } from "lucide-react"
 import Link from "next/link"
@@ -61,6 +64,9 @@ const ICON_MAP: Record<IconName, LucideIcon> = {
   FileText,
   Newspaper,
   ClipboardList,
+  Sun,
+  Sunset,
+  CalendarDays,
 }
 
 interface NavSecondaryProps {

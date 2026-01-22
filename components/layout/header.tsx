@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard } from "lucide-react";
 import { ScrambleText } from "@/components/ui/scramble-text";
@@ -94,7 +93,6 @@ export function Header() {
               )}
             </>
           )}
-          <ThemeToggle />
         </div>
       </div>
     </header>

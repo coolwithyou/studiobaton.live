@@ -5,6 +5,33 @@ import { SidebarClient } from "@/components/layout/sidebar-client";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { getSideMenuSections } from "@/components/layout/sidebar";
 
+// 공개 페이지 다크 모드 강제 적용을 위한 CSS 변수
+const darkModeStyles = {
+  "--key-color": "#ffd970",
+  "--key-color-hover": "#ffe59c",
+  "--background": "oklch(0.178 0 0)",
+  "--foreground": "oklch(0.985 0 0)",
+  "--card": "oklch(0.22 0 0)",
+  "--card-foreground": "oklch(0.985 0 0)",
+  "--popover": "oklch(0.22 0 0)",
+  "--popover-foreground": "oklch(0.985 0 0)",
+  "--primary": "oklch(0.922 0 0)",
+  "--primary-foreground": "oklch(0.205 0 0)",
+  "--secondary": "oklch(0.269 0 0)",
+  "--secondary-foreground": "oklch(0.985 0 0)",
+  "--muted": "oklch(0.269 0 0)",
+  "--muted-foreground": "oklch(0.708 0 0)",
+  "--accent": "oklch(0.269 0 0)",
+  "--accent-foreground": "oklch(0.985 0 0)",
+  "--destructive": "oklch(0.704 0.191 22.216)",
+  "--border": "oklch(1 0 0 / 10%)",
+  "--input": "oklch(1 0 0 / 15%)",
+  "--ring": "oklch(0.556 0 0)",
+  "--sidebar": "oklch(0.178 0 0)",
+  "--sidebar-foreground": "oklch(0.7 0 0)",
+  "--sidebar-border": "oklch(1 0 0 / 10%)",
+} as React.CSSProperties;
+
 export default async function PublicLayout({
   children,
 }: {
@@ -14,7 +41,7 @@ export default async function PublicLayout({
   const menuSections = await getSideMenuSections();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col dark">
+    <div className="min-h-screen bg-background flex flex-col dark" style={darkModeStyles}>
       <Header />
 
       {/* 모바일 네비게이션 (lg 미만) */}

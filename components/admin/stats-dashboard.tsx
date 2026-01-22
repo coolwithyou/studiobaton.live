@@ -14,6 +14,7 @@ import {
 import { formatKST, nowKST, subDaysKST } from "@/lib/date-utils";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TeamCommitsAreaChart } from "./team-commits-area-chart";
 
 interface StatsData {
   summary: {
@@ -43,6 +44,19 @@ interface StatsData {
   };
 }
 
+interface DeveloperDailyActivity {
+  date: string;
+  commits: number;
+  additions: number;
+  deletions: number;
+}
+
+interface DeveloperStats {
+  author: string;
+  avatar: string | null;
+  dailyActivity: DeveloperDailyActivity[];
+}
+
 interface StatCardProps {
   label: string;
   value: number | string;
@@ -64,6 +78,7 @@ function StatCard({ label, value, subValue, className }: StatCardProps) {
 
 export function StatsDashboard() {
   const [data, setData] = useState<StatsData | null>(null);
+  const [developers, setDevelopers] = useState<DeveloperStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState({
@@ -79,12 +94,24 @@ export function StatsDashboard() {
         startDate: dateRange.startDate,
         endDate: dateRange.endDate,
       });
-      const response = await fetch(`/api/console/stats?${params}`);
-      if (!response.ok) {
+
+      // 병렬 API 호출
+      const [statsRes, devRes] = await Promise.all([
+        fetch(`/api/console/stats?${params}`),
+        fetch(`/api/console/stats/developers?days=7`),
+      ]);
+
+      if (!statsRes.ok) {
         throw new Error("통계 데이터를 불러오는데 실패했습니다.");
       }
-      const result = await response.json();
+
+      const result = await statsRes.json();
       setData(result);
+
+      if (devRes.ok) {
+        const devResult = await devRes.json();
+        setDevelopers(devResult.developers || []);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "오류가 발생했습니다.");
     } finally {
@@ -204,6 +231,9 @@ export function StatsDashboard() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Team Commits Area Chart */}
+      <TeamCommitsAreaChart developers={developers} />
 
       {/* Repository Stats */}
       <div className="border rounded-md p-4">

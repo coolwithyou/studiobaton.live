@@ -56,7 +56,7 @@ interface Section {
 interface SectionListProps {
   sections: Section[];
   categories: string[];
-  onReorder: (items: { id: string; displayOrder: number }[]) => Promise<void>;
+  onReorder: (reorderedSections: Section[]) => Promise<void>;
   onEdit: (section: Section) => void;
   onDelete: (id: string) => Promise<void>;
   onAddItem: (sectionId: string) => void;
@@ -64,7 +64,7 @@ interface SectionListProps {
   onDeleteItem: (id: string) => Promise<void>;
   onReorderItems: (
     sectionId: string,
-    items: { id: string; displayOrder: number }[]
+    reorderedItems: Item[]
   ) => Promise<void>;
   onRefresh: () => void;
 }
@@ -100,17 +100,19 @@ export function SectionList({
 
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
 
-    const items = Array.from(sections);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    const reorderedSections = Array.from(sections);
+    const [movedSection] = reorderedSections.splice(result.source.index, 1);
+    reorderedSections.splice(result.destination.index, 0, movedSection);
 
-    const reorderData = items.map((item, index) => ({
-      id: item.id,
+    // displayOrder 업데이트
+    const updatedSections = reorderedSections.map((section, index) => ({
+      ...section,
       displayOrder: index,
     }));
 
-    await onReorder(reorderData);
+    await onReorder(updatedSections);
   };
 
   const handleDeleteConfirm = async () => {
@@ -222,8 +224,8 @@ export function SectionList({
                             sectionId={section.id}
                             items={section.items}
                             categories={categories}
-                            onReorder={(items) =>
-                              onReorderItems(section.id, items)
+                            onReorder={(reorderedItems) =>
+                              onReorderItems(section.id, reorderedItems)
                             }
                             onEdit={onEditItem}
                             onDelete={onDeleteItem}

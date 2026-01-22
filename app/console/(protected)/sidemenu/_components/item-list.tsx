@@ -41,7 +41,7 @@ interface ItemListProps {
   sectionId: string;
   items: Item[];
   categories: string[];
-  onReorder: (items: { id: string; displayOrder: number }[]) => Promise<void>;
+  onReorder: (reorderedItems: Item[]) => Promise<void>;
   onEdit: (item: Item) => void;
   onDelete: (id: string) => Promise<void>;
   onRefresh: () => void;
@@ -86,17 +86,19 @@ export function ItemList({
 
   const handleDragEnd = async (result: DropResult) => {
     if (!result.destination) return;
+    if (result.source.index === result.destination.index) return;
 
     const reorderedItems = Array.from(items);
     const [movedItem] = reorderedItems.splice(result.source.index, 1);
     reorderedItems.splice(result.destination.index, 0, movedItem);
 
-    const reorderData = reorderedItems.map((item, index) => ({
-      id: item.id,
+    // displayOrder 업데이트
+    const updatedItems = reorderedItems.map((item, index) => ({
+      ...item,
       displayOrder: index,
     }));
 
-    await onReorder(reorderData);
+    await onReorder(updatedItems);
   };
 
   const handleDeleteConfirm = async () => {

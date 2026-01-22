@@ -106,20 +106,30 @@ export default function SidemenuPage() {
   };
 
   const handleReorderSections = async (
-    items: { id: string; displayOrder: number }[]
+    reorderedSections: Section[]
   ) => {
+    // 낙관적 업데이트: 즉시 UI 반영
+    setSections(reorderedSections);
+
+    const items = reorderedSections.map((s, index) => ({
+      id: s.id,
+      displayOrder: index,
+    }));
+
     try {
-      const response = await fetch("/api/console/sidemenu/reorder", {
+      const response = await fetch("/api/console/sidemenu/reorder?type=sections", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "sections", items }),
+        body: JSON.stringify({ items }),
       });
 
-      if (response.ok) {
+      if (!response.ok) {
+        // 실패 시 서버 데이터로 복원
         fetchData();
       }
     } catch (error) {
       console.error("Reorder error:", error);
+      fetchData();
     }
   };
 
@@ -156,20 +166,36 @@ export default function SidemenuPage() {
 
   const handleReorderItems = async (
     sectionId: string,
-    items: { id: string; displayOrder: number }[]
+    reorderedItems: Item[]
   ) => {
+    // 낙관적 업데이트: 즉시 UI 반영
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === sectionId
+          ? { ...section, items: reorderedItems }
+          : section
+      )
+    );
+
+    const items = reorderedItems.map((item, index) => ({
+      id: item.id,
+      displayOrder: index,
+    }));
+
     try {
-      const response = await fetch("/api/console/sidemenu/reorder", {
+      const response = await fetch("/api/console/sidemenu/reorder?type=items", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "items", sectionId, items }),
+        body: JSON.stringify({ items }),
       });
 
-      if (response.ok) {
+      if (!response.ok) {
+        // 실패 시 서버 데이터로 복원
         fetchData();
       }
     } catch (error) {
       console.error("Reorder error:", error);
+      fetchData();
     }
   };
 

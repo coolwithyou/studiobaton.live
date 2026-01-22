@@ -53,7 +53,7 @@ export function TaskList({
     return (
       <Badge
         variant="outline"
-        className="ml-2 text-xs font-normal text-orange-600 border-orange-300 bg-orange-50"
+        className="ml-2 text-xs font-normal text-orange-600 border-orange-300 bg-orange-50 dark:text-orange-400 dark:border-orange-700 dark:bg-orange-950"
       >
         <Clock className="size-3 mr-1" />
         {daysAgo}일 전

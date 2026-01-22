@@ -118,7 +118,8 @@ export function SidebarClient({
                       {item.title}
                       {item.hasNewPosts && (
                         <span
-                          className="w-1.5 h-1.5 rounded-full bg-key shrink-0"
+                          className="ml-1 w-1.5 h-1.5 rounded-full bg-key opacity-90 shrink-0 animate-pulse"
+                          style={{ animationDuration: "3s" }}
                           aria-label="새 게시물"
                         />
                       )}

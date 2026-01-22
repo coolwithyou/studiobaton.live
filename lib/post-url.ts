@@ -3,11 +3,15 @@
  *
  * ContentType이 있는 포스트는 /{pluralSlug}/{postSlug} 형식
  * ContentType이 없는 포스트는 /post/{postSlug} 형식
+ *
+ * 예시:
+ * - 개발 로그 (ContentType: log): /logs/my-log
+ * - 스토리 (ContentType: story): /stories/my-story
+ * - ContentType 없는 포스트: /post/my-post
  */
 
 interface PostWithContentType {
   slug: string | null;
-  type?: "COMMIT_BASED" | "MANUAL";
   contentType?: {
     slug?: string;
     pluralSlug?: string;
@@ -17,15 +21,15 @@ interface PostWithContentType {
 /**
  * 포스트의 공개 URL을 생성합니다.
  *
- * @param post - slug, type, contentType을 포함한 포스트 객체
+ * @param post - slug, contentType을 포함한 포스트 객체
  * @returns 포스트의 공개 URL
  *
  * @example
- * // COMMIT_BASED 타입 (개발 로그)
- * getPostUrl({ slug: 'my-log', type: 'COMMIT_BASED' })
- * // => '/log/my-log'
+ * // ContentType이 있는 경우 (개발 로그)
+ * getPostUrl({ slug: 'my-log', contentType: { pluralSlug: 'logs' } })
+ * // => '/logs/my-log'
  *
- * // ContentType이 있는 경우
+ * // ContentType이 있는 경우 (스토리)
  * getPostUrl({ slug: 'my-post', contentType: { pluralSlug: 'stories' } })
  * // => '/stories/my-post'
  *
@@ -37,11 +41,6 @@ export function getPostUrl(post: PostWithContentType): string {
   // slug가 없으면 루트로 이동
   if (!post.slug) {
     return "/";
-  }
-
-  // COMMIT_BASED 타입은 /log/ 경로
-  if (post.type === "COMMIT_BASED") {
-    return `/log/${post.slug}`;
   }
 
   // pluralSlug가 있으면 우선 사용 (목록 URL용)

@@ -91,6 +91,47 @@ async function main() {
   console.log("");
   console.log("⚠️  중요: 팀원 이메일을 실제 GitHub 커밋 이메일로 업데이트해주세요!");
   console.log("   - /console/members 페이지에서 수정 가능합니다.");
+
+  // 콘텐츠 타입 시드
+  console.log("");
+  console.log("📝 콘텐츠 타입을 생성합니다...");
+
+  const contentTypes = [
+    {
+      slug: "log",
+      pluralSlug: "logs",
+      displayName: "개발 로그",
+      description: "일일 개발 활동 기록",
+      displayOrder: 1,
+    },
+    {
+      slug: "story",
+      pluralSlug: "stories",
+      displayName: "스토리",
+      description: "프로젝트 이야기와 후기",
+      displayOrder: 2,
+    },
+    {
+      slug: "notice",
+      pluralSlug: "notices",
+      displayName: "공지",
+      description: "팀 공지사항",
+      displayOrder: 3,
+    },
+  ];
+
+  for (const contentType of contentTypes) {
+    const existing = await prisma.contentType.findUnique({
+      where: { slug: contentType.slug },
+    });
+
+    if (!existing) {
+      await prisma.contentType.create({ data: contentType });
+      console.log(`✅ 콘텐츠 타입 생성: ${contentType.displayName} (/${contentType.pluralSlug})`);
+    } else {
+      console.log(`ℹ️  콘텐츠 타입이 이미 존재합니다: ${contentType.displayName}`);
+    }
+  }
 }
 
 main()

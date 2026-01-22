@@ -48,7 +48,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-      <div className="container mx-auto px-4 h-14 flex items-center justify-between">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 md:px-8 h-14 flex items-center justify-between">
         <Link href="/" className="font-bold text-xl tracking-tight">
           studiobaton log
           <span className="text-sm text-muted-foreground pl-2 hidden md:inline">

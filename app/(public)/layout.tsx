@@ -51,7 +51,7 @@ export default async function PublicLayout({
       <MobileNav sections={menuSections} />
 
       <div className="flex-1">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-screen-2xl">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 md:px-8">
           <div className="flex flex-col lg:flex-row">
             {/* 좌측 사이드바 - lg 이상에서만 표시 (288px = w-72) */}
             <aside className="hidden lg:flex lg:w-72 lg:shrink-0 lg:mr-8">

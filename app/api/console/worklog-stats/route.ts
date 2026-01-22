@@ -1,10 +1,12 @@
 /**
- * 업무일지 캐시 통계 조회 API
- * 캐싱된 WorkLogDailyStats 데이터를 조회합니다.
+ * 업무일지 캐시 통계 조회 및 수동 집계 API
+ * GET: 캐싱된 WorkLogDailyStats 데이터를 조회합니다.
+ * POST: 통계를 수동으로 집계합니다 (콘솔 세션 인증 필요)
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getYearStats, getMonthStats, getCachedStats } from "@/lib/worklog-stats";
+import { getYearStats, getMonthStats, getCachedStats, aggregateRecentDays } from "@/lib/worklog-stats";
+import { getServerSession, hasTeamAccess } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, startOfWeek, endOfWeek } from "date-fns";
 
@@ -58,6 +60,45 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching worklog stats:", error);
     return NextResponse.json(
       { error: "통계 조회 중 오류가 발생했습니다." },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/console/worklog-stats
+ * 통계 수동 집계 (콘솔 세션 인증 필요)
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (!(await hasTeamAccess())) {
+      return NextResponse.json(
+        { error: "통계 집계 권한이 없습니다." },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const days = body.days || 30; // 기본 30일
+
+    const { totalProcessed, totalSkipped } = await aggregateRecentDays(days);
+
+    return NextResponse.json({
+      success: true,
+      daysAggregated: days,
+      totalProcessed,
+      totalSkipped,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Aggregate worklog stats error:", error);
+    return NextResponse.json(
+      { error: "업무일지 통계 집계 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }

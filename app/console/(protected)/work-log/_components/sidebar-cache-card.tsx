@@ -21,11 +21,10 @@ export function SidebarCacheCard({ memberId }: SidebarCacheCardProps) {
     setResult(null);
 
     try {
-      const res = await fetch("/api/cron/aggregate-worklog-stats", {
+      const res = await fetch("/api/console/worklog-stats", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CRON_SECRET || ""}`,
         },
         body: JSON.stringify({ days: 30 }),
       });

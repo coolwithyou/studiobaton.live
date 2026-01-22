@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { formatKST } from "@/lib/date-utils";
-import { Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Trash2, Zap } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,6 +99,7 @@ export default function PostEditPage({
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [quickSaving, setQuickSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
@@ -208,6 +209,49 @@ export default function PostEditPage({
       alert("저장 중 오류가 발생했습니다.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // 빠른 저장 (리다이렉트 없이 현재 페이지 유지)
+  const handleQuickSave = async () => {
+    if (!title.trim() || !content.trim()) {
+      alert("제목과 내용을 입력해주세요.");
+      return;
+    }
+
+    const finalCategory = category === CATEGORY_CUSTOM
+      ? customCategory
+      : category === CATEGORY_NONE
+        ? undefined
+        : category;
+
+    setQuickSaving(true);
+    try {
+      const res = await fetch(`/api/console/posts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          content,
+          summary,
+          slug,
+          category: finalCategory,
+          showInTimeline,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "저장 중 오류가 발생했습니다.");
+        return;
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error("Error quick saving:", error);
+      alert("저장 중 오류가 발생했습니다.");
+    } finally {
+      setQuickSaving(false);
     }
   };
 
@@ -449,10 +493,18 @@ export default function PostEditPage({
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Button variant="outline" onClick={handleCancel} disabled={saving || deleting}>
+              <Button variant="outline" onClick={handleCancel} disabled={saving || quickSaving || deleting}>
                 취소
               </Button>
-              <Button onClick={handlePublish} disabled={saving || deleting}>
+              <Button variant="outline" onClick={handleQuickSave} disabled={saving || quickSaving || deleting}>
+                {quickSaving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Zap className="mr-2 h-4 w-4" />
+                )}
+                빠른 저장
+              </Button>
+              <Button onClick={handlePublish} disabled={saving || quickSaving || deleting}>
                 {saving ? "발행 중..." : "발행하기"}
               </Button>
             </>
@@ -491,13 +543,21 @@ export default function PostEditPage({
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-              <Button variant="outline" onClick={handleUnpublish} disabled={saving || deleting}>
+              <Button variant="outline" onClick={handleUnpublish} disabled={saving || quickSaving || deleting}>
                 발행 취소
               </Button>
-              <Button variant="outline" onClick={handleCancel} disabled={saving || deleting}>
+              <Button variant="outline" onClick={handleCancel} disabled={saving || quickSaving || deleting}>
                 취소
               </Button>
-              <Button onClick={handleSave} disabled={saving || deleting}>
+              <Button variant="outline" onClick={handleQuickSave} disabled={saving || quickSaving || deleting}>
+                {quickSaving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Zap className="mr-2 h-4 w-4" />
+                )}
+                빠른 저장
+              </Button>
+              <Button onClick={handleSave} disabled={saving || quickSaving || deleting}>
                 {saving ? "저장 중..." : "저장하기"}
               </Button>
             </>
@@ -739,7 +799,7 @@ export default function PostEditPage({
               <MarkdownEditor
                 value={content}
                 onChange={(val) => setContent(val)}
-                minHeight={400}
+                minHeight={800}
               />
             </div>
           </div>

@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Save, Send, Trash2 } from "lucide-react";
+import { Loader2, Save, Send, Trash2, Zap } from "lucide-react";
 import { MarkdownGuideDialog } from "@/components/markdown/markdown-guide-dialog";
 
 const CATEGORY_NONE = "__none__";
@@ -81,6 +81,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
   );
 
   const [saving, setSaving] = useState(false);
+  const [quickSaving, setQuickSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [slugEdited, setSlugEdited] = useState(false);
 
@@ -170,6 +171,81 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
       alert("저장 중 오류가 발생했습니다.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  // 빠른 저장 (리다이렉트 없이 현재 페이지 유지)
+  const handleQuickSave = async () => {
+    if (!title.trim()) {
+      alert("제목을 입력해주세요.");
+      return;
+    }
+
+    if (!content.trim()) {
+      alert("내용을 입력해주세요.");
+      return;
+    }
+
+    if (!slug.trim()) {
+      alert("URL slug를 입력해주세요.");
+      return;
+    }
+
+    setQuickSaving(true);
+    try {
+      const finalCategory = category === CATEGORY_CUSTOM
+        ? customCategory
+        : category === CATEGORY_NONE
+          ? undefined
+          : category;
+
+      const endpoint = "/api/console/posts/manual";
+      const method = isEditMode ? "PUT" : "POST";
+      const body = isEditMode
+        ? {
+            id: post!.id,
+            title: title.trim(),
+            content: content.trim(),
+            summary: summary.trim() || undefined,
+            slug: slug.trim(),
+            category: finalCategory || undefined,
+            status,
+            showInTimeline,
+          }
+        : {
+            title: title.trim(),
+            content: content.trim(),
+            summary: summary.trim() || undefined,
+            slug: slug.trim(),
+            category: finalCategory || undefined,
+            status,
+            showInTimeline,
+          };
+
+      const response = await fetch(endpoint, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || "저장 중 오류가 발생했습니다.");
+        return;
+      }
+
+      // 새 글 작성 모드인 경우 수정 페이지로 이동
+      if (!isEditMode && data.id) {
+        router.replace(`/console/posts/${data.id}/edit`);
+      }
+
+      router.refresh();
+    } catch (error) {
+      console.error("Quick save error:", error);
+      alert("저장 중 오류가 발생했습니다.");
+    } finally {
+      setQuickSaving(false);
     }
   };
 
@@ -338,7 +414,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
           value={content}
           onChange={setContent}
           placeholder="마크다운으로 내용을 작성하세요..."
-          minHeight={500}
+          minHeight={1000}
         />
       </div>
 
@@ -377,14 +453,26 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
           <Button
             variant="outline"
             onClick={() => router.back()}
-            disabled={saving}
+            disabled={saving || quickSaving}
           >
             취소
           </Button>
           <Button
             variant="outline"
+            onClick={handleQuickSave}
+            disabled={saving || quickSaving}
+          >
+            {quickSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Zap className="h-4 w-4" />
+            )}
+            <span className="ml-2">빠른 저장</span>
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => handleSubmit("DRAFT")}
-            disabled={saving}
+            disabled={saving || quickSaving}
           >
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -393,7 +481,7 @@ export function ManualPostForm({ post, categories = [] }: ManualPostFormProps) {
             )}
             <span className="ml-2">초안 저장</span>
           </Button>
-          <Button onClick={() => handleSubmit("PUBLISHED")} disabled={saving}>
+          <Button onClick={() => handleSubmit("PUBLISHED")} disabled={saving || quickSaving}>
             {saving ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (

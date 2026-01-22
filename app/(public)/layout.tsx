@@ -14,7 +14,7 @@ export default async function PublicLayout({
   const menuSections = await getSideMenuSections();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col dark">
       <Header />
 
       {/* 모바일 네비게이션 (lg 미만) */}

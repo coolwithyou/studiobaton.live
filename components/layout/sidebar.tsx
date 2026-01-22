@@ -97,6 +97,25 @@ function getItemLink(item: SideMenuSection["items"][0]): string {
 }
 
 /**
+ * 메뉴 아이템의 activePattern 결정
+ * DB에 설정된 값이 있으면 사용, 없으면 POST_CATEGORY일 때 자동 생성
+ */
+function getItemActivePattern(item: SideMenuSection["items"][0]): string | null {
+  // DB에 명시적으로 설정된 activePattern이 있으면 우선 사용
+  if (item.activePattern) {
+    return item.activePattern;
+  }
+
+  // POST_CATEGORY이고 contentType이 있으면 자동 생성
+  if (item.linkType === "POST_CATEGORY" && item.contentType?.pluralSlug) {
+    // ^/logs 형태로 생성하여 /logs, /logs/xxx 모두 매칭
+    return `^/${item.contentType.pluralSlug}`;
+  }
+
+  return null;
+}
+
+/**
  * 24시간 이내 새 게시물이 있는 ContentType ID 목록 조회
  */
 async function getContentTypesWithNewPosts(
@@ -157,7 +176,7 @@ export async function Sidebar({ className }: SidebarProps) {
       title: item.title,
       href: getItemLink(item),
       isExternal: item.linkType === "EXTERNAL",
-      activePattern: item.activePattern,
+      activePattern: getItemActivePattern(item),
       hasNewPosts:
         item.linkType === "POST_CATEGORY" &&
         item.contentTypeId !== null &&
@@ -196,7 +215,7 @@ export async function getSideMenuSections(): Promise<MenuSection[]> {
       title: item.title,
       href: getItemLink(item),
       isExternal: item.linkType === "EXTERNAL",
-      activePattern: item.activePattern,
+      activePattern: getItemActivePattern(item),
       hasNewPosts:
         item.linkType === "POST_CATEGORY" &&
         item.contentTypeId !== null &&

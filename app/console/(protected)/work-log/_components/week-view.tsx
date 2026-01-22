@@ -376,16 +376,16 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                     )}
                   </button>
 
-                  {/* 일별 상세 */}
+                  {/* 일별 상세 - 2열 레이아웃 */}
                   {isExpanded && hasData && (
                     <div className="px-3 pb-3 border-t">
-                      <div className="pt-3 space-y-3">
-                        {/* 할 일 목록 */}
-                        {tasks.length > 0 && (
-                          <div className="space-y-2">
-                            <h4 className="text-xs font-medium text-muted-foreground uppercase">
-                              할 일
-                            </h4>
+                      <div className="pt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 좌측: 할 일 목록 */}
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-medium text-muted-foreground uppercase">
+                            할 일 {tasks.length > 0 && `(${tasks.filter(t => t.isCompleted).length}/${tasks.length})`}
+                          </h4>
+                          {tasks.length > 0 ? (
                             <div className="space-y-1">
                               {tasks.map((task) => {
                                 const isCarriedOver = day.standup?.carriedOverTasks?.some(
@@ -425,14 +425,18 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                                 );
                               })}
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <p className="text-xs text-muted-foreground py-2">
+                              등록된 할 일 없음
+                            </p>
+                          )}
+                        </div>
 
-                        {/* 커밋 목록 */}
-                        {day.commits.summary.totalCommits > 0 && (
-                          <div className="space-y-2">
-                            <h4 className="text-xs font-medium text-muted-foreground uppercase flex items-center justify-between">
-                              <span>커밋</span>
+                        {/* 우측: 커밋 목록 */}
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-medium text-muted-foreground uppercase flex items-center justify-between">
+                            <span>커밋 {day.commits.summary.totalCommits > 0 && `(${day.commits.summary.totalCommits})`}</span>
+                            {day.commits.summary.totalCommits > 0 && (
                               <span>
                                 <span className="text-green-600">
                                   +{day.commits.summary.totalAdditions}
@@ -442,7 +446,9 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                                   -{day.commits.summary.totalDeletions}
                                 </span>
                               </span>
-                            </h4>
+                            )}
+                          </h4>
+                          {day.commits.summary.totalCommits > 0 ? (
                             <div className="space-y-2">
                               {day.commits.repositories.map((repo) => (
                                 <div key={repo.name} className="space-y-1">
@@ -450,7 +456,7 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                                     {repo.displayName || repo.name}
                                   </p>
                                   <div className="pl-2 border-l-2 border-muted space-y-0.5">
-                                    {repo.commits.slice(0, 3).map((commit) => (
+                                    {repo.commits.map((commit) => (
                                       <a
                                         key={commit.sha}
                                         href={commit.url}
@@ -464,17 +470,16 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                                         {commit.message.split("\n")[0]}
                                       </a>
                                     ))}
-                                    {repo.commits.length > 3 && (
-                                      <p className="text-xs text-muted-foreground">
-                                        외 {repo.commits.length - 3}개
-                                      </p>
-                                    )}
                                   </div>
                                 </div>
                               ))}
                             </div>
-                          </div>
-                        )}
+                          ) : (
+                            <p className="text-xs text-muted-foreground py-2">
+                              커밋 없음
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

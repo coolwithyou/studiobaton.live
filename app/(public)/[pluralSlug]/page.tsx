@@ -9,6 +9,7 @@ import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
 import { ContentGrid } from "@/components/layout/content-grid";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
+import { getContentTypeByPluralSlug } from "@/lib/actions/content-types";
 import { Prisma } from "@/app/generated/prisma";
 
 // 동적 렌더링 강제
@@ -25,19 +26,38 @@ const RESERVED_ROUTES = [
   "console",
 ];
 
-interface CustomSlugPageProps {
+interface PluralSlugPageProps {
   params: Promise<{
-    customSlug: string;
+    pluralSlug: string;
   }>;
 }
 
-async function getMenuItemBySlug(slug: string) {
+type PageSource =
+  | { type: "contentType"; data: { id: string; displayName: string; description: string | null; pluralSlug: string } }
+  | { type: "menuItem"; data: { id: string; title: string; postCategory: string } };
+
+async function getPageSource(slug: string): Promise<PageSource | null> {
   // 예약된 경로 체크
   if (RESERVED_ROUTES.includes(slug)) {
     return null;
   }
 
-  return prisma.sideMenuItem.findFirst({
+  // 1. ContentType 먼저 확인
+  const contentType = await getContentTypeByPluralSlug(slug);
+  if (contentType && contentType.isActive) {
+    return {
+      type: "contentType",
+      data: {
+        id: contentType.id,
+        displayName: contentType.displayName,
+        description: contentType.description,
+        pluralSlug: contentType.pluralSlug,
+      },
+    };
+  }
+
+  // 2. 기존 SideMenuItem customSlug 확인 (하위 호환)
+  const menuItem = await prisma.sideMenuItem.findFirst({
     where: {
       customSlug: slug,
       isActive: true,
@@ -49,34 +69,62 @@ async function getMenuItemBySlug(slug: string) {
       postCategory: true,
     },
   });
+
+  if (menuItem && menuItem.postCategory) {
+    return {
+      type: "menuItem",
+      data: {
+        id: menuItem.id,
+        title: menuItem.title,
+        postCategory: menuItem.postCategory,
+      },
+    };
+  }
+
+  return null;
 }
 
 export async function generateMetadata({
   params,
-}: CustomSlugPageProps): Promise<Metadata> {
-  const { customSlug } = await params;
+}: PluralSlugPageProps): Promise<Metadata> {
+  const { pluralSlug } = await params;
 
-  const menuItem = await getMenuItemBySlug(customSlug);
+  const source = await getPageSource(pluralSlug);
 
-  if (!menuItem) {
+  if (!source) {
     return { title: "페이지를 찾을 수 없습니다" };
   }
 
+  const title = source.type === "contentType"
+    ? source.data.displayName
+    : source.data.title;
+
+  const description = source.type === "contentType" && source.data.description
+    ? source.data.description
+    : `${title} 카테고리의 포스트 목록입니다.`;
+
   return {
-    title: `${menuItem.title} - ${SITE_NAME}`,
-    description: `${menuItem.title} 카테고리의 포스트 목록입니다.`,
+    title: `${title} - ${SITE_NAME}`,
+    description,
     alternates: {
-      canonical: `${SITE_URL}/${customSlug}`,
+      canonical: `${SITE_URL}/${pluralSlug}`,
     },
   };
 }
 
-async function PostList({ category, title }: { category: string; title: string }) {
+async function PostList({
+  source,
+}: {
+  source: PageSource;
+}) {
   const isAuthenticated = await hasUnmaskPermission();
 
+  // 쿼리 조건 구성
   const where: Prisma.PostWhereInput = {
     status: "PUBLISHED",
-    category,
+    ...(source.type === "contentType"
+      ? { contentTypeId: source.data.id }
+      : { category: source.data.postCategory }),
   };
 
   const posts = await prisma.post.findMany({
@@ -101,6 +149,10 @@ async function PostList({ category, title }: { category: string; title: string }
       },
     },
   });
+
+  const title = source.type === "contentType"
+    ? source.data.displayName
+    : source.data.title;
 
   if (posts.length === 0) {
     return (
@@ -162,25 +214,31 @@ async function PostList({ category, title }: { category: string; title: string }
   );
 }
 
-export default async function CustomSlugPage({ params }: CustomSlugPageProps) {
-  const { customSlug } = await params;
+export default async function PluralSlugPage({ params }: PluralSlugPageProps) {
+  const { pluralSlug } = await params;
 
-  const menuItem = await getMenuItemBySlug(customSlug);
+  const source = await getPageSource(pluralSlug);
 
-  if (!menuItem || !menuItem.postCategory) {
+  if (!source) {
     notFound();
   }
+
+  const title = source.type === "contentType"
+    ? source.data.displayName
+    : source.data.title;
+
+  const description = source.type === "contentType" && source.data.description
+    ? source.data.description
+    : `${title} 카테고리의 포스트 목록`;
 
   return (
     <ContentGrid>
       <div className="pb-4 border-b mb-4">
-        <h1 className="text-2xl font-bold">{menuItem.title}</h1>
-        <p className="text-muted-foreground mt-1">
-          {menuItem.title} 카테고리의 포스트 목록
-        </p>
+        <h1 className="text-2xl font-bold">{title}</h1>
+        <p className="text-muted-foreground mt-1">{description}</p>
       </div>
       <Suspense fallback={<TimelineSkeleton />}>
-        <PostList category={menuItem.postCategory} title={menuItem.title} />
+        <PostList source={source} />
       </Suspense>
     </ContentGrid>
   );

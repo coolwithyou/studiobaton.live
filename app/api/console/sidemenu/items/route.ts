@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       linkType,
       internalPath,
       externalUrl,
+      contentTypeId,
       postCategory,
       customSlug,
       activePattern,
@@ -57,6 +58,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // contentTypeId 사용 시 존재 확인
+    if (contentTypeId) {
+      const contentType = await prisma.contentType.findUnique({
+        where: { id: contentTypeId },
+      });
+      if (!contentType) {
+        return NextResponse.json(
+          { error: "콘텐츠 타입을 찾을 수 없습니다." },
+          { status: 404 }
+        );
+      }
+    }
+
     const item = await prisma.sideMenuItem.create({
       data: {
         sectionId,
@@ -66,8 +80,10 @@ export async function POST(request: NextRequest) {
         linkType,
         internalPath: linkType === "INTERNAL" ? internalPath : null,
         externalUrl: linkType === "EXTERNAL" ? externalUrl : null,
-        postCategory: linkType === "POST_CATEGORY" ? postCategory : null,
-        customSlug: linkType === "POST_CATEGORY" ? customSlug : null,
+        // contentTypeId가 있으면 사용, 없으면 기존 postCategory/customSlug 사용 (하위 호환)
+        contentTypeId: linkType === "POST_CATEGORY" ? contentTypeId : null,
+        postCategory: linkType === "POST_CATEGORY" && !contentTypeId ? postCategory : null,
+        customSlug: linkType === "POST_CATEGORY" && !contentTypeId ? customSlug : null,
         activePattern: linkType === "INTERNAL" ? activePattern : null,
       },
     });
@@ -134,6 +150,19 @@ export async function PUT(request: NextRequest) {
       }
     }
 
+    // contentTypeId 사용 시 존재 확인
+    if (updateData.contentTypeId) {
+      const contentType = await prisma.contentType.findUnique({
+        where: { id: updateData.contentTypeId },
+      });
+      if (!contentType) {
+        return NextResponse.json(
+          { error: "콘텐츠 타입을 찾을 수 없습니다." },
+          { status: 404 }
+        );
+      }
+    }
+
     // linkType 변경 시 관련 필드 초기화
     const finalUpdateData: Record<string, unknown> = { ...updateData };
     if (updateData.linkType) {
@@ -145,9 +174,16 @@ export async function PUT(request: NextRequest) {
         finalUpdateData.externalUrl = null;
       }
       if (updateData.linkType !== "POST_CATEGORY") {
+        finalUpdateData.contentTypeId = null;
         finalUpdateData.postCategory = null;
         finalUpdateData.customSlug = null;
       }
+    }
+
+    // contentTypeId 사용 시 deprecated 필드 초기화
+    if (updateData.contentTypeId) {
+      finalUpdateData.postCategory = null;
+      finalUpdateData.customSlug = null;
     }
 
     const item = await prisma.sideMenuItem.update({

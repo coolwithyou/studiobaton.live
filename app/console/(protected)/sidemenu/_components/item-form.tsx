@@ -28,6 +28,13 @@ interface Section {
   title: string;
 }
 
+interface ContentType {
+  id: string;
+  slug: string;
+  pluralSlug: string;
+  displayName: string;
+}
+
 interface Item {
   id: string;
   sectionId: string;
@@ -37,6 +44,7 @@ interface Item {
   linkType: LinkType;
   internalPath: string | null;
   externalUrl: string | null;
+  contentTypeId: string | null;
   postCategory: string | null;
   customSlug: string | null;
   activePattern: string | null;
@@ -75,11 +83,33 @@ export function ItemForm({
   const [linkType, setLinkType] = useState<LinkType>("INTERNAL");
   const [internalPath, setInternalPath] = useState("");
   const [externalUrl, setExternalUrl] = useState("");
-  const [postCategory, setPostCategory] = useState("");
-  const [customCategory, setCustomCategory] = useState("");
-  const [customSlug, setCustomSlug] = useState("");
+  const [contentTypeId, setContentTypeId] = useState("");
   const [activePattern, setActivePattern] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // ContentType 목록
+  const [contentTypes, setContentTypes] = useState<ContentType[]>([]);
+  const [loadingContentTypes, setLoadingContentTypes] = useState(false);
+
+  // ContentType 목록 로드
+  useEffect(() => {
+    if (open && linkType === "POST_CATEGORY") {
+      setLoadingContentTypes(true);
+      fetch("/api/console/content-types")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.contentTypes) {
+            setContentTypes(data.contentTypes);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to load content types:", error);
+        })
+        .finally(() => {
+          setLoadingContentTypes(false);
+        });
+    }
+  }, [open, linkType]);
 
   // item 또는 open이 변경될 때 폼 필드 동기화
   useEffect(() => {
@@ -90,9 +120,7 @@ export function ItemForm({
       setLinkType(item?.linkType || "INTERNAL");
       setInternalPath(item?.internalPath || "");
       setExternalUrl(item?.externalUrl || "");
-      setPostCategory(item?.postCategory || "");
-      setCustomCategory("");
-      setCustomSlug(item?.customSlug || "");
+      setContentTypeId(item?.contentTypeId || "");
       setActivePattern(item?.activePattern || "");
     }
   }, [open, item, defaultSectionId]);
@@ -121,10 +149,8 @@ export function ItemForm({
       return;
     }
 
-    const finalCategory =
-      postCategory === "__custom__" ? customCategory : postCategory;
-    if (linkType === "POST_CATEGORY" && !finalCategory.trim()) {
-      alert("포스트 카테고리를 입력해주세요.");
+    if (linkType === "POST_CATEGORY" && !contentTypeId) {
+      alert("콘텐츠 타입을 선택해주세요.");
       return;
     }
 
@@ -142,12 +168,7 @@ export function ItemForm({
             linkType,
             internalPath: linkType === "INTERNAL" ? internalPath.trim() : null,
             externalUrl: linkType === "EXTERNAL" ? externalUrl.trim() : null,
-            postCategory:
-              linkType === "POST_CATEGORY" ? finalCategory.trim() : null,
-            customSlug:
-              linkType === "POST_CATEGORY" && customSlug.trim()
-                ? customSlug.trim()
-                : null,
+            contentTypeId: linkType === "POST_CATEGORY" ? contentTypeId : null,
             activePattern:
               linkType === "INTERNAL" && activePattern.trim()
                 ? activePattern.trim()
@@ -160,12 +181,7 @@ export function ItemForm({
             linkType,
             internalPath: linkType === "INTERNAL" ? internalPath.trim() : undefined,
             externalUrl: linkType === "EXTERNAL" ? externalUrl.trim() : undefined,
-            postCategory:
-              linkType === "POST_CATEGORY" ? finalCategory.trim() : undefined,
-            customSlug:
-              linkType === "POST_CATEGORY" && customSlug.trim()
-                ? customSlug.trim()
-                : undefined,
+            contentTypeId: linkType === "POST_CATEGORY" ? contentTypeId : undefined,
             activePattern:
               linkType === "INTERNAL" && activePattern.trim()
                 ? activePattern.trim()
@@ -299,49 +315,29 @@ export function ItemForm({
             )}
 
             {linkType === "POST_CATEGORY" && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="postCategory">포스트 카테고리</Label>
-                  <div className="flex gap-2">
-                    <Select value={postCategory} onValueChange={setPostCategory}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="카테고리 선택" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                        <SelectItem value="__custom__">+ 새 카테고리</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {postCategory === "__custom__" && (
-                      <Input
-                        value={customCategory}
-                        onChange={(e) => setCustomCategory(e.target.value)}
-                        placeholder="새 카테고리"
-                        className="flex-1"
-                      />
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    해당 카테고리의 포스트 목록 페이지로 연결됩니다.
+              <div className="space-y-2">
+                <Label htmlFor="contentTypeId">콘텐츠 타입</Label>
+                <Select value={contentTypeId} onValueChange={setContentTypeId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={loadingContentTypes ? "로딩 중..." : "콘텐츠 타입 선택"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contentTypes.map((ct) => (
+                      <SelectItem key={ct.id} value={ct.id}>
+                        {ct.displayName} (/{ct.pluralSlug})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {contentTypes.length === 0 && !loadingContentTypes && (
+                  <p className="text-xs text-amber-600">
+                    등록된 콘텐츠 타입이 없습니다. 먼저 콘텐츠 타입을 추가해주세요.
                   </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="customSlug">커스텀 URL 슬러그 (선택)</Label>
-                  <Input
-                    id="customSlug"
-                    value={customSlug}
-                    onChange={(e) => setCustomSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                    placeholder="stories"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    입력하면 /{customSlug || "stories"}로 접근 가능. 비워두면 기존 /posts?category=... 방식 사용
-                  </p>
-                </div>
-              </>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  선택한 콘텐츠 타입의 포스트 목록 페이지로 연결됩니다.
+                </p>
+              </div>
             )}
 
             <div className="flex items-center space-x-2">

@@ -39,6 +39,7 @@ interface Item {
   linkType: LinkType;
   internalPath: string | null;
   externalUrl: string | null;
+  contentTypeId: string | null;
   postCategory: string | null;
   customSlug: string | null;
   activePattern: string | null;

@@ -306,6 +306,9 @@ export const sideMenuItemCreateSchema = z.object({
   linkType: linkTypeSchema.default("INTERNAL"),
   internalPath: z.string().max(200).optional(),
   externalUrl: z.string().url("유효한 URL을 입력해주세요.").optional(),
+  // 콘텐츠 타입 연결 (POST_CATEGORY용 - 권장)
+  contentTypeId: z.string().cuid("유효한 콘텐츠 타입 ID를 선택해주세요.").optional(),
+  // @deprecated: contentTypeId 사용 권장, 하위 호환성을 위해 유지
   postCategory: z.string().max(50).optional(),
   customSlug: z.string()
     .max(50, "슬러그는 50자 이내여야 합니다.")
@@ -324,7 +327,8 @@ export const sideMenuItemCreateSchema = z.object({
     if (data.linkType === "EXTERNAL" && !data.externalUrl) {
       return false;
     }
-    if (data.linkType === "POST_CATEGORY" && !data.postCategory) {
+    // POST_CATEGORY: contentTypeId 또는 postCategory 중 하나 필요
+    if (data.linkType === "POST_CATEGORY" && !data.contentTypeId && !data.postCategory) {
       return false;
     }
     return true;
@@ -343,6 +347,9 @@ export const sideMenuItemUpdateSchema = z.object({
   linkType: linkTypeSchema.optional(),
   internalPath: z.string().max(200).nullable().optional(),
   externalUrl: z.string().url().nullable().optional(),
+  // 콘텐츠 타입 연결 (POST_CATEGORY용 - 권장)
+  contentTypeId: z.string().cuid().nullable().optional(),
+  // @deprecated: contentTypeId 사용 권장, 하위 호환성을 위해 유지
   postCategory: z.string().max(50).nullable().optional(),
   customSlug: z.string()
     .max(50)
@@ -360,6 +367,36 @@ export const reorderSchema = z.object({
     id: z.string().cuid(),
     displayOrder: z.number().int().min(0),
   })),
+});
+
+/**
+ * 콘텐츠 타입 관련 스키마
+ */
+// 예약된 URL 슬러그 (pluralSlug로 사용 불가)
+const RESERVED_URL_SLUGS = [
+  "posts", "post", "log", "members", "member", "api", "console",
+  "auth", "login", "logout", "admin", "static", "_next",
+];
+
+export const contentTypeSlugSchema = z.string()
+  .min(1, "슬러그를 입력해주세요.")
+  .max(50, "슬러그는 50자 이내여야 합니다.")
+  .regex(/^[a-z0-9-]+$/, "영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.");
+
+export const contentTypeCreateSchema = z.object({
+  slug: contentTypeSlugSchema,
+  pluralSlug: contentTypeSlugSchema
+    .refine((val) => !RESERVED_URL_SLUGS.includes(val), {
+      message: "예약된 경로는 사용할 수 없습니다.",
+    }),
+  displayName: z.string().min(1, "표시명을 입력해주세요.").max(50),
+  description: z.string().max(200).nullable().optional(),
+  displayOrder: z.number().int().min(0).default(0),
+  isActive: z.boolean().default(true),
+});
+
+export const contentTypeUpdateSchema = contentTypeCreateSchema.partial().extend({
+  id: z.string().cuid(),
 });
 
 /**

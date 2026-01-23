@@ -76,6 +76,16 @@ export function useHighlightComments(
   const clickListenersRef = useRef<Map<Range, () => void>>(new Map());
   const [hoveredComment, setHoveredComment] = useState<HoveredComment | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // 마운트 후 DOM이 준비되면 하이라이트 적용
+  useEffect(() => {
+    // 약간의 딜레이로 hydration 완료 대기
+    const timer = requestAnimationFrame(() => {
+      setIsMounted(true);
+    });
+    return () => cancelAnimationFrame(timer);
+  }, []);
 
   // 좌표가 rect 내에 있는지 확인
   const isPointInRect = (x: number, y: number, rect: DOMRect): boolean => {
@@ -163,7 +173,8 @@ export function useHighlightComments(
 
   // 하이라이트 업데이트
   useEffect(() => {
-    if (!contentRef.current) return;
+    // 마운트 전이거나 contentRef가 없으면 스킵
+    if (!isMounted || !contentRef.current) return;
 
     // CSS Custom Highlight API 지원 확인
     if (typeof CSS === "undefined" || !("highlights" in CSS)) {
@@ -208,7 +219,7 @@ export function useHighlightComments(
       CSS.highlights.delete("comment");
       CSS.highlights.delete("comment-active");
     };
-  }, [comments, contentRef, activeCommentId]);
+  }, [comments, contentRef, activeCommentId, isMounted]);
 
   // 클릭 및 마우스 이벤트 리스너
   useEffect(() => {

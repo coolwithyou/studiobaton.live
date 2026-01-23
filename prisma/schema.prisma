@@ -44,6 +44,9 @@ model Admin {
   publishedPosts Post[]    @relation("PostPublisher")
   accounts       Account[]
   sessions       Session[]
+
+  // 인라인 댓글 관계
+  comments PostComment[] @relation("CommentAuthor")
 }
 
 model CommitLog {
@@ -121,6 +124,9 @@ model Post {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // 인라인 댓글 관계
+  comments PostComment[]
 
   @@index([targetDate])
   @@index([status])
@@ -509,4 +515,32 @@ model SideMenuItem {
 
   @@index([sectionId])
   @@index([displayOrder])
+}
+
+// 포스트 인라인 댓글 (마진 노트 스타일)
+model PostComment {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  // 작성자 (TEAM_MEMBER 이상)
+  authorId String
+  author   Admin  @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // 텍스트 선택 위치 (XPath 기반)
+  startXPath   String // 시작 노드의 XPath
+  startOffset  Int // 시작 텍스트 오프셋
+  endXPath     String // 끝 노드의 XPath
+  endOffset    Int // 끝 텍스트 오프셋
+  selectedText String // 선택된 텍스트 백업 (XPath 복원 실패 시 폴백)
+
+  // 댓글 내용
+  content String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([createdAt])
 }

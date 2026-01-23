@@ -39,6 +39,14 @@ import { AVAILABLE_MODELS, AIModel, DEFAULT_MODEL, estimateCost, formatCost } fr
 
 const CATEGORY_NONE = "__none__";
 const CATEGORY_CUSTOM = "__custom__";
+const CONTENT_TYPE_NONE = "__none__";
+
+interface ContentTypeOption {
+  id: string;
+  slug: string;
+  pluralSlug: string;
+  displayName: string;
+}
 
 interface PostVersion {
   id: string;
@@ -121,10 +129,13 @@ export default function PostEditPage({
   const [showInTimeline, setShowInTimeline] = useState(false);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
+  const [contentTypes, setContentTypes] = useState<ContentTypeOption[]>([]);
+  const [contentTypeId, setContentTypeId] = useState<string>(CONTENT_TYPE_NONE);
 
   useEffect(() => {
     fetchPost();
     fetchCategories();
+    fetchContentTypes();
   }, [id]);
 
   const fetchCategories = async () => {
@@ -139,6 +150,18 @@ export default function PostEditPage({
     }
   };
 
+  const fetchContentTypes = async () => {
+    try {
+      const res = await fetch("/api/console/content-types");
+      if (res.ok) {
+        const data = await res.json();
+        setContentTypes(data.contentTypes || []);
+      }
+    } catch (error) {
+      console.error("Error fetching content types:", error);
+    }
+  };
+
   const fetchPost = async () => {
     try {
       const res = await fetch(`/api/console/posts/${id}`);
@@ -148,6 +171,7 @@ export default function PostEditPage({
 
       // 기본값 설정
       setThumbnailUrl(data.thumbnailUrl || null);
+      setContentTypeId(data.contentTypeId || CONTENT_TYPE_NONE);
       if (data.status === "PUBLISHED") {
         setTitle(data.title || "");
         setContent(data.content || "");
@@ -193,6 +217,7 @@ export default function PostEditPage({
       : category === CATEGORY_NONE
         ? undefined
         : category;
+    const finalContentTypeId = contentTypeId === CONTENT_TYPE_NONE ? null : contentTypeId;
 
     setSaving(true);
     try {
@@ -205,6 +230,7 @@ export default function PostEditPage({
           summary,
           slug,
           category: finalCategory,
+          contentTypeId: finalContentTypeId,
           showInTimeline,
         }),
       });
@@ -233,6 +259,7 @@ export default function PostEditPage({
       : category === CATEGORY_NONE
         ? undefined
         : category;
+    const finalContentTypeId = contentTypeId === CONTENT_TYPE_NONE ? null : contentTypeId;
 
     setQuickSaving(true);
     try {
@@ -245,6 +272,7 @@ export default function PostEditPage({
           summary,
           slug,
           category: finalCategory,
+          contentTypeId: finalContentTypeId,
           showInTimeline,
         }),
       });
@@ -275,6 +303,7 @@ export default function PostEditPage({
       : category === CATEGORY_NONE
         ? undefined
         : category;
+    const finalContentTypeId = contentTypeId === CONTENT_TYPE_NONE ? null : contentTypeId;
 
     setSaving(true);
     try {
@@ -287,6 +316,7 @@ export default function PostEditPage({
           summary,
           slug,
           category: finalCategory,
+          contentTypeId: finalContentTypeId,
           showInTimeline,
           action: "publish",
           versionId: selectedVersionId,
@@ -707,13 +737,16 @@ export default function PostEditPage({
                 <Label htmlFor="slug">URL Slug</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground whitespace-nowrap">
-                    {post.type === "COMMIT_BASED"
-                      ? "/log/"
-                      : post.contentType?.pluralSlug
-                        ? `/${post.contentType.pluralSlug}/`
-                        : post.contentType?.slug
-                          ? `/${post.contentType.slug}/`
-                          : "/post/"}
+                    {(() => {
+                      const selectedCt = contentTypes.find(ct => ct.id === contentTypeId);
+                      if (selectedCt?.pluralSlug) {
+                        return `/${selectedCt.pluralSlug}/`;
+                      }
+                      if (post.type === "COMMIT_BASED") {
+                        return "/log/";
+                      }
+                      return "/post/";
+                    })()}
                   </span>
                   <Input
                     id="slug"
@@ -767,6 +800,29 @@ export default function PostEditPage({
                   사이드 메뉴와 연동하여 카테고리별로 분류합니다.
                 </p>
               </div>
+            </div>
+
+            {/* 콘텐츠 타입 */}
+            <div className="space-y-2">
+              <Label>콘텐츠 타입</Label>
+              <Select value={contentTypeId} onValueChange={setContentTypeId}>
+                <SelectTrigger className="w-full max-w-xs">
+                  <SelectValue placeholder="콘텐츠 타입 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={CONTENT_TYPE_NONE}>없음</SelectItem>
+                  {contentTypes.map((ct) => (
+                    <SelectItem key={ct.id} value={ct.id}>
+                      {ct.displayName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {contentTypeId !== CONTENT_TYPE_NONE
+                  ? `"${contentTypes.find(ct => ct.id === contentTypeId)?.displayName}" 목록(/${contentTypes.find(ct => ct.id === contentTypeId)?.pluralSlug}/)에 표시됩니다.`
+                  : "선택하지 않으면 /log/ 경로에 표시됩니다."}
+              </p>
             </div>
 
             {/* 썸네일 이미지 */}

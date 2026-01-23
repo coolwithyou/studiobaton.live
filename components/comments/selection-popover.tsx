@@ -26,13 +26,17 @@ export function SelectionPopover({
 }: SelectionPopoverProps) {
   const [showForm, setShowForm] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
+  // 폼이 열릴 때의 selection을 저장 (브라우저가 선택 해제해도 유지)
+  const savedSelectionRef = useRef<SelectionPopoverProps["selection"]>(null);
 
-  // 선택이 바뀌면 폼 닫기
+  // 폼이 열려있지 않을 때만 selection 변경에 반응
   useEffect(() => {
+    if (showForm) return; // 폼이 열려있을 때는 selection 변경 무시
     if (!selection) {
       setShowForm(false);
+      savedSelectionRef.current = null;
     }
-  }, [selection]);
+  }, [selection, showForm]);
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -45,7 +49,9 @@ export function SelectionPopover({
       }
     };
 
-    if (selection) {
+    // 폼이 열려있거나 selection이 있을 때 외부 클릭 감지
+    const activeSelection = showForm ? savedSelectionRef.current : selection;
+    if (activeSelection) {
       // 약간의 딜레이 후 리스너 등록 (선택 완료 시점의 mouseup과 충돌 방지)
       const timer = setTimeout(() => {
         document.addEventListener("mousedown", handleClickOutside);
@@ -55,28 +61,36 @@ export function SelectionPopover({
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }
-  }, [selection, onCancel]);
+  }, [selection, showForm, onCancel]);
 
-  if (!selection) return null;
+  // 폼이 열려있으면 저장된 selection 사용, 아니면 props의 selection 사용
+  const activeSelection = showForm ? savedSelectionRef.current : selection;
 
-  // 팝오버 위치 계산
-  const left = selection.rect.left + selection.rect.width / 2;
+  if (!activeSelection) return null;
+
+  // 팝오버 위치 계산 (fixed 포지셔닝 = viewport 기준, getBoundingClientRect도 viewport 기준)
+  const left = activeSelection.rect.left + activeSelection.rect.width / 2;
   // 버튼: 선택 영역 위에 표시, 폼: 선택 영역 아래에 표시
   const top = showForm
-    ? selection.rect.bottom + window.scrollY + 8
-    : selection.rect.top + window.scrollY - 8;
+    ? activeSelection.rect.bottom + 8
+    : activeSelection.rect.top - 8;
 
   const handleAddClick = () => {
+    savedSelectionRef.current = selection;
     setShowForm(true);
   };
 
   const handleSubmit = (content: string) => {
-    onAddComment(content, selection.xpathRange);
+    if (activeSelection) {
+      onAddComment(content, activeSelection.xpathRange);
+    }
     setShowForm(false);
+    savedSelectionRef.current = null;
   };
 
   const handleCancel = () => {
     setShowForm(false);
+    savedSelectionRef.current = null;
     onCancel();
   };
 
@@ -99,7 +113,7 @@ export function SelectionPopover({
     >
       {showForm ? (
         <CommentForm
-          selectedText={selection.text}
+          selectedText={activeSelection.text}
           isSubmitting={isCreating}
           onSubmit={handleSubmit}
           onCancel={handleCancel}

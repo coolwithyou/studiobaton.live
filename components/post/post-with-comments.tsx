@@ -3,9 +3,8 @@
 import { useRef, useCallback, type ReactNode } from "react";
 import {
   CommentProvider,
-  CommentSidebar,
   SelectionPopover,
-  MobileCommentList,
+  CommentHoverPopover,
   useComments,
   type Comment,
 } from "@/components/comments";
@@ -61,16 +60,21 @@ function PostWithCommentsInner({
   children,
 }: PostWithCommentsInnerProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const { comments, activeCommentId, isCreating, setActiveCommentId, addComment } =
+  const { comments, activeCommentId, isCreating, setActiveCommentId, addComment, deleteComment } =
     useComments();
 
   // 텍스트 선택 훅 (댓글 작성 권한이 있을 때만 활성화)
   const { selection, clearSelection } = useTextSelection(contentRef, canComment);
 
-  // 하이라이트 훅
-  useHighlightComments(comments, contentRef, activeCommentId, (commentId) => {
-    setActiveCommentId(activeCommentId === commentId ? null : commentId);
-  });
+  // 하이라이트 훅 (호버 상태 포함)
+  const { hoveredComment, clearHover } = useHighlightComments(
+    comments,
+    contentRef,
+    activeCommentId,
+    (commentId) => {
+      setActiveCommentId(activeCommentId === commentId ? null : commentId);
+    }
+  );
 
   // 댓글 추가 핸들러
   const handleAddComment = useCallback(
@@ -84,33 +88,27 @@ function PostWithCommentsInner({
     [addComment, clearSelection]
   );
 
-  return (
-    <div className="flex gap-6">
-      {/* 메인 콘텐츠 영역 */}
-      <div className="flex-1 min-w-0 max-w-3xl">
-        {/* 마크다운 콘텐츠 (하이라이트 대상) */}
-        <div ref={contentRef} className="prose-container">
-          {children}
-        </div>
+  // 호버된 댓글 찾기
+  const hoveredCommentData = hoveredComment
+    ? comments.find((c) => c.id === hoveredComment.id) ?? null
+    : null;
 
-        {/* 모바일: 본문 아래 댓글 목록 */}
-        <MobileCommentList
-          currentUserId={currentUserId}
-          isAdmin={isAdmin}
-          className="xl:hidden mt-8"
-        />
+  return (
+    <div className="max-w-3xl">
+      {/* 마크다운 콘텐츠 (하이라이트 대상) */}
+      <div ref={contentRef} className="prose-container">
+        {children}
       </div>
 
-      {/* 데스크톱: 사이드바 (xl 이상) */}
-      <aside className="hidden xl:block w-72 shrink-0">
-        <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto">
-          <CommentSidebar
-            contentRef={contentRef}
-            currentUserId={currentUserId}
-            isAdmin={isAdmin}
-          />
-        </div>
-      </aside>
+      {/* 호버 팝오버 */}
+      <CommentHoverPopover
+        comment={hoveredCommentData}
+        position={hoveredComment?.position ?? null}
+        currentUserId={currentUserId}
+        isAdmin={isAdmin}
+        onClose={clearHover}
+        onDelete={deleteComment}
+      />
 
       {/* 텍스트 선택 팝오버 (댓글 작성 권한이 있을 때만) */}
       {canComment && (

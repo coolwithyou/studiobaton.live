@@ -1,26 +1,37 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { restoreCommentRange, type XPathRange } from "@/lib/xpath";
 
 export interface CommentHighlight extends XPathRange {
   id: string;
 }
 
-// CSS Custom Highlight API 스타일 (동적 주입)
+export interface HoveredComment {
+  id: string;
+  position: { x: number; y: number };
+  comment: CommentHighlight;
+}
+
+// CSS Custom Highlight API 스타일 (동적 주입) - 밑줄 스타일
 const HIGHLIGHT_STYLES = `
 ::highlight(comment) {
-  background-color: rgba(255, 217, 112, 0.35);
+  text-decoration: underline wavy;
+  text-decoration-color: rgba(234, 179, 8, 0.6);
+  text-underline-offset: 3px;
   cursor: pointer;
 }
 ::highlight(comment-active) {
-  background-color: rgba(255, 217, 112, 0.6);
+  text-decoration: underline wavy;
+  text-decoration-color: rgba(234, 179, 8, 1);
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 .dark ::highlight(comment) {
-  background-color: rgba(255, 217, 112, 0.25);
+  text-decoration-color: rgba(250, 204, 21, 0.5);
 }
 .dark ::highlight(comment-active) {
-  background-color: rgba(255, 217, 112, 0.45);
+  text-decoration-color: rgba(250, 204, 21, 0.9);
 }
 `;
 
@@ -36,6 +47,21 @@ function injectHighlightStyles() {
   stylesInjected = true;
 }
 
+// 간단한 throttle 함수
+function throttle<T extends (...args: Parameters<T>) => void>(
+  fn: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let lastCall = 0;
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      fn(...args);
+    }
+  };
+}
+
 /**
  * CSS Custom Highlight API를 사용하여 댓글 위치 하이라이트
  * 브라우저 지원: Chrome 105+, Safari 17.2+, Firefox 140+
@@ -48,6 +74,13 @@ export function useHighlightComments(
 ) {
   const rangeMapRef = useRef<Map<string, Range>>(new Map());
   const clickListenersRef = useRef<Map<Range, () => void>>(new Map());
+  const [hoveredComment, setHoveredComment] = useState<HoveredComment | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 좌표가 rect 내에 있는지 확인
+  const isPointInRect = (x: number, y: number, rect: DOMRect): boolean => {
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+  };
 
   // 하이라이트 클릭 핸들러
   const handleHighlightClick = useCallback(
@@ -65,12 +98,7 @@ export function useHighlightComments(
       for (const [commentId, range] of rangeMapRef.current) {
         const rects = range.getClientRects();
         for (const rect of rects) {
-          if (
-            x >= rect.left &&
-            x <= rect.right &&
-            y >= rect.top &&
-            y <= rect.bottom
-          ) {
+          if (isPointInRect(x, y, rect)) {
             event.preventDefault();
             event.stopPropagation();
             onCommentClick(commentId);
@@ -81,6 +109,57 @@ export function useHighlightComments(
     },
     [contentRef, onCommentClick]
   );
+
+  // 호버 핸들러 (throttled)
+  const handleMouseMove = useCallback(
+    throttle((event: MouseEvent) => {
+      if (!contentRef.current) return;
+
+      const x = event.clientX;
+      const y = event.clientY;
+
+      // 하이라이트 영역 위에 있는지 확인
+      for (const [commentId, range] of rangeMapRef.current) {
+        const rects = range.getClientRects();
+        for (const rect of rects) {
+          if (isPointInRect(x, y, rect)) {
+            const comment = comments.find((c) => c.id === commentId);
+            if (comment) {
+              // 타임아웃 클리어
+              if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+                hoverTimeoutRef.current = null;
+              }
+              setHoveredComment({
+                id: commentId,
+                position: { x, y },
+                comment,
+              });
+            }
+            return;
+          }
+        }
+      }
+
+      // 하이라이트 영역 밖으로 나가면 딜레이 후 닫기
+      if (hoveredComment && !hoverTimeoutRef.current) {
+        hoverTimeoutRef.current = setTimeout(() => {
+          setHoveredComment(null);
+          hoverTimeoutRef.current = null;
+        }, 150);
+      }
+    }, 16), // 60fps
+    [contentRef, comments, hoveredComment]
+  );
+
+  // 호버 클리어 함수
+  const clearHover = useCallback(() => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredComment(null);
+  }, []);
 
   // 하이라이트 업데이트
   useEffect(() => {
@@ -131,17 +210,31 @@ export function useHighlightComments(
     };
   }, [comments, contentRef, activeCommentId]);
 
-  // 클릭 이벤트 리스너
+  // 클릭 및 마우스 이벤트 리스너
   useEffect(() => {
-    if (!contentRef.current || !onCommentClick) return;
+    if (!contentRef.current) return;
 
     const content = contentRef.current;
-    content.addEventListener("click", handleHighlightClick);
+
+    if (onCommentClick) {
+      content.addEventListener("click", handleHighlightClick);
+    }
+    content.addEventListener("mousemove", handleMouseMove);
+    content.addEventListener("mouseleave", clearHover);
 
     return () => {
-      content.removeEventListener("click", handleHighlightClick);
+      if (onCommentClick) {
+        content.removeEventListener("click", handleHighlightClick);
+      }
+      content.removeEventListener("mousemove", handleMouseMove);
+      content.removeEventListener("mouseleave", clearHover);
+
+      // 클린업 시 타임아웃 정리
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
     };
-  }, [contentRef, onCommentClick, handleHighlightClick]);
+  }, [contentRef, onCommentClick, handleHighlightClick, handleMouseMove, clearHover]);
 
   // 특정 댓글의 위치 반환 (사이드바 정렬용)
   const getCommentPosition = useCallback(
@@ -165,5 +258,5 @@ export function useHighlightComments(
     [contentRef]
   );
 
-  return { getCommentPosition };
+  return { getCommentPosition, hoveredComment, clearHover };
 }

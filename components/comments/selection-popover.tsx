@@ -80,6 +80,11 @@ export function SelectionPopover({
     onCancel();
   };
 
+  // 팝오버 내 클릭이 document로 전파되면 useTextSelection이 selection을 해제함
+  const stopPropagation = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <div
       ref={popoverRef}
@@ -89,6 +94,8 @@ export function SelectionPopover({
         "animate-in fade-in-0 zoom-in-95 duration-150"
       )}
       style={{ top, left }}
+      onMouseDown={stopPropagation}
+      onMouseUp={stopPropagation}
     >
       {showForm ? (
         <CommentForm

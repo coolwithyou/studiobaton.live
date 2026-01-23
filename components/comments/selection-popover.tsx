@@ -104,8 +104,7 @@ export function SelectionPopover({
       ref={popoverRef}
       className={cn(
         "fixed z-50 -translate-x-1/2",
-        !showForm && "-translate-y-full",
-        "animate-in fade-in-0 zoom-in-95 duration-150"
+        !showForm && "-translate-y-full"
       )}
       style={{ top, left }}
       onMouseDown={stopPropagation}

@@ -49,10 +49,13 @@ export function CommentForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn("rounded-lg border bg-card p-3 shadow-lg", className)}
+      className={cn(
+        "rounded-md border border-border/50 bg-background/95 backdrop-blur-sm p-2 shadow-sm",
+        className
+      )}
     >
       {/* 선택된 텍스트 표시 */}
-      <div className="mb-2 px-2 py-1 bg-yellow-100/50 dark:bg-yellow-900/20 rounded text-xs text-muted-foreground border-l-2 border-yellow-400 line-clamp-2">
+      <div className="mb-1.5 text-[11px] text-muted-foreground/70 line-clamp-1 italic">
         &ldquo;{selectedText}&rdquo;
       </div>
 
@@ -62,34 +65,32 @@ export function CommentForm({
         value={content}
         onChange={(e) => setContent(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="댓글을 입력하세요..."
-        className="min-h-[60px] resize-none text-sm"
+        placeholder="댓글 입력..."
+        className="min-h-[48px] resize-none text-sm border-0 bg-transparent p-0 focus-visible:ring-0 placeholder:text-muted-foreground/50"
         disabled={isSubmitting}
       />
 
       {/* 버튼 영역 */}
-      <div className="flex items-center justify-between mt-2">
-        <span className="text-[10px] text-muted-foreground">
-          ⌘ + Enter로 제출
-        </span>
-        <div className="flex gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            <X className="h-4 w-4" />
-          </Button>
-          <Button
-            type="submit"
-            size="sm"
-            disabled={!content.trim() || isSubmitting}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className="flex items-center justify-end gap-1 mt-1.5 pt-1.5 border-t border-border/30">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
+          <X className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          type="submit"
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground disabled:opacity-30"
+          disabled={!content.trim() || isSubmitting}
+        >
+          <Send className="h-3.5 w-3.5" />
+        </Button>
       </div>
     </form>
   );

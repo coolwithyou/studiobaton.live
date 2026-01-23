@@ -59,9 +59,12 @@ export function SelectionPopover({
 
   if (!selection) return null;
 
-  // 팝오버 위치 계산 (선택 영역 위 중앙)
-  const top = selection.rect.top + window.scrollY - 8;
+  // 팝오버 위치 계산
   const left = selection.rect.left + selection.rect.width / 2;
+  // 버튼: 선택 영역 위에 표시, 폼: 선택 영역 아래에 표시
+  const top = showForm
+    ? selection.rect.bottom + window.scrollY + 8
+    : selection.rect.top + window.scrollY - 8;
 
   const handleAddClick = () => {
     setShowForm(true);
@@ -81,7 +84,8 @@ export function SelectionPopover({
     <div
       ref={popoverRef}
       className={cn(
-        "fixed z-50 -translate-x-1/2 -translate-y-full",
+        "fixed z-50 -translate-x-1/2",
+        !showForm && "-translate-y-full",
         "animate-in fade-in-0 zoom-in-95 duration-150"
       )}
       style={{ top, left }}

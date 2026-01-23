@@ -36,6 +36,7 @@ export function useTextSelection(
     // 약간의 딜레이로 Selection API가 업데이트될 시간 확보
     requestAnimationFrame(() => {
       const sel = window.getSelection();
+
       if (!sel || sel.isCollapsed || !sel.toString().trim()) {
         setSelection(null);
         return;
@@ -43,13 +44,16 @@ export function useTextSelection(
 
       // 선택이 콘텐츠 영역 내에 있는지 확인
       const range = sel.getRangeAt(0);
-      if (!contentRef.current?.contains(range.commonAncestorContainer)) {
+      const isInContent = contentRef.current?.contains(range.commonAncestorContainer);
+
+      if (!isInContent) {
         setSelection(null);
         return;
       }
 
       // XPath 범위 추출
-      const xpathRange = getSelectionXPathRange(sel, contentRef.current);
+      const xpathRange = getSelectionXPathRange(sel, contentRef.current!);
+
       if (!xpathRange || !xpathRange.selectedText) {
         setSelection(null);
         return;

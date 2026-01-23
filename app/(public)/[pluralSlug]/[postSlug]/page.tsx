@@ -2,7 +2,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { hasUnmaskPermission } from "@/lib/auth-helpers";
+import {
+  hasUnmaskPermission,
+  hasTeamAccess,
+  getServerSession,
+  isAdmin,
+} from "@/lib/auth-helpers";
 import { applyPostMaskingAsync } from "@/lib/masking";
 import { formatKST } from "@/lib/date-utils";
 import { getUniqueAuthors, getContributorsWithStats } from "@/lib/author-normalizer";
@@ -17,6 +22,8 @@ import { stripMarkdown } from "@/lib/strip-markdown";
 import { extractHeadings } from "@/lib/extract-headings";
 import { TableOfContents } from "@/components/toc/table-of-contents";
 import { MobileToc } from "@/components/toc/mobile-toc";
+import { PostWithComments } from "@/components/post/post-with-comments";
+import type { Comment } from "@/components/comments";
 import {
   getContentTypeByPluralSlug,
   getPostByContentTypeAndSlug,
@@ -94,52 +101,94 @@ export default async function ContentDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const isAuthenticated = await hasUnmaskPermission();
-
-  // 전체 포스트 정보 조회
-  const post = await prisma.post.findFirst({
-    where: {
-      contentTypeId: contentType.id,
-      slug: postSlug,
-      status: "PUBLISHED",
-    },
-    include: {
-      commits: {
-        orderBy: {
-          committedAt: "asc",
-        },
+  // 병렬로 권한 확인 및 데이터 조회
+  const [isAuthenticated, canComment, isAdminUser, session, post] = await Promise.all([
+    hasUnmaskPermission(),
+    hasTeamAccess(),
+    isAdmin(),
+    getServerSession(),
+    prisma.post.findFirst({
+      where: {
+        contentTypeId: contentType.id,
+        slug: postSlug,
+        status: "PUBLISHED",
       },
-      publishedBy: {
-        select: {
-          name: true,
-          linkedMember: {
-            select: {
-              id: true,
-              name: true,
-              githubName: true,
-              avatarUrl: true,
-              profileImageUrl: true,
-              bio: true,
-              title: true,
-              role: true,
+      include: {
+        commits: {
+          orderBy: {
+            committedAt: "asc",
+          },
+        },
+        publishedBy: {
+          select: {
+            name: true,
+            linkedMember: {
+              select: {
+                id: true,
+                name: true,
+                githubName: true,
+                avatarUrl: true,
+                profileImageUrl: true,
+                bio: true,
+                title: true,
+                role: true,
+              },
             },
           },
         },
-      },
-      contentType: {
-        select: {
-          id: true,
-          slug: true,
-          pluralSlug: true,
-          displayName: true,
+        contentType: {
+          select: {
+            id: true,
+            slug: true,
+            pluralSlug: true,
+            displayName: true,
+          },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                linkedMember: {
+                  select: {
+                    name: true,
+                    avatarUrl: true,
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: "asc" },
         },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!post) {
     notFound();
   }
+
+  // 댓글 데이터 변환
+  const comments: Comment[] = post.comments.map((comment) => ({
+    id: comment.id,
+    startXPath: comment.startXPath,
+    startOffset: comment.startOffset,
+    endXPath: comment.endXPath,
+    endOffset: comment.endOffset,
+    selectedText: comment.selectedText,
+    content: comment.content,
+    createdAt: comment.createdAt.toISOString(),
+    author: {
+      id: comment.author.id,
+      name: comment.author.linkedMember?.name || comment.author.name || "익명",
+      avatarUrl: comment.author.linkedMember?.avatarUrl || comment.author.image,
+    },
+  }));
+
+  // 현재 사용자 ID (댓글 삭제 권한 확인용)
+  const currentUserId = session?.user?.id || null;
 
   // 마크다운에서 헤딩 추출 (TOC용)
   const headings = extractHeadings(post.content || "");
@@ -272,14 +321,24 @@ export default async function ContentDetailPage({ params }: PageProps) {
               </span>
             </div>
           </header>
-          <Suspense
-            fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}
+
+          {/* 댓글 기능이 통합된 마크다운 콘텐츠 */}
+          <PostWithComments
+            postSlug={postSlug}
+            initialComments={comments}
+            currentUserId={currentUserId}
+            canComment={canComment}
+            isAdmin={isAdminUser}
           >
-            <MarkdownRenderer
-              content={maskedPost.content || ""}
-              className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
-            />
-          </Suspense>
+            <Suspense
+              fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}
+            >
+              <MarkdownRenderer
+                content={maskedPost.content || ""}
+                className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
+              />
+            </Suspense>
+          </PostWithComments>
 
           {/* 작성자 정보 섹션 */}
           <PostAuthorSection
@@ -423,14 +482,24 @@ export default async function ContentDetailPage({ params }: PageProps) {
           </time>
           <h1 className="text-xl md:text-2xl font-bold mt-2">{post.title}</h1>
         </header>
-        <Suspense
-          fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}
+
+        {/* 댓글 기능이 통합된 마크다운 콘텐츠 */}
+        <PostWithComments
+          postSlug={postSlug}
+          initialComments={comments}
+          currentUserId={currentUserId}
+          canComment={canComment}
+          isAdmin={isAdminUser}
         >
-          <MarkdownRenderer
-            content={post.content || ""}
-            className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
-          />
-        </Suspense>
+          <Suspense
+            fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}
+          >
+            <MarkdownRenderer
+              content={post.content || ""}
+              className="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-h1:text-2xl prose-h2:text-xl prose-h3:text-lg prose-p:leading-relaxed prose-li:my-1"
+            />
+          </Suspense>
+        </PostWithComments>
 
         {/* 작성자 정보 섹션 */}
         <PostAuthorSection

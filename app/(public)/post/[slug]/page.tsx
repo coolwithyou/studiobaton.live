@@ -6,6 +6,7 @@ import {
   hasUnmaskPermission,
   hasTeamAccess,
   getServerSession,
+  isAdmin,
 } from "@/lib/auth-helpers";
 import { formatKST } from "@/lib/date-utils";
 import { PostAuthorSection } from "@/components/post/post-author-section";
@@ -81,9 +82,10 @@ export default async function PostPage({ params }: PageProps) {
   const { slug } = await params;
 
   // 병렬로 권한 확인 및 데이터 조회
-  const [isAuthenticated, canComment, session, post] = await Promise.all([
+  const [isAuthenticated, canComment, isAdminUser, session, post] = await Promise.all([
     hasUnmaskPermission(),
     hasTeamAccess(),
+    isAdmin(),
     getServerSession(),
     prisma.post.findUnique({
       where: { slug },
@@ -195,6 +197,7 @@ export default async function PostPage({ params }: PageProps) {
           initialComments={comments}
           currentUserId={currentUserId}
           canComment={canComment}
+          isAdmin={isAdminUser}
         >
           <Suspense
             fallback={<div className="animate-pulse h-96 bg-muted/30 rounded-lg" />}

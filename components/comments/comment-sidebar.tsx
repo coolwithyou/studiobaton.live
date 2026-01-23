@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 interface CommentSidebarProps {
   contentRef: React.RefObject<HTMLElement | null>;
   currentUserId: string | null;
+  isAdmin: boolean;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ const COMMENT_HEIGHT = 120; // 예상 댓글 카드 높이
 export function CommentSidebar({
   contentRef,
   currentUserId,
+  isAdmin,
   className,
 }: CommentSidebarProps) {
   const { comments, activeCommentId, setActiveCommentId, deleteComment } =
@@ -128,7 +130,7 @@ export function CommentSidebar({
           if (!comment) return null;
 
           const canDelete =
-            currentUserId === comment.author.id || currentUserId !== null;
+            currentUserId === comment.author.id || isAdmin;
 
           return (
             <div

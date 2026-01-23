@@ -18,6 +18,7 @@ interface PostWithCommentsProps {
   initialComments: Comment[];
   currentUserId: string | null;
   canComment: boolean;
+  isAdmin: boolean;
   children: ReactNode;
 }
 
@@ -30,6 +31,7 @@ export function PostWithComments({
   initialComments,
   currentUserId,
   canComment,
+  isAdmin,
   children,
 }: PostWithCommentsProps) {
   return (
@@ -37,6 +39,7 @@ export function PostWithComments({
       <PostWithCommentsInner
         currentUserId={currentUserId}
         canComment={canComment}
+        isAdmin={isAdmin}
       >
         {children}
       </PostWithCommentsInner>
@@ -47,12 +50,14 @@ export function PostWithComments({
 interface PostWithCommentsInnerProps {
   currentUserId: string | null;
   canComment: boolean;
+  isAdmin: boolean;
   children: ReactNode;
 }
 
 function PostWithCommentsInner({
   currentUserId,
   canComment,
+  isAdmin,
   children,
 }: PostWithCommentsInnerProps) {
   const contentRef = useRef<HTMLDivElement>(null);
@@ -91,6 +96,7 @@ function PostWithCommentsInner({
         {/* 모바일: 본문 아래 댓글 목록 */}
         <MobileCommentList
           currentUserId={currentUserId}
+          isAdmin={isAdmin}
           className="xl:hidden mt-8"
         />
       </div>
@@ -101,6 +107,7 @@ function PostWithCommentsInner({
           <CommentSidebar
             contentRef={contentRef}
             currentUserId={currentUserId}
+            isAdmin={isAdmin}
           />
         </div>
       </aside>

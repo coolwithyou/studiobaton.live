@@ -7,11 +7,13 @@ import { cn } from "@/lib/utils";
 
 interface MobileCommentListProps {
   currentUserId: string | null;
+  isAdmin: boolean;
   className?: string;
 }
 
 export function MobileCommentList({
   currentUserId,
+  isAdmin,
   className,
 }: MobileCommentListProps) {
   const { comments, activeCommentId, setActiveCommentId, deleteComment } =
@@ -35,7 +37,7 @@ export function MobileCommentList({
       <div className="space-y-3">
         {comments.map((comment) => {
           const canDelete =
-            currentUserId === comment.author.id || currentUserId !== null;
+            currentUserId === comment.author.id || isAdmin;
 
           return (
             <CommentCard

@@ -49,8 +49,8 @@ export function CommentHoverPopover({
   const getPopoverStyle = useCallback(() => {
     if (!position) return { display: "none" as const };
 
-    const POPOVER_WIDTH = 320;
-    const POPOVER_HEIGHT_ESTIMATE = 150;
+    const POPOVER_WIDTH = 300;
+    const POPOVER_HEIGHT_ESTIMATE = 140;
     const OFFSET = 12;
 
     let x = position.x - POPOVER_WIDTH / 2;
@@ -125,14 +125,14 @@ export function CommentHoverPopover({
       ref={popoverRef}
       style={getPopoverStyle()}
       className={cn(
-        "rounded-lg border bg-popover/95 backdrop-blur-sm p-3 shadow-lg",
+        "rounded-md border border-border/50 bg-background/95 backdrop-blur-sm p-2 shadow-sm",
         "animate-in fade-in-0 zoom-in-95 duration-150"
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       {/* 선택된 텍스트 인용 */}
-      <div className="mb-2 px-2 py-1 bg-yellow-100/50 dark:bg-yellow-900/20 rounded text-xs text-muted-foreground border-l-2 border-yellow-400 line-clamp-2">
+      <div className="mb-1.5 px-1.5 py-1 bg-yellow-50/80 dark:bg-yellow-950/30 rounded text-xs text-muted-foreground border-l-2 border-yellow-400/60 line-clamp-2">
         &ldquo;{comment.selectedText}&rdquo;
       </div>
 
@@ -149,17 +149,17 @@ export function CommentHoverPopover({
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-xs font-medium truncate">
               {comment.author.name}
             </span>
-            <span className="text-[10px] text-muted-foreground shrink-0">
+            <span className="text-[10px] text-muted-foreground/70 shrink-0">
               {timeAgo}
             </span>
           </div>
 
           {/* 댓글 내용 */}
-          <p className="text-sm text-foreground whitespace-pre-wrap break-words">
+          <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
             {comment.content}
           </p>
         </div>
@@ -171,7 +171,7 @@ export function CommentHoverPopover({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+                className="h-6 w-6 shrink-0 opacity-50 hover:opacity-100 hover:bg-destructive/10 transition-all"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />

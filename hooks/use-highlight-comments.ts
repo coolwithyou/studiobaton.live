@@ -120,7 +120,7 @@ export function useHighlightComments(
     [contentRef, onCommentClick]
   );
 
-  // 호버 핸들러 (throttled)
+  // 호버 핸들러 (throttled) - 고정된 위치 사용
   const handleMouseMove = useCallback(
     throttle((event: MouseEvent) => {
       if (!contentRef.current) return;
@@ -140,10 +140,23 @@ export function useHighlightComments(
                 clearTimeout(hoverTimeoutRef.current);
                 hoverTimeoutRef.current = null;
               }
-              setHoveredComment({
-                id: commentId,
-                position: { x, y },
-                comment,
+
+              // 이미 같은 댓글이 호버되어 있으면 position 업데이트하지 않음
+              setHoveredComment((prev) => {
+                if (prev?.id === commentId) {
+                  return prev; // 기존 position 유지
+                }
+
+                // 새로운 댓글이면 첫 번째 rect의 중심점으로 고정
+                const firstRect = rects[0];
+                const fixedX = firstRect.left + firstRect.width / 2;
+                const fixedY = firstRect.top;
+
+                return {
+                  id: commentId,
+                  position: { x: fixedX, y: fixedY },
+                  comment,
+                };
               });
             }
             return;

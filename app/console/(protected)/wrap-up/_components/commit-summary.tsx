@@ -232,8 +232,8 @@ export function CommitSummary({ date, memberId, hasCommits, commitHashToRepo }: 
       <CardContent className="space-y-6">
         {/* 요약 */}
         <div className="p-4 bg-muted rounded-lg">
-          <p className="text-sm font-medium">{summaryData?.summary.primaryFocus}</p>
-          <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+          <p className="text-base font-medium">{summaryData?.summary.primaryFocus}</p>
+          <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
             <span>총 {summaryData?.summary.totalCommits}개 커밋</span>
             <span>|</span>
             <span>{summaryData?.summary.highlightCount}개 하이라이트</span>
@@ -277,19 +277,19 @@ export function CommitSummary({ date, memberId, hasCommits, commitHashToRepo }: 
                   </div>
 
                   {/* 중단: 제목 */}
-                  <h4 className="font-semibold text-base mb-2 leading-snug">
+                  <h4 className="font-semibold text-lg mb-2 leading-snug">
                     {highlight.title}
                   </h4>
 
                   {/* 하단: 설명 + 영향도 */}
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+                  <p className="text-base text-muted-foreground leading-relaxed mb-3">
                     {highlight.description}
                   </p>
 
                   {/* 영향도 배지 */}
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">
-                      <TrendingUp className="size-3" />
+                  <div className="flex items-center gap-1.5 text-sm">
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-primary/10 text-primary rounded-md border border-primary/20">
+                      <TrendingUp className="size-3.5" />
                       <span className="font-medium">{highlight.impact}</span>
                     </div>
                   </div>
@@ -299,16 +299,16 @@ export function CommitSummary({ date, memberId, hasCommits, commitHashToRepo }: 
           </div>
         )}
 
-        {/* 기술 부채 노트 */}
+        {/* 다음에 이어서 할 것 */}
         {summaryData?.techDebtNotes && summaryData.techDebtNotes.length > 0 && (
-          <div className="p-3 border border-orange-200 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="p-4 border border-orange-200 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="size-4 text-orange-500" />
-              <span className="text-sm font-medium">기술 부채 노트</span>
+              <span className="text-base font-medium">다음에 이어서</span>
             </div>
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {summaryData.techDebtNotes.map((note, index) => (
-                <li key={index} className="text-sm text-muted-foreground">
+                <li key={index} className="text-base text-muted-foreground">
                   • {note}
                 </li>
               ))}

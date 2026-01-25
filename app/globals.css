@@ -53,6 +53,7 @@
   --radius: 0.625rem;
   --key-color: #ffd970;
   --key-color-hover: #ffce4a;
+  --selection-color: #898066;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -89,6 +90,7 @@
 .dark {
   --key-color: #ffd970;
   --key-color-hover: #ffe59c;
+  --selection-color: #898066;
   --background: oklch(0.178 0 0); /* #1d1d1d */
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.22 0 0); /* slightly lighter than background */
@@ -505,4 +507,15 @@ body[data-overlayscrollbars-body] {
 /* 댓글 콘텐츠 영역 - 하이라이트 대상 */
 .prose-container {
   position: relative;
+}
+
+/* 텍스트 선택 스타일 - 공개 페이지 전체 적용 */
+::selection {
+  background-color: var(--selection-color);
+  color: #ffffff;
+}
+
+::-moz-selection {
+  background-color: var(--selection-color);
+  color: #ffffff;
 }

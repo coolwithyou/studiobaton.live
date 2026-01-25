@@ -198,9 +198,6 @@ async function PostList({
     })
   );
 
-  // hideTimeline 설정 확인 (contentType에서 또는 source에서)
-  const hideTimeline = source.type === "contentType" ? source.data.hideTimeline : false;
-
   return (
     <div className="py-8">
       {postsWithAuthors.map(({ post, authors }, index) => (
@@ -221,7 +218,6 @@ async function PostList({
           }}
           authors={authors}
           isLatest={index === 0}
-          hideTimeline={hideTimeline}
         />
       ))}
     </div>
@@ -247,9 +243,12 @@ export default async function PluralSlugPage({ params }: PluralSlugPageProps) {
 
   return (
     <ContentGrid>
-      <div className="pb-4 border-b mb-4">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-muted-foreground mt-1">{description}</p>
+      {/* 세련된 헤더 */}
+      <div className="pb-6 mb-8 border-b">
+        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+        {description && (
+          <p className="text-muted-foreground mt-2 text-base">{description}</p>
+        )}
       </div>
       <Suspense fallback={<TimelineSkeleton />}>
         <PostList source={source} />

@@ -44,7 +44,7 @@ interface TimelineItemProps {
   hideTimeline?: boolean;
 }
 
-export function TimelineItem({ post, authors, isLatest, hideTimeline = false }: TimelineItemProps) {
+export function TimelineItem({ post, authors }: TimelineItemProps) {
   // 고유한 레포지토리 목록
   const repos = [...new Set(post.commits.map((c) => c.repository))];
 
@@ -56,109 +56,98 @@ export function TimelineItem({ post, authors, isLatest, hideTimeline = false }: 
   const totalDeletions = post.commits.reduce((sum, c) => sum + c.deletions, 0);
 
   return (
-    <article className={`relative pb-8 ${hideTimeline ? "" : "md:pl-8"}`}>
-      {/* 타임라인 라인 - 모바일에서 숨김 */}
-      {!hideTimeline && (
-        <div className="hidden md:block absolute left-[5px] top-4 bottom-0 w-px bg-border" />
-      )}
-
-      {/* 타임라인 도트 - 모바일에서 숨김 */}
-      {!hideTimeline && (
-        <div
-          className={`hidden md:block absolute left-[3px] top-1.5 w-[7px] h-[7px] rounded-full ${
-            isLatest ? "bg-foreground" : "bg-muted-foreground/40"
-          }`}
-        />
-      )}
-
-      {/* 컨텐츠 */}
-      <div className={hideTimeline ? "" : "md:ml-4"}>
-        {/* 썸네일 이미지 */}
+    <article className="pb-12">
+      {/* 썸네일 좌측 + 콘텐츠 우측 레이아웃 */}
+      <div className="flex gap-6">
+        {/* 썸네일 - 좌측 고정 120px */}
         {post.thumbnailUrl && (
           <Link
             href={getPostUrl(post)}
-            className="block group mb-4"
+            className="block group flex-shrink-0"
           >
-            <div className="relative aspect-video overflow-hidden rounded-lg">
+            <div className="relative w-[120px] h-[120px] overflow-hidden rounded-lg">
               <Image
                 src={post.thumbnailUrl}
                 alt={post.title}
                 fill
                 unoptimized={isGif}
                 className="object-cover transition-transform duration-300 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                sizes="120px"
               />
             </div>
           </Link>
         )}
 
-        {/* 날짜 */}
-        <time className="text-sm text-muted-foreground flex items-center gap-2">
-          <span>{formatKST(post.targetDate, "M월 d일 (EEEE)")}</span>
-          <span className="text-xs">
-            · {formatDistanceToNowKST(post.targetDate)}
-          </span>
-        </time>
+        {/* 콘텐츠 영역 - 우측 */}
+        <div className="flex-1 min-w-0">
+          {/* 날짜 */}
+          <time className="text-sm text-muted-foreground flex items-center gap-2">
+            <span>{formatKST(post.targetDate, "M월 d일 (EEEE)")}</span>
+            <span className="text-xs">
+              · {formatDistanceToNowKST(post.targetDate)}
+            </span>
+          </time>
 
-        {/* 제목 */}
-        <Link
-          href={getPostUrl(post)}
-          className="block group mt-2"
-        >
-          <h2 className="text-lg font-semibold group-hover:text-primary transition-colors">
-            {post.title}
-          </h2>
-        </Link>
+          {/* 제목 */}
+          <Link
+            href={getPostUrl(post)}
+            className="block group mt-2"
+          >
+            <h2 className="text-xl font-bold group-hover:text-primary transition-colors">
+              {post.title}
+            </h2>
+          </Link>
 
-        {/* 본문 미리보기 */}
-        <p className="text-muted-foreground mt-2 line-clamp-3 text-sm leading-relaxed">
-          {stripMarkdown(post.summary || post.content || "").slice(0, 200)}
-        </p>
+          {/* 본문 미리보기 */}
+          <p className="text-muted-foreground mt-2 line-clamp-2 text-sm leading-relaxed">
+            {stripMarkdown(post.summary || post.content || "").slice(0, 200)}
+          </p>
 
-        {/* 메타 정보 - COMMIT_BASED 타입에서만 커밋 관련 정보 표시 */}
-        {post.type === "COMMIT_BASED" && (
-          <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
-            {/* 저자 아바타들 */}
-            {authors.length > 0 && (
-              <div className="flex -space-x-2">
-                {authors.map((author, i) => (
-                  <Avatar key={i} className="w-6 h-6 border-2 border-background">
-                    <AvatarImage src={author.avatar || undefined} />
-                    <AvatarFallback className="text-xs">
-                      {author.name.slice(0, 1).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-              </div>
-            )}
+          {/* 메타 정보 - COMMIT_BASED 타입에서만 커밋 관련 정보 표시 */}
+          {post.type === "COMMIT_BASED" && (
+            <div className="mt-4 flex items-center gap-4 text-sm text-muted-foreground">
+              {/* 저자 아바타들 */}
+              {authors.length > 0 && (
+                <div className="flex -space-x-2">
+                  {authors.map((author, i) => (
+                    <Avatar key={i} className="w-6 h-6 border-2 border-background">
+                      <AvatarImage src={author.avatar || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {author.name.slice(0, 1).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                </div>
+              )}
 
-            {/* 레포지토리 태그 (커밋이 있는 경우만 표시) */}
-            {repos.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {repos.slice(0, 2).map((repo) => (
-                  <span
-                    key={repo}
-                    className="text-xs"
-                  >
-                    {repo}
-                  </span>
-                ))}
-                {repos.length > 2 && (
-                  <span className="text-xs">외 {repos.length - 2}개</span>
-                )}
-              </div>
-            )}
+              {/* 레포지토리 태그 (커밋이 있는 경우만 표시) */}
+              {repos.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {repos.slice(0, 2).map((repo) => (
+                    <span
+                      key={repo}
+                      className="text-xs"
+                    >
+                      {repo}
+                    </span>
+                  ))}
+                  {repos.length > 2 && (
+                    <span className="text-xs">외 {repos.length - 2}개</span>
+                  )}
+                </div>
+              )}
 
-            {/* 변경량 (커밋이 있는 경우만 표시) */}
-            {post.commits.length > 0 && (
-              <div className="flex items-center gap-1 ml-auto">
-                <span className="text-green-600">+{totalAdditions}</span>
-                <span>/</span>
-                <span className="text-red-600">-{totalDeletions}</span>
-              </div>
-            )}
-          </div>
-        )}
+              {/* 변경량 (커밋이 있는 경우만 표시) */}
+              {post.commits.length > 0 && (
+                <div className="flex items-center gap-1 ml-auto">
+                  <span className="text-green-600">+{totalAdditions}</span>
+                  <span>/</span>
+                  <span className="text-red-600">-{totalDeletions}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </article>
   );

@@ -46,6 +46,15 @@ interface Repository {
   totalDeletions: number;
 }
 
+interface AiSummary {
+  exists: boolean;
+  summary?: {
+    totalCommits: number;
+    highlightCount: number;
+    primaryFocus: string;
+  };
+}
+
 interface DayData {
   date: string;
   standup: {
@@ -60,6 +69,7 @@ interface DayData {
       totalDeletions: number;
     };
   };
+  aiSummary?: AiSummary;
 }
 
 interface WeekData {
@@ -114,14 +124,16 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
           };
         }
 
-        const [standupRes, reviewRes] = await Promise.all([
+        const [standupRes, reviewRes, aiSummaryRes] = await Promise.all([
           fetch(`/api/console/standup?date=${dateStr}&memberId=${memberId}`),
           fetch(`/api/console/review?date=${dateStr}&memberId=${memberId}`),
+          fetch(`/api/console/wrap-up/summarize?date=${dateStr}&memberId=${memberId}`),
         ]);
 
-        const [standupJson, reviewJson] = await Promise.all([
+        const [standupJson, reviewJson, aiSummaryJson] = await Promise.all([
           standupRes.json(),
           reviewRes.json(),
+          aiSummaryRes.ok ? aiSummaryRes.json() : { exists: false },
         ]);
 
         return {
@@ -130,6 +142,7 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
           commits: reviewRes.ok
             ? reviewJson
             : { repositories: [], summary: { totalCommits: 0, totalAdditions: 0, totalDeletions: 0 } },
+          aiSummary: aiSummaryJson as AiSummary,
         };
       });
 
@@ -364,6 +377,14 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                             <span>{day.commits.summary.totalCommits}</span>
                           </div>
                         )}
+                        {day.aiSummary?.exists && day.aiSummary.summary?.primaryFocus && (
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Sparkles className="size-3.5 text-amber-500" />
+                            <span className="truncate max-w-[200px]">
+                              {day.aiSummary.summary.primaryFocus}
+                            </span>
+                          </div>
+                        )}
                         {!hasData && (
                           <span className="text-sm text-muted-foreground">기록 없음</span>
                         )}
@@ -481,6 +502,23 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                           )}
                         </div>
                       </div>
+
+                      {/* AI 하루 평 */}
+                      {day.aiSummary?.exists && day.aiSummary.summary?.primaryFocus && (
+                        <div className="mt-3 pt-3 border-t">
+                          <div className="flex items-start gap-2">
+                            <Sparkles className="size-4 text-amber-500 mt-0.5 shrink-0" />
+                            <div className="space-y-1">
+                              <h4 className="text-xs font-medium text-muted-foreground uppercase">
+                                AI 하루 평
+                              </h4>
+                              <p className="text-sm text-foreground">
+                                {day.aiSummary.summary.primaryFocus}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

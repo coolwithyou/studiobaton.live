@@ -4,8 +4,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Trash2 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +15,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { cn } from "@/lib/utils";
 import type { Comment } from "./types";
 
 interface CommentHoverPopoverProps {
@@ -38,7 +35,6 @@ export function CommentHoverPopover({
   onDelete,
 }: CommentHoverPopoverProps) {
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isMouseInside, setIsMouseInside] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -78,7 +74,6 @@ export function CommentHoverPopover({
 
   // 마우스가 팝오버 밖으로 나갔을 때 딜레이 후 닫기
   const handleMouseLeave = useCallback(() => {
-    setIsMouseInside(false);
     closeTimeoutRef.current = setTimeout(() => {
       onClose();
     }, 200);
@@ -86,7 +81,6 @@ export function CommentHoverPopover({
 
   // 마우스가 팝오버 안으로 들어오면 타임아웃 취소
   const handleMouseEnter = useCallback(() => {
-    setIsMouseInside(true);
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
@@ -124,58 +118,34 @@ export function CommentHoverPopover({
     <div
       ref={popoverRef}
       style={getPopoverStyle()}
-      className={cn(
-        "rounded-md border border-border/50 bg-background/95 backdrop-blur-sm p-2 shadow-sm",
-        "animate-in fade-in-0 zoom-in-95 duration-150"
-      )}
+      className="bg-background/98 backdrop-blur-sm rounded-lg shadow-lg ring-1 ring-border/40 p-3"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* 선택된 텍스트 인용 */}
-      <div className="mb-1.5 px-1.5 py-1 bg-yellow-50/80 dark:bg-yellow-950/30 rounded text-xs text-muted-foreground border-l-2 border-yellow-400/60 line-clamp-2">
-        &ldquo;{comment.selectedText}&rdquo;
-      </div>
+      {/* 댓글 내용 */}
+      <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-wrap break-words">
+        {comment.content}
+      </p>
 
-      {/* 작성자 정보 */}
-      <div className="flex items-start gap-2">
-        <Avatar className="h-6 w-6 shrink-0">
-          <AvatarImage
-            src={comment.author.avatarUrl || undefined}
-            alt={comment.author.name}
-          />
-          <AvatarFallback className="text-[10px]">
-            {comment.author.name.slice(0, 2)}
-          </AvatarFallback>
-        </Avatar>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-xs font-medium truncate">
-              {comment.author.name}
-            </span>
-            <span className="text-[10px] text-muted-foreground/70 shrink-0">
-              {timeAgo}
-            </span>
-          </div>
-
-          {/* 댓글 내용 */}
-          <p className="text-sm text-foreground/90 whitespace-pre-wrap break-words leading-relaxed">
-            {comment.content}
-          </p>
+      {/* 메타 정보 (작성자 + 시간 + 삭제) */}
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <span className="font-medium text-foreground/70">
+            {comment.author.name}
+          </span>
+          <span className="opacity-40">·</span>
+          <span>{timeAgo}</span>
         </div>
 
-        {/* 삭제 버튼 */}
         {canDelete && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 opacity-50 hover:opacity-100 hover:bg-destructive/10 transition-all"
+              <button
+                className="p-1 -m-1 rounded hover:bg-muted/80 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
-              </Button>
+                <Trash2 className="h-3 w-3 text-muted-foreground/60 hover:text-destructive" />
+              </button>
             </AlertDialogTrigger>
             <AlertDialogContent onClick={(e) => e.stopPropagation()}>
               <AlertDialogHeader>

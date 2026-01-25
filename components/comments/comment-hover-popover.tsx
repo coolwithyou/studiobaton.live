@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Trash2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,16 +42,16 @@ export function CommentHoverPopover({
   const canDelete =
     comment && (isAdmin || comment.author.id === currentUserId);
 
-  // 팝오버 위치 계산
+  // 팝오버 위치 계산 - 하이라이트 바로 아래에 표시
   const getPopoverStyle = useCallback(() => {
     if (!position) return { display: "none" as const };
 
-    const POPOVER_WIDTH = 300;
-    const POPOVER_HEIGHT_ESTIMATE = 140;
-    const OFFSET = 12;
+    const POPOVER_WIDTH = 280;
+    const OFFSET = 8; // 하이라이트와의 간격
 
     let x = position.x - POPOVER_WIDTH / 2;
-    let y = position.y - POPOVER_HEIGHT_ESTIMATE - OFFSET;
+    // 하이라이트 바로 아래에 표시 (position.y는 하이라이트 상단, 약 20px 아래가 하이라이트 하단)
+    let y = position.y + 24 + OFFSET;
 
     // 화면 왼쪽 경계
     if (x < 8) x = 8;
@@ -58,9 +59,9 @@ export function CommentHoverPopover({
     if (x + POPOVER_WIDTH > window.innerWidth - 8) {
       x = window.innerWidth - POPOVER_WIDTH - 8;
     }
-    // 화면 상단 경계 - 아래쪽에 표시
-    if (y < 8) {
-      y = position.y + OFFSET;
+    // 화면 하단 경계 - 위쪽에 표시
+    if (y + 100 > window.innerHeight) {
+      y = position.y - 100 - OFFSET;
     }
 
     return {
@@ -76,7 +77,7 @@ export function CommentHoverPopover({
   const handleMouseLeave = useCallback(() => {
     closeTimeoutRef.current = setTimeout(() => {
       onClose();
-    }, 200);
+    }, 300); // 더 긴 딜레이로 접근성 향상
   }, [onClose]);
 
   // 마우스가 팝오버 안으로 들어오면 타임아웃 취소
@@ -122,29 +123,44 @@ export function CommentHoverPopover({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* 댓글 내용 */}
-      <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-wrap break-words">
-        {comment.content}
-      </p>
+      {/* 작성자 + 댓글 내용 */}
+      <div className="flex gap-2.5">
+        <Avatar className="h-6 w-6 shrink-0">
+          <AvatarImage
+            src={comment.author.avatarUrl || undefined}
+            alt={comment.author.name}
+          />
+          <AvatarFallback className="text-[10px] bg-muted">
+            {comment.author.name.slice(0, 2)}
+          </AvatarFallback>
+        </Avatar>
 
-      {/* 메타 정보 (작성자 + 시간 + 삭제) */}
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <span className="font-medium text-foreground/70">
-            {comment.author.name}
-          </span>
-          <span className="opacity-40">·</span>
-          <span>{timeAgo}</span>
+        <div className="flex-1 min-w-0">
+          {/* 작성자 + 시간 */}
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[12px] font-medium text-foreground/80">
+              {comment.author.name}
+            </span>
+            <span className="text-[11px] text-muted-foreground/60">
+              {timeAgo}
+            </span>
+          </div>
+
+          {/* 댓글 내용 */}
+          <p className="text-[13px] text-foreground/90 leading-relaxed whitespace-pre-wrap break-words">
+            {comment.content}
+          </p>
         </div>
 
+        {/* 삭제 버튼 */}
         {canDelete && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button
-                className="p-1 -m-1 rounded hover:bg-muted/80 transition-colors"
+                className="p-1.5 -mt-0.5 -mr-1 rounded-md hover:bg-muted/80 transition-colors self-start"
                 onClick={(e) => e.stopPropagation()}
               >
-                <Trash2 className="h-3 w-3 text-muted-foreground/60 hover:text-destructive" />
+                <Trash2 className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-destructive" />
               </button>
             </AlertDialogTrigger>
             <AlertDialogContent onClick={(e) => e.stopPropagation()}>

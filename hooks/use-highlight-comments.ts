@@ -164,12 +164,12 @@ export function useHighlightComments(
         }
       }
 
-      // 하이라이트 영역 밖으로 나가면 딜레이 후 닫기
+      // 하이라이트 영역 밖으로 나가면 딜레이 후 닫기 (팝오버 접근 시간 확보)
       if (hoveredComment && !hoverTimeoutRef.current) {
         hoverTimeoutRef.current = setTimeout(() => {
           setHoveredComment(null);
           hoverTimeoutRef.current = null;
-        }, 150);
+        }, 300);
       }
     }, 16), // 60fps
     [contentRef, comments, hoveredComment]

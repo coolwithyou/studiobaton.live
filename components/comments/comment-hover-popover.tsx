@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, forwardRef } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Trash2 } from "lucide-react";
@@ -23,21 +23,18 @@ interface CommentHoverPopoverProps {
   position: { x: number; y: number } | null;
   currentUserId: string | null;
   isAdmin: boolean;
+  isLocked?: boolean; // 클릭으로 고정된 상태
   onClose: () => void;
   onDelete: (commentId: string) => Promise<boolean>;
 }
 
-export function CommentHoverPopover({
-  comment,
-  position,
-  currentUserId,
-  isAdmin,
-  onClose,
-  onDelete,
-}: CommentHoverPopoverProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+export const CommentHoverPopover = forwardRef<HTMLDivElement, CommentHoverPopoverProps>(
+  function CommentHoverPopover(
+    { comment, position, currentUserId, isAdmin, isLocked = false, onClose, onDelete },
+    ref
+  ) {
+    const [isDeleting, setIsDeleting] = useState(false);
+    const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const canDelete =
     comment && (isAdmin || comment.author.id === currentUserId);
@@ -73,12 +70,13 @@ export function CommentHoverPopover({
     };
   }, [position]);
 
-  // 마우스가 팝오버 밖으로 나갔을 때 딜레이 후 닫기
+  // 마우스가 팝오버 밖으로 나갔을 때 딜레이 후 닫기 (고정 상태가 아닐 때만)
   const handleMouseLeave = useCallback(() => {
+    if (isLocked) return; // 클릭으로 고정된 상태면 자동 닫기 안함
     closeTimeoutRef.current = setTimeout(() => {
       onClose();
-    }, 300); // 더 긴 딜레이로 접근성 향상
-  }, [onClose]);
+    }, 300);
+  }, [onClose, isLocked]);
 
   // 마우스가 팝오버 안으로 들어오면 타임아웃 취소
   const handleMouseEnter = useCallback(() => {
@@ -117,7 +115,7 @@ export function CommentHoverPopover({
 
   return (
     <div
-      ref={popoverRef}
+      ref={ref}
       style={getPopoverStyle()}
       className="bg-background/98 backdrop-blur-sm rounded-lg shadow-lg ring-1 ring-border/40 p-3"
       onMouseEnter={handleMouseEnter}
@@ -186,4 +184,4 @@ export function CommentHoverPopover({
       </div>
     </div>
   );
-}
+});

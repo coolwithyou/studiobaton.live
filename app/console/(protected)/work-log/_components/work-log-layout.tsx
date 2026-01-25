@@ -39,7 +39,7 @@ interface WorkLogLayoutProps {
 }
 
 export function WorkLogLayout({ members, currentMember }: WorkLogLayoutProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // 날짜 네비게이션

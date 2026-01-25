@@ -1,8 +1,7 @@
 import { use } from "react";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { MemberTabs } from "../../standup/_components/member-tabs";
-import { WrapUpContent } from "../_components/wrap-up-content";
+import { WrapUpLayout } from "../_components/wrap-up-layout";
 import { PageContainer } from "@/components/admin/ui/page-container";
 import { PageHeader } from "@/components/admin/ui/page-header";
 
@@ -50,6 +49,12 @@ async function WrapUpPageContent({ githubName }: { githubName: string }) {
     isLinked: !!m.linkedAdmin,
   }));
 
+  const currentMember = {
+    id: member.id,
+    name: member.name,
+    githubName: member.githubName,
+  };
+
   return (
     <PageContainer maxWidth="2xl">
       <PageHeader
@@ -57,16 +62,10 @@ async function WrapUpPageContent({ githubName }: { githubName: string }) {
         description="오늘 하루도 고생 많으셨습니다!"
       />
 
-      <MemberTabs
-        members={membersWithLink}
-        currentGithubName={githubName}
-        basePath="/console/wrap-up"
-      />
-
       <div className="mt-6">
-        <WrapUpContent
-          memberId={member.id}
-          memberGithubName={member.githubName}
+        <WrapUpLayout
+          members={membersWithLink}
+          currentMember={currentMember}
         />
       </div>
     </PageContainer>

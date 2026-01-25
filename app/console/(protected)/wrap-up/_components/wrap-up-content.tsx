@@ -2,16 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { formatKST } from "@/lib/date-utils";
-import { ko } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon, Loader2, ListChecks, ExternalLink, RefreshCw } from "lucide-react";
+import { Loader2, ListChecks, ExternalLink, RefreshCw } from "lucide-react";
 import { StandupChecklist } from "./standup-checklist";
 import { CommitSummary } from "./commit-summary";
 import { CommitDiagnoseDialog } from "./commit-diagnose-dialog";
@@ -83,10 +76,10 @@ interface UserInfo {
 interface WrapUpContentProps {
   memberId: string;
   memberGithubName: string;
+  selectedDate: Date;
 }
 
-export function WrapUpContent({ memberId, memberGithubName }: WrapUpContentProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+export function WrapUpContent({ memberId, memberGithubName, selectedDate }: WrapUpContentProps) {
   const [standupData, setStandupData] = useState<StandupData | null>(null);
   const [reviewData, setReviewData] = useState<ReviewData | null>(null);
   const [fetching, setFetching] = useState(true);
@@ -208,38 +201,6 @@ export function WrapUpContent({ memberId, memberGithubName }: WrapUpContentProps
 
   return (
     <div className="space-y-6">
-      {/* 날짜 선택 */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm font-medium">날짜 선택:</span>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-[240px] justify-start text-left font-normal"
-            >
-              <CalendarIcon className="mr-2 size-4" />
-              {formatKST(selectedDate, "PPP")}
-              {isToday && (
-                <span className="ml-2 text-xs text-muted-foreground">(오늘)</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
-              disabled={(date) =>
-                date > new Date() || date < new Date("2020-01-01")
-              }
-              initialFocus
-              locale={ko}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* 콘텐츠 */}
       {fetching ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="size-8 animate-spin text-muted-foreground" />

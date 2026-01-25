@@ -82,8 +82,8 @@ interface WeekViewProps {
 export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
   const [data, setData] = useState<WeekData | null>(null);
   const [loading, setLoading] = useState(true);
-  // 모든 일자가 펼쳐진 상태를 추적 (Set에 포함되면 접힌 상태)
-  const [collapsedDays, setCollapsedDays] = useState<Set<number>>(new Set());
+  // 모든 일자가 펼쳐진 상태를 추적 (Set에 포함되면 접힌 상태, 날짜 문자열 사용)
+  const [collapsedDays, setCollapsedDays] = useState<Set<string>>(new Set());
 
   const weekStart = startOfWeek(date, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
@@ -302,7 +302,7 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {data.days.map((day, index) => {
+            {[...data.days].reverse().map((day) => {
               const dayDate = new Date(day.date);
               const isToday = isSameDay(dayDate, new Date());
               const tasks = [
@@ -312,7 +312,7 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
               const completedCount = tasks.filter((t) => t.isCompleted).length;
               const hasData = tasks.length > 0 || day.commits.summary.totalCommits > 0;
               // 기본적으로 펼침 상태, collapsedDays에 포함되면 접힘
-              const isExpanded = hasData && !collapsedDays.has(index);
+              const isExpanded = hasData && !collapsedDays.has(day.date);
 
               return (
                 <div
@@ -328,12 +328,12 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                     onClick={() => {
                       if (isExpanded) {
                         // 펼침 → 접힘: collapsedDays에 추가
-                        setCollapsedDays((prev) => new Set([...prev, index]));
+                        setCollapsedDays((prev) => new Set([...prev, day.date]));
                       } else {
                         // 접힘 → 펼침: collapsedDays에서 제거
                         setCollapsedDays((prev) => {
                           const next = new Set(prev);
-                          next.delete(index);
+                          next.delete(day.date);
                           return next;
                         });
                       }

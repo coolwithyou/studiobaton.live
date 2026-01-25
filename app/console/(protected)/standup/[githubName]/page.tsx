@@ -1,8 +1,7 @@
 import { use } from "react";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
-import { MemberTabs } from "../_components/member-tabs";
-import { StandupContent } from "../_components/standup-content";
+import { StandupLayout } from "../_components/standup-layout";
 import { PageContainer } from "@/components/admin/ui/page-container";
 import { PageHeader } from "@/components/admin/ui/page-header";
 
@@ -50,6 +49,12 @@ async function StandupPageContent({ githubName }: { githubName: string }) {
     isLinked: !!m.linkedAdmin,
   }));
 
+  const currentMember = {
+    id: member.id,
+    name: member.name,
+    githubName: member.githubName,
+  };
+
   return (
     <PageContainer maxWidth="xl">
       <PageHeader
@@ -57,14 +62,11 @@ async function StandupPageContent({ githubName }: { githubName: string }) {
         description="오늘의 업무 진행 계획을 공유하고 할일을 등록하세요."
       />
 
-      <MemberTabs
-        members={membersWithLink}
-        currentGithubName={githubName}
-        basePath="/console/standup"
-      />
-
       <div className="mt-6">
-        <StandupContent memberId={member.id} />
+        <StandupLayout
+          members={membersWithLink}
+          currentMember={currentMember}
+        />
       </div>
     </PageContainer>
   );

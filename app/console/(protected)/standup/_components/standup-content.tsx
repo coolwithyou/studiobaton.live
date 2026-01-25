@@ -1,16 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { formatKST } from "@/lib/date-utils";
-import { ko } from "date-fns/locale";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, Loader2, Clock } from "lucide-react";
+import { Loader2, Clock } from "lucide-react";
 import { StandupForm } from "./standup-form";
 import { TaskList, Task } from "./task-list";
 
@@ -30,10 +22,10 @@ interface StandupData {
 
 interface StandupContentProps {
   memberId: string;
+  selectedDate: Date;
 }
 
-export function StandupContent({ memberId }: StandupContentProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+export function StandupContent({ memberId, selectedDate }: StandupContentProps) {
   const [standupData, setStandupData] = useState<StandupData | null>(null);
   const [initialFetching, setInitialFetching] = useState(true);
   const hasLoadedRef = useRef(false);
@@ -94,38 +86,6 @@ export function StandupContent({ memberId }: StandupContentProps) {
 
   return (
     <div className="space-y-6">
-      {/* 날짜 선택 */}
-      <div className="flex items-center gap-4">
-        <span className="text-sm font-medium">날짜 선택:</span>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-[240px] justify-start text-left font-normal"
-            >
-              <CalendarIcon className="mr-2 size-4" />
-              {formatKST(selectedDate, "PPP")}
-              {isToday && (
-                <span className="ml-2 text-xs text-muted-foreground">(오늘)</span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
-              disabled={(date) =>
-                date > new Date() || date < new Date("2020-01-01")
-              }
-              initialFocus
-              locale={ko}
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* 콘텐츠 */}
       {initialFetching ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="size-8 animate-spin text-muted-foreground" />

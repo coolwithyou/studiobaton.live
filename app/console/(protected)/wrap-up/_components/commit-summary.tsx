@@ -5,7 +5,7 @@ import { formatKST } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Loader2, AlertTriangle, Zap, Bug, Wrench, TestTube, Settings, RefreshCw } from "lucide-react";
+import { Sparkles, Loader2, AlertTriangle, Zap, Bug, Wrench, TestTube, Settings, RefreshCw, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface CommitHighlight {
@@ -242,39 +242,57 @@ export function CommitSummary({ date, memberId, hasCommits, commitHashToRepo }: 
 
         {/* 하이라이트 목록 */}
         {summaryData?.highlights && summaryData.highlights.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {summaryData.highlights.map((highlight) => {
               const repoName = commitHashToRepo?.get(highlight.commitHash);
               return (
                 <div
                   key={highlight.commitHash}
-                  className="p-3 border rounded-lg space-y-2"
+                  className="group relative p-4 border rounded-lg hover:border-primary/50 hover:shadow-sm transition-all duration-200"
                 >
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge
-                      variant="outline"
-                      className={cn("gap-1", categoryColors[highlight.category])}
-                    >
-                      {categoryIcons[highlight.category]}
-                      {categoryLabels[highlight.category]}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground font-mono">
-                      #{highlight.rank}
-                    </span>
-                    {repoName && (
-                      <span className="text-xs text-muted-foreground">
-                        {repoName}
+                  {/* 상단: 카테고리 + 메타데이터 */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge
+                        variant="outline"
+                        className={cn("gap-1 font-medium", categoryColors[highlight.category])}
+                      >
+                        {categoryIcons[highlight.category]}
+                        {categoryLabels[highlight.category]}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground font-mono">
+                        #{highlight.rank}
                       </span>
-                    )}
-                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">
-                      {highlight.commitHash}
-                    </code>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {repoName && (
+                        <span className="hidden sm:inline">
+                          {repoName}
+                        </span>
+                      )}
+                      <code className="bg-muted px-1.5 py-0.5 rounded font-mono">
+                        {highlight.commitHash}
+                      </code>
+                    </div>
                   </div>
-                  <h4 className="font-medium text-sm">{highlight.title}</h4>
-                  <p className="text-sm text-muted-foreground">
+
+                  {/* 중단: 제목 */}
+                  <h4 className="font-semibold text-base mb-2 leading-snug">
+                    {highlight.title}
+                  </h4>
+
+                  {/* 하단: 설명 + 영향도 */}
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">
                     {highlight.description}
                   </p>
-                  <p className="text-xs text-primary">{highlight.impact}</p>
+
+                  {/* 영향도 배지 */}
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-md border border-primary/20">
+                      <TrendingUp className="size-3" />
+                      <span className="font-medium">{highlight.impact}</span>
+                    </div>
+                  </div>
                 </div>
               );
             })}

@@ -379,10 +379,8 @@ export function WeekView({ memberId, memberGithubName, date }: WeekViewProps) {
                         )}
                         {day.aiSummary?.exists && day.aiSummary.summary?.primaryFocus && (
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Sparkles className="size-3.5 text-amber-500" />
-                            <span className="truncate max-w-[200px]">
-                              {day.aiSummary.summary.primaryFocus}
-                            </span>
+                            <Sparkles className="size-3.5 text-amber-500 shrink-0" />
+                            <span>{day.aiSummary.summary.primaryFocus}</span>
                           </div>
                         )}
                         {!hasData && (

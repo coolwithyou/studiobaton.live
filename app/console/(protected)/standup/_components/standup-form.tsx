@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -15,10 +15,17 @@ import { addDays, nextMonday, isSameDay } from "date-fns";
 import { ko } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
+interface PrefillIssue {
+  displayId: string;
+  title: string;
+}
+
 interface StandupFormProps {
   date: Date;
   memberId: string;
   onTaskAdded: () => void;
+  prefillIssue?: PrefillIssue | null;
+  onPrefillConsumed?: () => void;
 }
 
 interface SelectedIssue {
@@ -26,7 +33,13 @@ interface SelectedIssue {
   url: string;
 }
 
-export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
+export function StandupForm({
+  date,
+  memberId,
+  onTaskAdded,
+  prefillIssue,
+  onPrefillConsumed,
+}: StandupFormProps) {
   const [content, setContent] = useState("");
   const [repository, setRepository] = useState<string | null>(null);
   const [selectedIssue, setSelectedIssue] = useState<SelectedIssue | null>(null);
@@ -36,6 +49,15 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const submittingRef = useRef(false);
+
+  // prefillIssue가 전달되면 입력 필드에 자동 채우기
+  useEffect(() => {
+    if (prefillIssue) {
+      setContent(`${prefillIssue.displayId} ${prefillIssue.title}`);
+      inputRef.current?.focus();
+      onPrefillConsumed?.();
+    }
+  }, [prefillIssue, onPrefillConsumed]);
 
   // 빠른 날짜 선택 옵션 계산
   const quickDates = useMemo(() => {

@@ -5,6 +5,7 @@ import { formatKST } from "@/lib/date-utils";
 import { Loader2, Clock } from "lucide-react";
 import { StandupForm } from "./standup-form";
 import { TaskList, Task } from "./task-list";
+import { AssignedIssues } from "./assigned-issues";
 
 interface StandupData {
   date: string;
@@ -22,12 +23,14 @@ interface StandupData {
 
 interface StandupContentProps {
   memberId: string;
+  githubName: string;
   selectedDate: Date;
 }
 
-export function StandupContent({ memberId, selectedDate }: StandupContentProps) {
+export function StandupContent({ memberId, githubName, selectedDate }: StandupContentProps) {
   const [standupData, setStandupData] = useState<StandupData | null>(null);
   const [initialFetching, setInitialFetching] = useState(true);
+  const [prefillIssue, setPrefillIssue] = useState<{ displayId: string; title: string } | null>(null);
   const hasLoadedRef = useRef(false);
 
   // 스탠드업 데이터 조회
@@ -92,6 +95,12 @@ export function StandupContent({ memberId, selectedDate }: StandupContentProps) 
         </div>
       ) : (
         <div className="space-y-6">
+          {/* 나에게 할당된 이슈 */}
+          <AssignedIssues
+            githubName={githubName}
+            onAddIssue={(issue) => setPrefillIssue(issue)}
+          />
+
           {/* 할 일 입력 폼 */}
           <div className="p-4 border rounded-lg bg-card">
             <h3 className="text-sm font-medium mb-3">할 일 추가</h3>
@@ -99,6 +108,8 @@ export function StandupContent({ memberId, selectedDate }: StandupContentProps) 
               date={selectedDate}
               memberId={memberId}
               onTaskAdded={handleTaskAdded}
+              prefillIssue={prefillIssue}
+              onPrefillConsumed={() => setPrefillIssue(null)}
             />
           </div>
 

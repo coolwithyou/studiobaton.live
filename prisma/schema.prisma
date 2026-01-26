@@ -466,6 +466,7 @@ model Issue {
   repository String // 리포지토리명 (예: "kiaf.web")
   state      String   @default("open") // open | closed
   url        String // GitHub 이슈 URL
+  assignees  String[] // 할당된 GitHub 사용자명 배열
   createdAt  DateTime // GitHub 생성일
   syncedAt   DateTime @default(now()) // 마지막 동기화 시간
 

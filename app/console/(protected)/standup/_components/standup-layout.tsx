@@ -59,6 +59,7 @@ export function StandupLayout({ members, currentMember }: StandupLayoutProps) {
         {/* 스탠드업 콘텐츠 */}
         <StandupContent
           memberId={currentMember.id}
+          githubName={currentMember.githubName}
           selectedDate={selectedDate}
         />
       </main>

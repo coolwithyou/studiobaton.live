@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
           repository: issue.repository,
           state: issue.state,
           url: issue.url,
+          assignees: issue.assignees,
           createdAt: issue.createdAt,
           syncedAt: now,
         },
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
           title: issue.title,
           state: issue.state,
           url: issue.url,
+          assignees: issue.assignees,
           syncedAt: now,
         },
       })

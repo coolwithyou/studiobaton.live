@@ -467,6 +467,7 @@ export interface IssueData {
   repository: string;
   state: "open" | "closed";
   url: string;
+  assignees: string[];
   createdAt: Date;
 }
 
@@ -500,6 +501,7 @@ export async function fetchOrgIssues(): Promise<IssueData[]> {
                 repository: repo,
                 state: issue.state as "open" | "closed",
                 url: issue.html_url,
+                assignees: issue.assignees?.map((a) => a.login) || [],
                 createdAt: new Date(issue.created_at),
               })
             );

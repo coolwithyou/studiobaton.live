@@ -44,6 +44,7 @@ export async function POST() {
           repository: issue.repository,
           state: issue.state,
           url: issue.url,
+          assignees: issue.assignees,
           createdAt: issue.createdAt,
           syncedAt: now,
         },
@@ -51,6 +52,7 @@ export async function POST() {
           title: issue.title,
           state: issue.state,
           url: issue.url,
+          assignees: issue.assignees,
           syncedAt: now,
         },
       })

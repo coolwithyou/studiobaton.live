@@ -104,10 +104,6 @@ export function ExternalReposSection({
     }
   };
 
-  // 레포가 없고 편집 권한도 없으면 아무것도 표시하지 않음
-  if (externalRepos.length === 0 && !canEdit) {
-    return null;
-  }
 
   return (
     <div className="space-y-3">

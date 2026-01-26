@@ -119,12 +119,14 @@ export function MemberProfileSidebar({
         </EditProfileDialog>
       )}
 
-      {/* 외부 레포지토리 섹션 */}
-      <ExternalReposSection
-        githubName={member.githubName}
-        externalRepos={member.externalRepos}
-        canEdit={canEdit}
-      />
+      {/* 외부 레포지토리 섹션 (본인 또는 관리자만 표시) */}
+      {canEdit && (
+        <ExternalReposSection
+          githubName={member.githubName}
+          externalRepos={member.externalRepos}
+          canEdit={canEdit}
+        />
+      )}
 
       {/* Bio */}
       {member.bio && (

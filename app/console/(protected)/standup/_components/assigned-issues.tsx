@@ -22,7 +22,7 @@ interface AssignedIssuesProps {
 export function AssignedIssues({ githubName, onAddIssue }: AssignedIssuesProps) {
   const [issues, setIssues] = useState<AssignedIssue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const fetchIssues = async () => {

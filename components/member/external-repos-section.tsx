@@ -27,13 +27,13 @@ import {
 import { toast } from "sonner";
 
 interface ExternalReposSectionProps {
-  memberId: string;
+  githubName: string;
   externalRepos: string[];
   canEdit?: boolean;
 }
 
 export function ExternalReposSection({
-  memberId,
+  githubName,
   externalRepos: initialRepos,
   canEdit = false,
 }: ExternalReposSectionProps) {
@@ -49,7 +49,7 @@ export function ExternalReposSection({
 
     setIsAdding(true);
     try {
-      const response = await fetch(`/api/member/${memberId}/external-repos`, {
+      const response = await fetch(`/api/member/${githubName}/external-repos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo }),
@@ -79,7 +79,7 @@ export function ExternalReposSection({
   const handleDeleteRepo = async (repo: string) => {
     setDeletingRepo(repo);
     try {
-      const response = await fetch(`/api/member/${memberId}/external-repos`, {
+      const response = await fetch(`/api/member/${githubName}/external-repos`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ repo }),

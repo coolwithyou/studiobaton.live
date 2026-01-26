@@ -121,7 +121,7 @@ export function MemberProfileSidebar({
 
       {/* 외부 레포지토리 섹션 */}
       <ExternalReposSection
-        memberId={member.id}
+        githubName={member.githubName}
         externalRepos={member.externalRepos}
         canEdit={canEdit}
       />

@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 const EXTERNAL_REPO_REGEX = /^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/;
 
 interface RouteContext {
-  params: Promise<{ memberId: string }>;
+  params: Promise<{ githubName: string }>;
 }
 
 /**
@@ -42,30 +42,30 @@ async function checkPermission(memberId: string) {
 }
 
 /**
- * GET /api/member/[memberId]/external-repos
+ * GET /api/member/[githubName]/external-repos
  * 외부 레포 목록 조회
  */
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
-    const { memberId } = await context.params;
-
-    const permission = await checkPermission(memberId);
-    if ("error" in permission) {
-      return NextResponse.json(
-        { error: permission.error },
-        { status: permission.status }
-      );
-    }
+    const { githubName } = await context.params;
 
     const member = await prisma.member.findUnique({
-      where: { id: memberId },
-      select: { externalRepos: true },
+      where: { githubName },
+      select: { id: true, externalRepos: true },
     });
 
     if (!member) {
       return NextResponse.json(
         { error: "멤버를 찾을 수 없습니다." },
         { status: 404 }
+      );
+    }
+
+    const permission = await checkPermission(member.id);
+    if ("error" in permission) {
+      return NextResponse.json(
+        { error: permission.error },
+        { status: permission.status }
       );
     }
 
@@ -80,14 +80,26 @@ export async function GET(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * POST /api/member/[memberId]/external-repos
+ * POST /api/member/[githubName]/external-repos
  * 외부 레포 추가
  */
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const { memberId } = await context.params;
+    const { githubName } = await context.params;
 
-    const permission = await checkPermission(memberId);
+    const member = await prisma.member.findUnique({
+      where: { githubName },
+      select: { id: true, externalRepos: true },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "멤버를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    const permission = await checkPermission(member.id);
     if ("error" in permission) {
       return NextResponse.json(
         { error: permission.error },
@@ -113,18 +125,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const member = await prisma.member.findUnique({
-      where: { id: memberId },
-      select: { externalRepos: true },
-    });
-
-    if (!member) {
-      return NextResponse.json(
-        { error: "멤버를 찾을 수 없습니다." },
-        { status: 404 }
-      );
-    }
-
     // 중복 체크
     if (member.externalRepos.includes(repo)) {
       return NextResponse.json(
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     // 추가
     const updatedMember = await prisma.member.update({
-      where: { id: memberId },
+      where: { id: member.id },
       data: {
         externalRepos: [...member.externalRepos, repo],
       },
@@ -156,14 +156,26 @@ export async function POST(request: NextRequest, context: RouteContext) {
 }
 
 /**
- * DELETE /api/member/[memberId]/external-repos
+ * DELETE /api/member/[githubName]/external-repos
  * 외부 레포 삭제
  */
 export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
-    const { memberId } = await context.params;
+    const { githubName } = await context.params;
 
-    const permission = await checkPermission(memberId);
+    const member = await prisma.member.findUnique({
+      where: { githubName },
+      select: { id: true, externalRepos: true },
+    });
+
+    if (!member) {
+      return NextResponse.json(
+        { error: "멤버를 찾을 수 없습니다." },
+        { status: 404 }
+      );
+    }
+
+    const permission = await checkPermission(member.id);
     if ("error" in permission) {
       return NextResponse.json(
         { error: permission.error },
@@ -181,18 +193,6 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const member = await prisma.member.findUnique({
-      where: { id: memberId },
-      select: { externalRepos: true },
-    });
-
-    if (!member) {
-      return NextResponse.json(
-        { error: "멤버를 찾을 수 없습니다." },
-        { status: 404 }
-      );
-    }
-
     // 존재 체크
     if (!member.externalRepos.includes(repo)) {
       return NextResponse.json(
@@ -203,7 +203,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     // 삭제
     const updatedMember = await prisma.member.update({
-      where: { id: memberId },
+      where: { id: member.id },
       data: {
         externalRepos: member.externalRepos.filter((r) => r !== repo),
       },

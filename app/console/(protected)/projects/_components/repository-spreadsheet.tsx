@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, Loader2 } from "lucide-react";
+import { RefreshCw, Loader2, ExternalLink } from "lucide-react";
 
 interface RepositoryMapping {
   id: string;
@@ -22,6 +22,7 @@ interface Repository {
   url: string | null;
   syncedAt: string;
   lastCommitAt: string | null;
+  isExternal: boolean;
   mapping: RepositoryMapping | null;
 }
 
@@ -265,7 +266,24 @@ export function RepositorySpreadsheet({ onDataChange }: RepositorySpreadsheetPro
                 >
                   {/* 리포지토리명 */}
                   <td className="p-3">
-                    <div className="font-mono text-sm">{repo.name}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm">{repo.name}</span>
+                      {repo.isExternal && (
+                        <Badge variant="outline" className="text-xs px-1.5 py-0">
+                          외부
+                        </Badge>
+                      )}
+                      {repo.url && (
+                        <a
+                          href={repo.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-muted-foreground hover:text-foreground"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
                     {repo.lastCommitAt && (
                       <div className="text-xs text-muted-foreground">
                         최신 커밋: {formatDate(repo.lastCommitAt)}
@@ -370,6 +388,7 @@ export function RepositorySpreadsheet({ onDataChange }: RepositorySpreadsheetPro
       <div className="text-sm text-muted-foreground">
         <p>* 표시 이름을 입력하면 자동으로 프로젝트가 등록됩니다.</p>
         <p>* 마스킹명은 비로그인 사용자에게 표시됩니다. 비워두면 &quot;Repository A&quot; 형태로 표시됩니다.</p>
+        <p>* <Badge variant="outline" className="text-xs px-1.5 py-0 mx-0.5">외부</Badge> 표시는 팀원이 등록한 외부 레포지토리입니다.</p>
       </div>
     </div>
   );

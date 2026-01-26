@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SidebarMemberCard } from "./sidebar-member-card";
 import { SidebarDateCard } from "./sidebar-date-card";
+import { SidebarSyncCard } from "./sidebar-sync-card";
 import { StandupContent } from "./standup-content";
 
 interface Member {
@@ -37,6 +38,7 @@ export function StandupLayout({ members, currentMember }: StandupLayoutProps) {
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}
         />
+        <SidebarSyncCard />
       </aside>
 
       {/* 메인 콘텐츠 */}
@@ -51,6 +53,7 @@ export function StandupLayout({ members, currentMember }: StandupLayoutProps) {
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
           />
+          <SidebarSyncCard />
         </div>
 
         {/* 스탠드업 콘텐츠 */}

@@ -7,7 +7,9 @@ import {
   groupCommitsByDate,
   formatDateKorean,
   getCommitTypeIcon,
+  getMemberMapping,
   type ChangelogCommit,
+  type MemberInfo,
 } from "@/lib/changelog";
 import { SITE_URL, SITE_NAME } from "@/lib/config";
 
@@ -43,33 +45,38 @@ function UpdatesSkeleton() {
   );
 }
 
-function CommitItem({ commit }: { commit: ChangelogCommit }) {
+function CommitItem({
+  commit,
+  memberInfo,
+}: {
+  commit: ChangelogCommit;
+  memberInfo?: MemberInfo;
+}) {
   const icon = getCommitTypeIcon(commit.type);
+  const displayName = memberInfo?.name || commit.author;
+  const avatarUrl = memberInfo?.avatarUrl || commit.authorAvatar;
 
   return (
-    <li className="flex items-start gap-2 py-2">
+    <li className="flex items-center gap-2 py-1.5">
       <span className="shrink-0 text-base" aria-hidden="true">
         {icon}
       </span>
-      <div className="flex-1 min-w-0">
-        <span className="text-foreground/90 leading-relaxed">
-          {commit.title}
-        </span>
-        <div className="flex items-center gap-1.5 mt-1">
-          {commit.authorAvatar ? (
-            <Image
-              src={commit.authorAvatar}
-              alt={commit.author}
-              width={16}
-              height={16}
-              className="rounded-full"
-            />
-          ) : (
-            <div className="w-4 h-4 rounded-full bg-muted" />
-          )}
-          <span className="text-xs text-muted-foreground">{commit.author}</span>
-        </div>
-      </div>
+      <span className="text-foreground/90 leading-relaxed">{commit.title}</span>
+      <span className="text-muted-foreground mx-1">—</span>
+      {avatarUrl ? (
+        <Image
+          src={avatarUrl}
+          alt={displayName}
+          width={18}
+          height={18}
+          className="rounded-full shrink-0"
+        />
+      ) : (
+        <div className="w-[18px] h-[18px] rounded-full bg-muted shrink-0" />
+      )}
+      <span className="text-sm text-muted-foreground whitespace-nowrap">
+        {displayName}
+      </span>
     </li>
   );
 }
@@ -77,9 +84,11 @@ function CommitItem({ commit }: { commit: ChangelogCommit }) {
 function DateGroup({
   dateStr,
   commits,
+  memberMapping,
 }: {
   dateStr: string;
   commits: ChangelogCommit[];
+  memberMapping: Map<string, MemberInfo>;
 }) {
   const formattedDate = formatDateKorean(dateStr);
 
@@ -90,7 +99,11 @@ function DateGroup({
       </h2>
       <ul className="border-l-2 border-border pl-4 space-y-0.5">
         {commits.map((commit) => (
-          <CommitItem key={commit.sha} commit={commit} />
+          <CommitItem
+            key={commit.sha}
+            commit={commit}
+            memberInfo={memberMapping.get(commit.githubName)}
+          />
         ))}
       </ul>
     </section>
@@ -98,7 +111,10 @@ function DateGroup({
 }
 
 async function UpdatesContent() {
-  const commits = await fetchBlogCommits(100);
+  const [commits, memberMapping] = await Promise.all([
+    fetchBlogCommits(100),
+    getMemberMapping(),
+  ]);
 
   if (commits.length === 0) {
     return (
@@ -122,6 +138,7 @@ async function UpdatesContent() {
           key={dateStr}
           dateStr={dateStr}
           commits={groupedCommits.get(dateStr)!}
+          memberMapping={memberMapping}
         />
       ))}
     </div>

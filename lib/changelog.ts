@@ -1,4 +1,5 @@
 import { Octokit } from "@octokit/rest";
+import prisma from "@/lib/prisma";
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
@@ -7,6 +8,11 @@ const octokit = new Octokit({
 // 블로그 레포지토리 정보
 const BLOG_OWNER = "coolwithyou";
 const BLOG_REPO = "studiobaton.live";
+
+export interface MemberInfo {
+  name: string;
+  avatarUrl: string | null;
+}
 
 export type CommitType =
   | "feat"
@@ -23,7 +29,8 @@ export interface ChangelogCommit {
   type: CommitType;
   title: string; // 타입 제거한 첫 줄
   date: Date;
-  author: string;
+  githubName: string; // GitHub 사용자명 (매핑용)
+  author: string; // 커밋 작성자명
   authorAvatar: string | null;
   url: string;
 }
@@ -75,6 +82,7 @@ export async function fetchBlogCommits(
         type,
         title,
         date: new Date(commit.commit.author?.date || Date.now()),
+        githubName: commit.author?.login || "",
         author: commit.commit.author?.name || "Unknown",
         authorAvatar: commit.author?.avatar_url || null,
         url: commit.html_url,
@@ -153,4 +161,28 @@ export function formatDateKorean(dateStr: string): string {
   const dayOfWeek = dayNames[date.getDay()];
 
   return `${year}년 ${month}월 ${day}일 (${dayOfWeek})`;
+}
+
+/**
+ * GitHub 사용자명 → 팀원 정보 매핑 조회
+ */
+export async function getMemberMapping(): Promise<Map<string, MemberInfo>> {
+  const members = await prisma.member.findMany({
+    where: { isActive: true },
+    select: {
+      githubName: true,
+      name: true,
+      avatarUrl: true,
+    },
+  });
+
+  const mapping = new Map<string, MemberInfo>();
+  for (const member of members) {
+    mapping.set(member.githubName, {
+      name: member.name,
+      avatarUrl: member.avatarUrl,
+    });
+  }
+
+  return mapping;
 }

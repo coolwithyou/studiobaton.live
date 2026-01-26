@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { ContentGrid } from "@/components/layout/content-grid";
 import {
   fetchBlogCommits,
@@ -46,11 +47,29 @@ function CommitItem({ commit }: { commit: ChangelogCommit }) {
   const icon = getCommitTypeIcon(commit.type);
 
   return (
-    <li className="flex items-start gap-2 py-1.5">
+    <li className="flex items-start gap-2 py-2">
       <span className="shrink-0 text-base" aria-hidden="true">
         {icon}
       </span>
-      <span className="text-foreground/90 leading-relaxed">{commit.title}</span>
+      <div className="flex-1 min-w-0">
+        <span className="text-foreground/90 leading-relaxed">
+          {commit.title}
+        </span>
+        <div className="flex items-center gap-1.5 mt-1">
+          {commit.authorAvatar ? (
+            <Image
+              src={commit.authorAvatar}
+              alt={commit.author}
+              width={16}
+              height={16}
+              className="rounded-full"
+            />
+          ) : (
+            <div className="w-4 h-4 rounded-full bg-muted" />
+          )}
+          <span className="text-xs text-muted-foreground">{commit.author}</span>
+        </div>
+      </div>
     </li>
   );
 }

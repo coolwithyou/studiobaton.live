@@ -19,6 +19,8 @@ interface IssueSearchResult {
   url: string;
   /** 표시용: #repo#123 */
   displayId: string;
+  /** 마지막 동기화 시간 */
+  syncedAt: string;
 }
 
 /**
@@ -34,6 +36,7 @@ async function getIssues(): Promise<IssueSearchResult[]> {
       repository: true,
       state: true,
       url: true,
+      syncedAt: true,
     },
   });
 
@@ -44,6 +47,7 @@ async function getIssues(): Promise<IssueSearchResult[]> {
     state: issue.state,
     url: issue.url,
     displayId: `#${issue.repository}#${issue.number}`,
+    syncedAt: issue.syncedAt.toISOString(),
   }));
 }
 

@@ -1,8 +1,75 @@
-import { collectDailyCommits } from "./github";
+import { collectDailyCommits, getCommitsFromExternalRepo, CommitData } from "./github";
 import { generateAllVersions, generatePostVersion, AIError, AIErrorDetails, AIModel, DEFAULT_MODEL } from "./ai";
 import prisma from "./prisma";
 import { VersionTone } from "@/app/generated/prisma";
 import { getKSTDayRange } from "@/lib/date-utils";
+
+/**
+ * 모든 활성 멤버의 외부 레포에서 커밋을 수집
+ * @param targetDate 대상 날짜
+ * @returns 외부 레포에서 수집된 커밋 배열
+ */
+async function collectExternalRepoCommits(targetDate: Date): Promise<CommitData[]> {
+  const { start: startOfDay, end: endOfDay } = getKSTDayRange(targetDate);
+
+  // 외부 레포가 등록된 활성 멤버 조회
+  const membersWithExternalRepos = await prisma.member.findMany({
+    where: {
+      isActive: true,
+      externalRepos: { isEmpty: false },
+    },
+    select: { githubName: true, externalRepos: true },
+  });
+
+  if (membersWithExternalRepos.length === 0) {
+    return [];
+  }
+
+  const externalCommits: CommitData[] = [];
+
+  for (const member of membersWithExternalRepos) {
+    for (const externalRepo of member.externalRepos) {
+      const [owner, repo] = externalRepo.split("/");
+      if (owner && repo) {
+        try {
+          const commits = await getCommitsFromExternalRepo(
+            owner,
+            repo,
+            member.githubName,
+            startOfDay,
+            endOfDay
+          );
+          externalCommits.push(...commits);
+        } catch (error) {
+          console.error(`Failed to fetch commits from ${externalRepo} for ${member.githubName}:`, error);
+          // 접근 불가 레포는 스킵 (에러 무시)
+        }
+      }
+    }
+  }
+
+  return externalCommits;
+}
+
+/**
+ * 조직 레포 커밋과 외부 레포 커밋을 병합하고 SHA 중복 제거
+ */
+function mergeAndDeduplicateCommits(orgCommits: CommitData[], externalCommits: CommitData[]): CommitData[] {
+  const allCommitsMap = new Map<string, CommitData>();
+
+  for (const commit of [...orgCommits, ...externalCommits]) {
+    if (!allCommitsMap.has(commit.sha)) {
+      allCommitsMap.set(commit.sha, commit);
+    }
+  }
+
+  const commits = Array.from(allCommitsMap.values());
+
+  // 커밋 시간순 정렬
+  commits.sort((a, b) => a.committedAt.getTime() - b.committedAt.getTime());
+
+  return commits;
+}
 
 export interface GenerateResult {
   success: boolean;
@@ -37,8 +104,14 @@ export async function collectCommitsForDate(
   // KST 기준 날짜
   const { start: startOfDay } = getKSTDayRange(targetDate);
 
-  // 1. GitHub에서 커밋 수집
-  const commits = await collectDailyCommits(targetDate);
+  // 1. 조직 레포에서 커밋 수집 (기존 로직)
+  const orgCommits = await collectDailyCommits(targetDate);
+
+  // 2. 외부 레포에서 커밋 수집 (새 로직)
+  const externalCommits = await collectExternalRepoCommits(targetDate);
+
+  // 3. 두 결과 병합 및 SHA 중복 제거
+  const commits = mergeAndDeduplicateCommits(orgCommits, externalCommits);
 
   if (commits.length === 0) {
     return {
@@ -282,8 +355,14 @@ export async function generatePostForDate(
     };
   }
 
-  // 2. 커밋 수집
-  const commits = await collectDailyCommits(targetDate);
+  // 2. 조직 레포에서 커밋 수집 (기존 로직)
+  const orgCommits = await collectDailyCommits(targetDate);
+
+  // 3. 외부 레포에서 커밋 수집 (새 로직)
+  const externalCommits = await collectExternalRepoCommits(targetDate);
+
+  // 4. 두 결과 병합 및 SHA 중복 제거
+  const commits = mergeAndDeduplicateCommits(orgCommits, externalCommits);
 
   if (commits.length === 0) {
     return {

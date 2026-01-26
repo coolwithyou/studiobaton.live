@@ -457,3 +457,68 @@ export function normalizeDeveloperIdentity(
     isNoreplyEmail: isGitHubNoreplyEmail(email),
   };
 }
+
+/**
+ * GitHub 이슈 데이터 (DB 저장용)
+ */
+export interface IssueData {
+  number: number;
+  title: string;
+  repository: string;
+  state: "open" | "closed";
+  url: string;
+  createdAt: Date;
+}
+
+/**
+ * org의 모든 open 이슈 조회 (동기화용)
+ * - 전체 리포지토리 조회 후 각 리포지토리의 open 이슈 수집
+ */
+export async function fetchOrgIssues(): Promise<IssueData[]> {
+  try {
+    const repos = await getOrgRepos();
+    const allIssues: IssueData[] = [];
+
+    // 리포지토리별로 병렬 처리
+    const repoIssues = await processBatch(
+      repos,
+      async (repo) => {
+        try {
+          const issues = await octokit.paginate(octokit.issues.listForRepo, {
+            owner: ORG_NAME,
+            repo,
+            state: "open",
+            per_page: 100,
+          });
+
+          return issues
+            .filter((issue) => !issue.pull_request) // PR 제외
+            .map(
+              (issue): IssueData => ({
+                number: issue.number,
+                title: issue.title,
+                repository: repo,
+                state: issue.state as "open" | "closed",
+                url: issue.html_url,
+                createdAt: new Date(issue.created_at),
+              })
+            );
+        } catch (error) {
+          console.error(`Error fetching issues for ${repo}:`, error);
+          return [];
+        }
+      },
+      5 // 배치 크기
+    );
+
+    allIssues.push(...repoIssues.flat());
+
+    // 생성일 기준 내림차순 정렬 (최신순)
+    allIssues.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    return allIssues;
+  } catch (error) {
+    console.error("Error fetching org issues:", error);
+    return [];
+  }
+}

@@ -229,6 +229,10 @@ export const repoSearchSchema = z.object({
   q: z.string().max(100).default(""),
 });
 
+export const issueSearchSchema = z.object({
+  q: z.string().max(100).default(""),
+});
+
 export const commitSummarizeSchema = z.object({
   date: z.coerce.date(),
   memberId: z.string().cuid(),

@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/sync-issues",
+      "schedule": "*/10 * * * *"
+    },
+    {
       "path": "/api/cron/collect-commits",
       "schedule": "0 15 * * *"
     },

@@ -458,6 +458,23 @@ model WorkLogDailyStats {
   @@index([memberId, date])
 }
 
+// GitHub 이슈 캐시 (정기 동기화)
+model Issue {
+  id         String   @id @default(cuid())
+  number     Int // GitHub 이슈 번호
+  title      String // 이슈 제목
+  repository String // 리포지토리명 (예: "kiaf.web")
+  state      String   @default("open") // open | closed
+  url        String // GitHub 이슈 URL
+  createdAt  DateTime // GitHub 생성일
+  syncedAt   DateTime @default(now()) // 마지막 동기화 시간
+
+  @@unique([repository, number])
+  @@index([repository])
+  @@index([state])
+  @@index([createdAt])
+}
+
 // 커밋 수집 로그 (레포+월 단위 수집 추적)
 model CommitCollectionLog {
   id           String   @id @default(cuid())

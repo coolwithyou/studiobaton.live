@@ -21,9 +21,15 @@ interface StandupFormProps {
   onTaskAdded: () => void;
 }
 
+interface SelectedIssue {
+  displayId: string;
+  url: string;
+}
+
 export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
   const [content, setContent] = useState("");
   const [repository, setRepository] = useState<string | null>(null);
+  const [selectedIssue, setSelectedIssue] = useState<SelectedIssue | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [mentionPopupOpen, setMentionPopupOpen] = useState(false);
   const [selectedDueDate, setSelectedDueDate] = useState<Date>(date);
@@ -79,6 +85,7 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
 
       setContent("");
       setRepository(null);
+      setSelectedIssue(null);
       // 성공 후 날짜를 현재 보고 있는 날짜로 리셋
       setSelectedDueDate(date);
       onTaskAdded();
@@ -93,6 +100,10 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
 
   const handleRepositorySelect = (repo: string) => {
     setRepository(repo);
+  };
+
+  const handleIssueSelect = (issue: SelectedIssue) => {
+    setSelectedIssue(issue);
   };
 
   // Enter로 제출 (Shift+Enter는 줄바꿈)
@@ -189,24 +200,49 @@ export function StandupForm({ date, memberId, onTaskAdded }: StandupFormProps) {
           value={content}
           onChange={setContent}
           onRepositorySelect={handleRepositorySelect}
+          onIssueSelect={handleIssueSelect}
           onOpenChange={setMentionPopupOpen}
           inputRef={inputRef}
         />
       </div>
 
-      {repository && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>연결된 레포:</span>
-          <code className="px-1.5 py-0.5 bg-muted rounded text-xs">
-            @{repository}
-          </code>
-          <button
-            type="button"
-            onClick={() => setRepository(null)}
-            className="text-xs text-destructive hover:underline"
-          >
-            제거
-          </button>
+      {(repository || selectedIssue) && (
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          {repository && (
+            <div className="flex items-center gap-2">
+              <span>레포:</span>
+              <code className="px-1.5 py-0.5 bg-muted rounded text-xs">
+                @{repository}
+              </code>
+              <button
+                type="button"
+                onClick={() => setRepository(null)}
+                className="text-xs text-destructive hover:underline"
+              >
+                제거
+              </button>
+            </div>
+          )}
+          {selectedIssue && (
+            <div className="flex items-center gap-2">
+              <span>이슈:</span>
+              <a
+                href={selectedIssue.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs hover:bg-primary/20"
+              >
+                {selectedIssue.displayId}
+              </a>
+              <button
+                type="button"
+                onClick={() => setSelectedIssue(null)}
+                className="text-xs text-destructive hover:underline"
+              >
+                제거
+              </button>
+            </div>
+          )}
         </div>
       )}
 

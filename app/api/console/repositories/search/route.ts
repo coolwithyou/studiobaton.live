@@ -19,18 +19,42 @@ interface RepoSearchResult {
 
 /**
  * DB에서 레포지토리 목록 조회 (isDeleted: false만)
+ * 최신 커밋 순으로 정렬 (커밋이 없는 레포는 이름순으로 뒤에)
  */
 async function getRepositories(): Promise<RepoSearchResult[]> {
   const repos = await prisma.repository.findMany({
     where: { isDeleted: false },
-    orderBy: { name: "asc" },
     select: {
       name: true,
       description: true,
     },
   });
 
-  return repos.map((repo): RepoSearchResult => ({
+  // 각 레포지토리별 최신 커밋 날짜 조회
+  const latestCommits = await prisma.commitLog.groupBy({
+    by: ["repository"],
+    _max: {
+      committedAt: true,
+    },
+  });
+  const latestCommitByRepo = new Map<string, Date | null>(
+    latestCommits.map((c) => [c.repository, c._max.committedAt])
+  );
+
+  // 최신 커밋 순 정렬 (커밋 없으면 이름순으로 뒤에)
+  const sorted = repos.sort((a, b) => {
+    const aCommit = latestCommitByRepo.get(a.name);
+    const bCommit = latestCommitByRepo.get(b.name);
+
+    if (aCommit && bCommit) {
+      return bCommit.getTime() - aCommit.getTime();
+    }
+    if (aCommit && !bCommit) return -1;
+    if (!aCommit && bCommit) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
+  return sorted.map((repo): RepoSearchResult => ({
     name: repo.name,
     fullName: `studiobaton/${repo.name}`,
     description: repo.description,

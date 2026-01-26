@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession, hasTeamAccess, isAdmin } from "@/lib/auth-helpers";
-import { getCommitsByAuthorWithDetails } from "@/lib/github";
+import { getCommitsByAuthorWithDetails, getCommitsFromExternalRepo, CommitData } from "@/lib/github";
 import prisma from "@/lib/prisma";
+import { getKSTDayRange } from "@/lib/date-utils";
 import { parseISO } from "date-fns";
 import { endOfDayKST } from "@/lib/date-utils";
 
@@ -93,10 +94,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 멤버 정보 조회
+    // 멤버 정보 조회 (externalRepos 포함)
     const member = await prisma.member.findUnique({
       where: { id: memberId },
-      select: { id: true, name: true, githubName: true, email: true },
+      select: { id: true, name: true, githubName: true, email: true, externalRepos: true },
     });
 
     if (!member) {
@@ -106,11 +107,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // GitHub에서 커밋 조회 (상세 정보 포함)
-    const githubCommits = await getCommitsByAuthorWithDetails(
+    // 1. 조직 레포에서 커밋 조회 (기존 로직)
+    const orgCommits = await getCommitsByAuthorWithDetails(
       member.githubName,
       targetDate
     );
+
+    // 2. 외부 레포에서 커밋 조회 (새 로직)
+    const { start: startOfDay, end: endOfDay } = getKSTDayRange(targetDate);
+    const externalCommits: CommitData[] = [];
+
+    for (const externalRepo of member.externalRepos) {
+      const [owner, repo] = externalRepo.split("/");
+      if (owner && repo) {
+        const commits = await getCommitsFromExternalRepo(
+          owner,
+          repo,
+          member.githubName,
+          startOfDay,
+          endOfDay
+        );
+        externalCommits.push(...commits);
+      }
+    }
+
+    // 3. 두 결과 병합 및 SHA 중복 제거
+    const allCommitsMap = new Map<string, CommitData>();
+    for (const commit of [...orgCommits, ...externalCommits]) {
+      if (!allCommitsMap.has(commit.sha)) {
+        allCommitsMap.set(commit.sha, commit);
+      }
+    }
+    const githubCommits = Array.from(allCommitsMap.values());
 
     if (githubCommits.length === 0) {
       return NextResponse.json({

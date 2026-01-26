@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EditProfileDialog } from "./edit-profile-dialog";
+import { ExternalReposSection } from "./external-repos-section";
 import { toast } from "sonner";
 
 interface MemberProfileSidebarProps {
@@ -20,6 +21,7 @@ interface MemberProfileSidebarProps {
     bio: string | null;
     title: string | null;
     role: string | null;
+    externalRepos: string[];
   };
   stats: {
     totalCommits: number;
@@ -116,6 +118,13 @@ export function MemberProfileSidebar({
           </Button>
         </EditProfileDialog>
       )}
+
+      {/* 외부 레포지토리 섹션 */}
+      <ExternalReposSection
+        memberId={member.id}
+        externalRepos={member.externalRepos}
+        canEdit={canEdit}
+      />
 
       {/* Bio */}
       {member.bio && (

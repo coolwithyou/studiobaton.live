@@ -225,17 +225,18 @@ model ProjectMapping {
 }
 
 model Member {
-  id              String  @id @default(cuid())
+  id              String   @id @default(cuid())
   name            String // 팀원 이름 (예: "홍길동")
-  githubName      String  @unique // GitHub 사용자명
-  email           String  @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
+  githubName      String   @unique // GitHub 사용자명
+  email           String   @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
   avatarUrl       String? // 1:1 아바타 (포스트, 헤더, 멤버 카드)
   profileImageUrl String? // 3:4 프로필 이미지 (프로필 페이지)
-  bio             String? @db.Text // 자기소개 (줄바꿈 지원)
+  bio             String?  @db.Text // 자기소개 (줄바꿈 지원)
   title           String? // 직함 (예: "시니어 개발자")
   role            String? // 역할 (예: "프론트엔드 리드")
-  isActive        Boolean @default(true) // 활성화 여부
-  displayOrder    Int     @default(0) // 탭 표시 순서
+  isActive        Boolean  @default(true) // 활성화 여부
+  displayOrder    Int      @default(0) // 탭 표시 순서
+  externalRepos   String[] @default([]) // 외부 레포지토리 목록 (owner/repo 형식)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

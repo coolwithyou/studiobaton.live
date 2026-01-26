@@ -459,6 +459,159 @@ export function normalizeDeveloperIdentity(
 }
 
 /**
+ * 외부 레포지토리의 특정 브랜치 목록 조회
+ */
+async function getExternalRepoBranches(owner: string, repo: string): Promise<string[]> {
+  try {
+    const branches = await octokit.paginate(octokit.repos.listBranches, {
+      owner,
+      repo,
+      per_page: 100,
+    });
+    return branches.map((branch) => branch.name);
+  } catch (error) {
+    console.error(`Error fetching branches for ${owner}/${repo}:`, error);
+    return [];
+  }
+}
+
+/**
+ * 외부 레포지토리의 커밋 상세 정보 조회
+ */
+async function getExternalCommitDetail(
+  owner: string,
+  repo: string,
+  sha: string
+): Promise<{ additions: number; deletions: number; filesChanged: number; files: CommitFileData[] }> {
+  try {
+    const { data } = await octokit.repos.getCommit({
+      owner,
+      repo,
+      ref: sha,
+    });
+
+    const files: CommitFileData[] = (data.files || []).map((file) => ({
+      filename: file.filename,
+      status: file.status || "modified",
+      additions: file.additions,
+      deletions: file.deletions,
+      changes: file.changes,
+      patch: file.patch,
+    }));
+
+    return {
+      additions: data.stats?.additions || 0,
+      deletions: data.stats?.deletions || 0,
+      filesChanged: data.files?.length || 0,
+      files,
+    };
+  } catch (error) {
+    console.error(`Error fetching external commit detail for ${owner}/${repo}:`, error);
+    return { additions: 0, deletions: 0, filesChanged: 0, files: [] };
+  }
+}
+
+/**
+ * 외부 레포에서 특정 사용자의 커밋 조회
+ * @param owner 레포 소유자 (user 또는 org)
+ * @param repo 레포명
+ * @param githubName 커밋 작성자 GitHub 사용자명
+ * @param since 시작 일시
+ * @param until 종료 일시
+ */
+export async function getCommitsFromExternalRepo(
+  owner: string,
+  repo: string,
+  githubName: string,
+  since: Date,
+  until: Date
+): Promise<CommitData[]> {
+  try {
+    // 모든 브랜치 조회
+    const branches = await getExternalRepoBranches(owner, repo);
+
+    if (branches.length === 0) {
+      return [];
+    }
+
+    // 각 브랜치별로 커밋 조회
+    const branchCommitsResults = await processBatch(
+      branches,
+      async (branch) => {
+        try {
+          return await octokit.paginate(octokit.repos.listCommits, {
+            owner,
+            repo,
+            sha: branch,
+            author: githubName,
+            since: since.toISOString(),
+            until: until.toISOString(),
+            per_page: 100,
+          });
+        } catch (error) {
+          console.error(`Error fetching commits for ${owner}/${repo}/${branch}:`, error);
+          return [];
+        }
+      },
+      5
+    );
+
+    // 모든 브랜치의 커밋을 합치고 SHA 기준으로 중복 제거
+    const allCommits = branchCommitsResults.flat();
+    const uniqueCommitsMap = new Map<string, (typeof allCommits)[0]>();
+    for (const commit of allCommits) {
+      if (!uniqueCommitsMap.has(commit.sha)) {
+        uniqueCommitsMap.set(commit.sha, commit);
+      }
+    }
+    const uniqueCommits = Array.from(uniqueCommitsMap.values());
+
+    // 병렬로 커밋 상세 정보 조회
+    const commitDetails = await processBatch(uniqueCommits, async (commit) => {
+      try {
+        const detail = await getExternalCommitDetail(owner, repo, commit.sha);
+        return {
+          sha: commit.sha,
+          repository: `${owner}/${repo}`, // 외부 레포는 owner/repo 형식으로 저장
+          message: commit.commit.message,
+          author: commit.commit.author?.name || "Unknown",
+          authorEmail: commit.commit.author?.email || null,
+          authorAvatar: commit.author?.avatar_url || null,
+          committedAt: new Date(commit.commit.author?.date || Date.now()),
+          additions: detail.additions,
+          deletions: detail.deletions,
+          filesChanged: detail.filesChanged,
+          url: commit.html_url,
+          files: detail.files,
+        };
+      } catch (error) {
+        console.error(`Error fetching commit detail for ${commit.sha}:`, error);
+        return {
+          sha: commit.sha,
+          repository: `${owner}/${repo}`,
+          message: commit.commit.message,
+          author: commit.commit.author?.name || "Unknown",
+          authorEmail: commit.commit.author?.email || null,
+          authorAvatar: commit.author?.avatar_url || null,
+          committedAt: new Date(commit.commit.author?.date || Date.now()),
+          additions: 0,
+          deletions: 0,
+          filesChanged: 0,
+          url: commit.html_url,
+          files: [],
+        };
+      }
+    });
+
+    return commitDetails;
+  } catch (error) {
+    // 접근 불가 레포 → 빈 배열 반환 (에러 아님)
+    console.error(`Error fetching commits from external repo ${owner}/${repo}:`, error);
+    return [];
+  }
+}
+
+/**
  * GitHub 이슈 데이터 (DB 저장용)
  */
 export interface IssueData {

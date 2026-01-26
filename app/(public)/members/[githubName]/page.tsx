@@ -52,7 +52,7 @@ export default function MemberProfilePage({ params }: PageProps) {
 }
 
 async function MemberProfile({ githubName }: { githubName: string }) {
-  // 팀원 정보 조회
+  // 팀원 정보 조회 (externalRepos 포함)
   const member = await prisma.member.findFirst({
     where: { githubName, isActive: true },
     select: {
@@ -65,6 +65,7 @@ async function MemberProfile({ githubName }: { githubName: string }) {
       bio: true,
       title: true,
       role: true,
+      externalRepos: true,
     },
   });
 

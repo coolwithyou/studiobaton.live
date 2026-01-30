@@ -5,7 +5,7 @@ export function MembersSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
-        <Card key={i} className="relative aspect-[2/3] p-0 overflow-hidden">
+        <Card key={i} className="relative aspect-[0.726] p-0 overflow-hidden">
           {/* 전체 배경 스켈레톤 */}
           <Skeleton className="w-full h-full" />
 

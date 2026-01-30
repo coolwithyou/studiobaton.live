@@ -230,7 +230,7 @@ model Member {
   githubName      String   @unique // GitHub 사용자명
   email           String   @unique // GitHub 커밋 이메일 (CommitLog.authorEmail과 매칭)
   avatarUrl       String? // 1:1 아바타 (포스트, 헤더, 멤버 카드)
-  profileImageUrl String? // 3:4 프로필 이미지 (프로필 페이지)
+  profileImageUrl String? // 0.726:1 프로필 이미지 (프로필 페이지)
   bio             String?  @db.Text // 자기소개 (줄바꿈 지원)
   title           String? // 직함 (예: "시니어 개발자")
   role            String? // 역할 (예: "프론트엔드 리드")

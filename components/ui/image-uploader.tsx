@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ImageCropper, CropShape } from "@/components/ui/image-cropper";
 
-export type AspectRatio = "1:1" | "3:4" | "4:3" | "16:9";
+export type AspectRatio = "1:1" | "0.726:1" | "4:3" | "16:9";
 
 interface ImageUploaderProps {
   /** 현재 이미지 URL */
@@ -40,14 +40,14 @@ interface ImageUploaderProps {
 
 const aspectRatioClasses: Record<AspectRatio, string> = {
   "1:1": "aspect-square",
-  "3:4": "aspect-[3/4]",
+  "0.726:1": "aspect-[0.726]",
   "4:3": "aspect-[4/3]",
   "16:9": "aspect-video",
 };
 
 const aspectRatioValues: Record<AspectRatio, number> = {
   "1:1": 1,
-  "3:4": 3 / 4,
+  "0.726:1": 0.726,
   "4:3": 4 / 3,
   "16:9": 16 / 9,
 };
@@ -57,7 +57,7 @@ export function ImageUploader({
   uploadEndpoint,
   deleteEndpoint,
   uploadData = {},
-  aspectRatio = "3:4",
+  aspectRatio = "0.726:1",
   onUploadSuccess,
   onDeleteSuccess,
   onError,

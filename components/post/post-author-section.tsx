@@ -67,21 +67,21 @@ export function PostAuthorSection({
   );
 }
 
-/** 글 작성자 카드 (3:4 이미지 + 상세 정보) */
+/** 글 작성자 카드 (0.726:1 이미지 + 상세 정보) */
 function AuthorCard({ author }: { author: PostAuthor }) {
-  // 이미지 선택: profileImageUrl (3:4) 우선, avatarUrl 차순위
+  // 이미지 선택: profileImageUrl (0.726:1) 우선, avatarUrl 차순위
   const displayImage = author.profileImageUrl || author.avatarUrl;
 
   return (
     <div className="rounded-xl border bg-muted/30 p-5">
       {/* 반응형 레이아웃: 모바일 세로, sm 이상 가로 */}
       <div className="flex flex-col sm:flex-row gap-5">
-        {/* 3:4 이미지 영역 */}
+        {/* 0.726:1 이미지 영역 */}
         <Link
           href={`/members/${author.githubName}`}
           className="shrink-0 self-center sm:self-start"
         >
-          <div className="relative w-28 sm:w-32 aspect-[3/4] rounded-lg overflow-hidden bg-muted hover:opacity-90 transition-opacity">
+          <div className="relative w-28 sm:w-32 aspect-[0.726] rounded-lg overflow-hidden bg-muted hover:opacity-90 transition-opacity">
             {displayImage ? (
               <Image
                 src={displayImage}
@@ -161,8 +161,8 @@ function ContributorMiniCard({
 }) {
   const CardContent = (
     <div className="flex items-start gap-3 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors">
-      {/* 3:4 미니 이미지 */}
-      <div className="relative w-14 aspect-[3/4] rounded overflow-hidden bg-muted shrink-0">
+      {/* 0.726:1 미니 이미지 */}
+      <div className="relative w-14 aspect-[0.726] rounded overflow-hidden bg-muted shrink-0">
         {contributor.avatarUrl ? (
           <Image
             src={contributor.avatarUrl}

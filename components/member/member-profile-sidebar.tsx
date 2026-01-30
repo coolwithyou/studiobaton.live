@@ -72,8 +72,8 @@ export function MemberProfileSidebar({
 
   return (
     <aside className="w-full lg:w-[280px] lg:shrink-0 space-y-4">
-      {/* 3:4 프로필 이미지 */}
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-muted">
+      {/* 0.726:1 프로필 이미지 */}
+      <div className="relative aspect-[0.726] rounded-xl overflow-hidden bg-muted">
         {member.profileImageUrl ? (
           <Image
             src={member.profileImageUrl}

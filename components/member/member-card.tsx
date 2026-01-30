@@ -20,7 +20,7 @@ export function MemberCard({ member }: MemberCardProps) {
 
   return (
     <Link href={`/members/${member.githubName}`}>
-      <Card className="group relative aspect-[2/3] overflow-hidden p-0 border hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer">
+      <Card className="group relative aspect-[0.726] overflow-hidden p-0 border hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer">
         {/* 배경 이미지 또는 폴백 */}
         {displayImage ? (
           <Image

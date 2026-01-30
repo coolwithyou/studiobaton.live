@@ -55,7 +55,7 @@ export interface FullAuthorInfo {
   githubName: string;
   /** 1:1 아바타 URL */
   avatarUrl: string | null;
-  /** 3:4 프로필 이미지 URL */
+  /** 0.726:1 프로필 이미지 URL */
   profileImageUrl: string | null;
   /** 자기소개 */
   bio: string | null;

@@ -122,10 +122,10 @@ export function EditProfileDialog({
           <div>
             <h4 className="text-sm font-medium mb-4">프로필 이미지</h4>
             <div className="flex gap-6">
-              {/* 3:4 프로필 이미지 */}
+              {/* 0.726:1 프로필 이미지 */}
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">
-                  프로필 (3:4)
+                  프로필 (0.726:1)
                 </Label>
                 <div className="w-24">
                   <ImageUploader
@@ -133,7 +133,7 @@ export function EditProfileDialog({
                     uploadEndpoint="/api/upload/profile-image"
                     deleteEndpoint="/api/upload/profile-image"
                     uploadData={{ memberId: member.id, imageType: "profile" }}
-                    aspectRatio="3:4"
+                    aspectRatio="0.726:1"
                     cropShape="rect"
                     placeholder={`${member.name} 프로필`}
                     onUploadSuccess={(url) => {

@@ -13,7 +13,7 @@ export function ScrollbarProvider({ children }: { children: React.ReactNode }) {
         visibility: "auto",
         autoHide: "scroll",
         autoHideDelay: 800,
-        autoHideSuspend: false,
+        autoHideSuspend: true,
         dragScroll: true,
         clickScroll: false,
         pointers: ["mouse", "touch", "pen"],

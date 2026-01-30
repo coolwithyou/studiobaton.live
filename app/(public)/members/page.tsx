@@ -21,6 +21,11 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     type: "website",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: `팀원 소개 | ${SITE_NAME}`,
+    description: "스튜디오 바톤 개발팀원들을 소개합니다.",
+  },
 };
 
 // 멤버 표시 순서 고정

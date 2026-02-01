@@ -243,9 +243,9 @@
 
 /* 다크모드 스크롤바 색상 */
 .dark .os-theme-ios {
-  --os-handle-bg: rgba(255, 255, 255, 0.25);
-  --os-handle-bg-hover: rgba(255, 255, 255, 0.45);
-  --os-handle-bg-active: rgba(255, 255, 255, 0.55);
+  --os-handle-bg: rgba(200, 200, 200, 0.4);
+  --os-handle-bg-hover: rgba(200, 200, 200, 0.6);
+  --os-handle-bg-active: rgba(200, 200, 200, 0.7);
 }
 
 /* 스크롤바 트랙 투명 처리 */

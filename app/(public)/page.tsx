@@ -3,8 +3,10 @@ import type { Metadata } from "next";
 import prisma from "@/lib/prisma";
 import { hasUnmaskPermission } from "@/lib/auth-helpers";
 import { applyPostListMasking } from "@/lib/masking";
-import { MailLayout } from "@/components/mail-layout/mail-layout";
+import { getUniqueAuthors } from "@/lib/author-normalizer";
+import { TimelineItem } from "@/components/timeline/timeline-item";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
+import { ContentGrid } from "@/components/layout/content-grid";
 import {
   SITE_URL,
   SITE_NAME,
@@ -23,12 +25,13 @@ export const metadata: Metadata = {
   },
 };
 
-async function TimelinePosts() {
+async function Timeline() {
   const isAuthenticated = await hasUnmaskPermission();
 
   const posts = await prisma.post.findMany({
     where: {
       status: "PUBLISHED",
+      // COMMIT_BASED는 항상 표시, MANUAL은 showInTimeline=true인 경우만 표시
       OR: [
         { type: "COMMIT_BASED" },
         { type: "MANUAL", showInTimeline: true },
@@ -61,6 +64,17 @@ async function TimelinePosts() {
     },
   });
 
+  if (posts.length === 0) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-muted-foreground">아직 발행된 글이 없습니다.</p>
+        <p className="text-sm text-muted-foreground mt-2">
+          곧 새로운 이야기로 찾아뵙겠습니다.
+        </p>
+      </div>
+    );
+  }
+
   // 마스킹 적용
   const maskedPosts = await applyPostListMasking(
     posts.map((post) => ({
@@ -70,27 +84,43 @@ async function TimelinePosts() {
     isAuthenticated
   );
 
-  // MailLayout에 전달할 경량 데이터
-  const postsForList = maskedPosts.map((post) => ({
-    id: post.id,
-    slug: post.slug!,
-    title: post.title!,
-    summary: post.summary,
-    content: post.content!,
-    targetDate: post.targetDate.toISOString(),
-    type: post.type as "COMMIT_BASED" | "MANUAL",
-    contentType: post.contentType,
-    commits: post.commits.map((c) => ({
-      id: c.id,
-      repository: c.repository,
-      author: c.author,
-      authorAvatar: c.authorAvatar,
-      additions: c.additions,
-      deletions: c.deletions,
-    })),
-  }));
+  // 각 포스트에 대해 정규화된 저자 목록 계산
+  const postsWithAuthors = await Promise.all(
+    maskedPosts.map(async (post, index) => {
+      const authors = await getUniqueAuthors(
+        posts[index].commits.map((c) => ({
+          author: c.author,
+          authorEmail: c.authorEmail,
+          authorAvatar: c.authorAvatar,
+        }))
+      );
+      return { post, authors };
+    })
+  );
 
-  return <MailLayout posts={postsForList} />;
+  return (
+    <div className="py-8">
+      {postsWithAuthors.map(({ post, authors }, index) => (
+        <TimelineItem
+          key={post.id}
+          post={{
+            id: post.id,
+            slug: post.slug!,
+            title: post.title!,
+            content: post.content!,
+            summary: post.summary,
+            targetDate: post.targetDate.toISOString(),
+            publishedAt: post.publishedAt?.toISOString() || null,
+            commits: post.commits,
+            type: post.type,
+            contentType: post.contentType,
+          }}
+          authors={authors}
+          isLatest={index === 0}
+        />
+      ))}
+    </div>
+  );
 }
 
 export default function HomePage() {
@@ -134,14 +164,14 @@ export default function HomePage() {
   };
 
   return (
-    <>
+    <ContentGrid>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Suspense fallback={<TimelineSkeleton />}>
-        <TimelinePosts />
+        <Timeline />
       </Suspense>
-    </>
+    </ContentGrid>
   );
 }

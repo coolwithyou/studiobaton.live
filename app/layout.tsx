@@ -37,12 +37,12 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon/favicon.ico", sizes: "any" },
-      { url: "/favicon/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+      { url: "/favicon/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon/favicon-16x16.png", sizes: "16x16", type: "image/png" },
     ],
     apple: [{ url: "/favicon/apple-touch-icon.png", sizes: "180x180" }],
   },
-  manifest: "/favicon/site.webmanifest",
+  manifest: "/manifest.webmanifest",
   openGraph: {
     type: "website",
     locale: "ko_KR",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: [
       {
-        url: "/favicon/web-app-manifest-512x512.png",
+        url: "/favicon/android-chrome-512x512.png",
         width: 512,
         height: 512,
         alt: SITE_NAME,
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ["/favicon/web-app-manifest-512x512.png"],
+    images: ["/favicon/android-chrome-512x512.png"],
   },
   robots: {
     index: true,

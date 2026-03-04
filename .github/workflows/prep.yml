@@ -1,0 +1,42 @@
+# =============================================================================
+# Prep - Baton Issue Analyzer
+# =============================================================================
+# 이 워크플로우를 대상 repo의 .github/workflows/prep.yml 에 복사하세요.
+#
+# 사전 요구사항:
+#   1. repo secret에 CLAUDE_CODE_OAUTH_TOKEN 등록
+#   2. Claude GitHub App이 이 repo에 접근 허용
+#   3. CLAUDE.md에 Prep 행동 규칙 섹션 추가
+#
+# 사용법:
+#   - 이슈 코멘트에 @claude 또는 /analyze 입력
+#   - 이슈에 bot-analyze 라벨 추가
+# =============================================================================
+
+name: Prep
+
+on:
+  issue_comment:
+    types: [created]
+  issues:
+    types: [labeled]
+
+jobs:
+  analyze:
+    # PR이 아닌 이슈에서만 실행. 코멘트 트리거 또는 라벨 트리거.
+    if: |
+      (github.event_name == 'issue_comment' &&
+       !github.event.issue.pull_request &&
+       (contains(github.event.comment.body, '@claude') ||
+        contains(github.event.comment.body, '/analyze'))) ||
+      (github.event_name == 'issues' &&
+       github.event.action == 'labeled' &&
+       github.event.label.name == 'bot-analyze')
+    uses: coolwithyou/studiobaton.prep/.github/workflows/issue-analyzer.yml@main
+    secrets:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    # 필요시 기본값 오버라이드:
+    # with:
+    #   trigger_phrase: "@claude"
+    #   label_trigger: "bot-analyze"
+    #   max_turns: 20

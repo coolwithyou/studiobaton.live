@@ -6,11 +6,15 @@
 # 사전 요구사항:
 #   1. repo secret에 CLAUDE_CODE_OAUTH_TOKEN 등록
 #   2. Claude GitHub App이 이 repo에 접근 허용
-#   3. CLAUDE.md에 Prep 행동 규칙 섹션 추가
+#   3. CLAUDE.md에 프로젝트 컨텍스트 작성 (행동 규칙은 자동 주입됨)
 #
 # 사용법:
 #   - 이슈 코멘트에 @claude 또는 /analyze 입력
 #   - 이슈에 bot-analyze 라벨 추가
+#
+# per-repo 커스터마이징:
+#   custom_instructions에 이 repo 전용 추가 규칙을 작성하세요.
+#   전역 규칙(studiobaton.prep)에 덧붙여서 적용됩니다.
 # =============================================================================
 
 name: Prep
@@ -27,7 +31,7 @@ jobs:
     if: |
       (github.event_name == 'issue_comment' &&
        !github.event.issue.pull_request &&
-       (contains(github.event.comment.body, '@claude') ||
+       (contains(github.event.comment.body, '@prep') ||
         contains(github.event.comment.body, '/analyze'))) ||
       (github.event_name == 'issues' &&
        github.event.action == 'labeled' &&
@@ -35,8 +39,13 @@ jobs:
     uses: coolwithyou/studiobaton.prep/.github/workflows/issue-analyzer.yml@main
     secrets:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-    # 필요시 기본값 오버라이드:
     # with:
-    #   trigger_phrase: "@claude"
-    #   label_trigger: "bot-analyze"
-    #   max_turns: 20
+    #   trigger_phrase: "@prep"      # 기본값
+    #   label_trigger: "bot-analyze"  # 기본값
+    #   max_turns: 20               # 기본값
+    #
+    #   # per-repo 전용 규칙 (전역 규칙에 추가됨)
+    #   custom_instructions: |
+    #     - Prisma 마이그레이션이 필요한 변경은 MEDIUM 이하로 판단하세요.
+    #     - app/api/payment/ 하위 파일 수정은 항상 LOW confidence로 처리하세요.
+    #     - 컴포넌트 신규 생성은 HIGH confidence 허용합니다.
